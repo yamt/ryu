@@ -1233,7 +1233,7 @@ class OFPQueueGetConfigRequest(MsgBase):
 
 class OFPQueuePropHeader(object):
     def __init__(self, property_, len_):
-        super(OFPQueueProp, self).__init__()
+        super(OFPQueuePropHeader, self).__init__()
         self.property = property_
         self.len = len_
 
