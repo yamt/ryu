@@ -15,7 +15,7 @@
 # limitations under the License.
 
 
-import gflags
+from openstack.common import cfg
 import logging
 
 from ryu.base import app_manager
@@ -24,12 +24,13 @@ from ryu.controller.handler import set_ev_cls
 
 LOG = logging.getLogger('ryu.app.event_dumper')
 
-FLAGS = gflags.FLAGS
-gflags.DEFINE_multistring('dump_queue', [],
-                          'list of dispatcher name to dump event: default any')
-gflags.DEFINE_multistring('dump_dispatcher', [],
-                          'list of dispatcher name to dump event: default any')
-
+CONF = cfg.CONF
+CONF.register_cli_opts([
+    cfg.MultiStrOpt('dump_queue', default=[],
+                    help='list of dispatcher name to dump event: default any'),
+    cfg.MultiStrOpt('dump_dispatcher', default=[],
+                    help='list of dispatcher name to dump event: default any')
+])
 
 class EventDumper(app_manager.RyuApp):
     def __init__(self, *args, **kwargs):
@@ -48,8 +49,8 @@ class EventDumper(app_manager.RyuApp):
         return len(name_list) == 0 or name in name_list
 
     def _register_dump_handler(self, ev_q, dispatcher):
-        if (self._need_dump(ev_q.name, FLAGS.dump_queue) or
-                self._need_dump(dispatcher.name, FLAGS.dump_dispatcher)):
+        if (self._need_dump(ev_q.name, CONF.dump_queue) or
+                self._need_dump(dispatcher.name, CONF.dump_dispatcher)):
             dispatcher.register_all_handler(self._dump_event)
 
     @set_ev_cls(dispatcher.EventQueueCreate, dispatcher.QUEUE_EV_DISPATCHER)
