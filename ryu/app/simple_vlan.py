@@ -68,7 +68,7 @@ class SimpleVLAN(app_manager.RyuApp):
     _CONTEXTS = {
         'conf_switch': conf_switch.ConfSwitchSet,
         'dpset': dpset.DPSet,
-        'netowrk': network.Network,
+        'network': network.Network,
         'tunnels': tunnels.Tunnels,
     }
 
