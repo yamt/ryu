@@ -17,13 +17,13 @@
 import contextlib
 import gflags
 import logging
-import gevent
+from ryu.lib import hub
+from ryu.lib.hub import queue
+from ryu.lib.hub import StreamServer
 import traceback
 import random
 import greenlet
 import ssl
-from gevent.server import StreamServer
-from gevent.queue import Queue
 
 import ryu.base.app_manager
 
@@ -122,7 +122,7 @@ class Datapath(object):
 
         # The limit is arbitrary. We need to limit queue size to
         # prevent it from eating memory up
-        self.send_q = Queue(16)
+        self.send_q = queue.Queue(16)
 
         self.set_version(max(self.supported_ofp_version))
         self.xid = random.randint(0, self.ofproto.MAX_XID)
@@ -185,7 +185,7 @@ class Datapath(object):
                 count += 1
                 if count > 2048:
                     count = 0
-                    gevent.sleep(0)
+                    hub.sleep(0)
 
     @_deactivate
     def _send_loop(self):
@@ -218,7 +218,7 @@ class Datapath(object):
         self.send(msg.buf)
 
     def serve(self):
-        send_thr = gevent.spawn(self._send_loop)
+        send_thr = hub.spawn(self._send_loop)
 
         # send hello message immediately
         hello = self.ofproto_parser.OFPHello(self)
@@ -227,8 +227,8 @@ class Datapath(object):
         try:
             self._recv_loop()
         finally:
-            gevent.kill(send_thr)
-            gevent.joinall([send_thr])
+            hub.kill(send_thr)
+            hub.joinall([send_thr])
 
     #
     # Utility methods for convenience
