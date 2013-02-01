@@ -17,13 +17,13 @@
 import contextlib
 from openstack.common import cfg
 import logging
-import gevent
+from ryu.lib import hub
+from ryu.lib.hub import queue
+from ryu.lib.hub import StreamServer
 import traceback
 import random
 import greenlet
 import ssl
-from gevent.server import StreamServer
-from gevent.queue import Queue
 
 from ryu.ofproto import ofproto_common
 from ryu.ofproto import ofproto_parser
@@ -123,7 +123,7 @@ class Datapath(object):
 
         # The limit is arbitrary. We need to limit queue size to
         # prevent it from eating memory up
-        self.send_q = Queue(16)
+        self.send_q = queue.Queue(16)
 
         # circular reference self.ev_q.aux == self
         self.ev_q = dispatcher.EventQueueDirect(handler.QUEUE_NAME_OFP_MSG,
@@ -183,7 +183,7 @@ class Datapath(object):
                 count += 1
                 if count > 2048:
                     count = 0
-                    gevent.sleep(0)
+                    hub.sleep(0)
 
     @_deactivate
     def _send_loop(self):
@@ -209,7 +209,7 @@ class Datapath(object):
         self.send(msg.buf)
 
     def serve(self):
-        send_thr = gevent.spawn(self._send_loop)
+        send_thr = hub.spawn(self._send_loop)
 
         # send hello message immediately
         hello = self.ofproto_parser.OFPHello(self)
@@ -218,8 +218,8 @@ class Datapath(object):
         try:
             self._recv_loop()
         finally:
-            gevent.kill(send_thr)
-            gevent.joinall([send_thr])
+            hub.kill(send_thr)
+            hub.joinall([send_thr])
 
     def send_ev(self, ev):
         #LOG.debug('send_ev %s', ev)

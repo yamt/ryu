@@ -18,7 +18,7 @@ from openstack.common import cfg
 import logging
 import webob.dec
 
-from gevent import pywsgi
+from ryu.lib import hub
 from routes import Mapper
 from routes.util import URLGenerator
 
@@ -86,7 +86,7 @@ class WSGIApplication(object):
         return controller(req)
 
 
-class WSGIServer(pywsgi.WSGIServer):
+class WSGIServer(hub.WSGIServer):
     def __init__(self, application, **config):
         super(WSGIServer, self).__init__((CONF.wsapi_host, CONF.wsapi_port),
                                          application, **config)

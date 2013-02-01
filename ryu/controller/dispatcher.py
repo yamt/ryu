@@ -16,12 +16,11 @@
 
 from abc import ABCMeta, abstractmethod
 import copy
-import gevent
-import gevent.coros
+from ryu.lib import hub
 import logging
 import traceback
 
-from gevent.queue import Queue
+from ryu.lib.hub import queue
 
 from ryu.controller import event
 from ryu.lib import synchronized
@@ -54,7 +53,7 @@ class EventQueueCommon(TrackInstances):
         super(EventQueueCommon, self).__init__()
         self.name = name
         self._dispatcher = dispatcher.clone()
-        self.ev_q = Queue()
+        self.ev_q = queue.Queue()
         self.aux = aux  # for EventQueueCreate event
 
     def _init_done(self):
@@ -147,8 +146,8 @@ class EventQueueThread(EventQueueCommon):
     def __init__(self, name, dispatcher, aux=None):
         super(EventQueueThread, self).__init__(name, dispatcher, aux)
         self.is_active = True
-        self._dispatcher_lock = gevent.coros.Semaphore()
-        self.serve_thread = gevent.spawn(self._serve)
+        self._dispatcher_lock = hub.coros.Semaphore()
+        self.serve_thread = hub.spawn(self._serve)
         self._init_done()
 
     def close(self):
