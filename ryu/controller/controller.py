@@ -155,7 +155,7 @@ class Datapath(object):
 
         count = 0
         while self.is_active:
-            ret = self.socket.recv(required_len)
+            ret = self.socket.recv(4096)
             if len(ret) == 0:
                 self.is_active = False
                 break
