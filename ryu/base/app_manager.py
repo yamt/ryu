@@ -17,13 +17,11 @@
 import inspect
 import itertools
 import logging
-import gevent
-
-from gevent.queue import Queue
 
 from ryu import utils
 from ryu.controller.handler import register_instance
 from ryu.controller.controller import Datapath
+from ryu.lib import hub
 
 LOG = logging.getLogger('ryu.base.app_manager')
 
@@ -60,8 +58,8 @@ class RyuApp(object):
         self.event_handlers = {}
         self.observers = {}
         self.threads = []
-        self.events = Queue()
-        self.threads.append(gevent.spawn(self._event_loop))
+        self.events = hub.queue.Queue()
+        self.threads.append(hub.spawn(self._event_loop))
 
     def register_handler(self, ev_cls, handler):
         assert callable(handler)
