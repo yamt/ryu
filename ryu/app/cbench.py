@@ -21,6 +21,21 @@ from ryu.controller.handler import MAIN_DISPATCHER
 from ryu.controller.handler import set_ev_cls
 from ryu.ofproto import ofproto_v1_0
 
+import ryu.ofproto
+from ryu.controller.controller import QUEUES
+
+
+class AppDatapath(object):
+    def __init__(self, ofproto, ofproto_parser, send_q_id):
+        self.ofproto = ofproto
+        self.ofproto_parser = ofproto_parser
+        self.send_q_id = send_q_id
+
+    def send_msg(self, msg):
+        # XXX xid
+        msg.serialize()
+        QUEUES[self.send_q_id].put(msg.buf)
+
 
 class Cbench(app_manager.RyuApp):
     OFP_VERSIONS = [ofproto_v1_0.OFP_VERSION]
@@ -31,7 +46,9 @@ class Cbench(app_manager.RyuApp):
     @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
     def packet_in_handler(self, ev):
         msg = ev.msg
-        datapath = msg.datapath
+        datapath = AppDatapath(ryu.ofproto.ofproto_v1_0,
+                                   ryu.ofproto.ofproto_v1_0_parser,
+                                   msg.datapath)
         ofproto = datapath.ofproto
 
         match = datapath.ofproto_parser.OFPMatch(

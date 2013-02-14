@@ -103,6 +103,13 @@ def _deactivate(method):
     return deactivate
 
 
+# preallocate some number of queues so that they can be shared among processes
+QUEUE_IDS = queue.Queue()
+QUEUES = []
+for i in range(0, 128):
+    QUEUES.append(queue.Queue(16))
+    QUEUE_IDS.put(i)
+
 class Datapath(object):
     supported_ofp_version = {
         ofproto_v1_0.OFP_VERSION: (ofproto_v1_0,
@@ -122,7 +129,9 @@ class Datapath(object):
 
         # The limit is arbitrary. We need to limit queue size to
         # prevent it from eating memory up
-        self.send_q = queue.Queue(16)
+
+        self.send_q_id = QUEUE_IDS.get()  # XXX never free
+        self.send_q = QUEUES[self.send_q_id]
 
         self.set_version(max(self.supported_ofp_version))
         self.xid = random.randint(0, self.ofproto.MAX_XID)
@@ -173,6 +182,9 @@ class Datapath(object):
                     if self.state in handler.dispatchers:
                         handler(ev)
 
+                # XXX forget some complicated objects before serializing
+                ev.msg.datapath = self.send_q_id
+                ev.msg.buf = None
                 self.ofp_brick.send_event_to_observers(ev)
 
                 buf = buf[required_len:]
