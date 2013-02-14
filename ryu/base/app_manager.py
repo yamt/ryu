@@ -59,6 +59,8 @@ class RyuApp(object):
         self.observers = {}
         self.threads = []
         self.events = hub.queue.Queue()
+
+    def start_event_receiver(self):
         self.threads.append(hub.spawn(self._event_loop))
 
     def register_handler(self, ev_cls, handler):
@@ -188,6 +190,9 @@ class AppManager(object):
                 LOG.debug("  PROVIDES %s TO %s" % (ev_cls.__name__, list))
             for ev_cls, handler in i.event_handlers.items():
                 LOG.debug("  CONSUMES %s" % (ev_cls.__name__,))
+
+        for app in self.applications.values():
+            app.start_event_receiver()
 
     def close(self):
         def close_all(close_dict):
