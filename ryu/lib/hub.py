@@ -17,20 +17,24 @@
 # limitations under the License.
 
 # use gevent if available.  otherwise use eventlet.
+#try:
+#    import gevent
+#    import gevent.coros
+#    import gevent.monkey
+#    import gevent.pywsgi
+#    import gevent.queue
+#    THREADTYPE="gevent"
+#except:
+#    try:
+#        import eventlet
+#        import eventlet.wsgi
+#        THREADTYPE=eventlet
+#    except:
+#        THREADTYPE="hoge"
 
-try:
-    import gevent
-    import gevent.coros
-    import gevent.monkey
-    import gevent.pywsgi
-    import gevent.queue
-    GEVENT=True
-except:
-    import eventlet
-    import eventlet.wsgi
-    GEVENT=False
+THREADTYPE="process"
 
-if GEVENT:
+if THREADTYPE == 'gevent':
     coros = gevent.coros
     spawn = gevent.spawn
     patch = gevent.monkey.patch_all
@@ -40,7 +44,7 @@ if GEVENT:
     queue = gevent.queue
     StreamServer = gevent.server.StreamServer
     WSGIServer = gevent.pywsgi.WSGIServer
-else:
+elif THREADTYPE == 'eventlet':
     coros = eventlet.semaphore
     spawn = eventlet.spawn
     patch = eventlet.monkey_patch
@@ -62,3 +66,38 @@ else:
     class WSGIServer(StreamServer):
         def serve_forever(self):
             eventlet.wsgi.server(self.server, self.application)
+else:
+    import multiprocessing
+    import time
+    def spawn(func, *args):
+        thread = multiprocessing.Process(target=func, args=args)
+        thread.start()
+        return thread
+    def patch():
+        pass
+    sleep = time.sleep
+    def kill(thread):
+        # XXX terminate is not safe wrt Queue
+        thread.terminate()
+    def joinall(threads):
+        map(lambda x:x.join(), threads)
+    queue = multiprocessing
+    class StreamServer(object):
+        # XXXssl
+        def __init__(self, listen_info, application, **config):
+            import socket
+            s = socket.socket()
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            s.bind(listen_info)
+            s.listen(10)
+            self.server = s
+            self.application = application
+        def serve_forever(self):
+            while True:
+                sock, addr = self.server.accept()
+                spawn(self.application, sock, addr)
+                sock.close()
+    class WSGIServer(StreamServer):
+        def serve_forever(self):
+            while True:
+                time.sleep(10) # XXXdummy
