@@ -40,6 +40,8 @@ from ryu.ofproto import nx_match
 from ryu.controller import handler
 from ryu.controller import ofp_event
 
+from setproctitle import setproctitle
+
 LOG = logging.getLogger('ryu.controller.controller')
 
 FLAGS = gflags.FLAGS
@@ -201,6 +203,7 @@ class Datapath(object):
 
     @_deactivate
     def _send_loop(self):
+        setproctitle("ryu dp send %s" % (self.address,))
         try:
             while self.is_active:
                 buf = self.send_q.get()
@@ -235,6 +238,7 @@ class Datapath(object):
         # send hello message immediately
         hello = self.ofproto_parser.OFPHello(self)
         self.send_msg(hello)
+        setproctitle("ryu dp recv %s" % (self.address,))
 
         try:
             self._recv_loop()

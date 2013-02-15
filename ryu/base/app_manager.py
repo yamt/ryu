@@ -23,6 +23,8 @@ from ryu.controller.handler import register_instance
 from ryu.controller.controller import Datapath
 from ryu.lib import hub
 
+from setproctitle import setproctitle
+
 LOG = logging.getLogger('ryu.base.app_manager')
 
 SERVICE_BRICKS = {}
@@ -79,6 +81,7 @@ class RyuApp(object):
         return self.observers.get(ev.__class__, [])
 
     def _event_loop(self):
+        setproctitle('ryu %s event loop' % (self.name,))
         while True:
             ev = self.events.get()
             handlers = self.get_handlers(ev)
