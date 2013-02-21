@@ -48,7 +48,9 @@ CONF.register_cli_opts([
     cfg.ListOpt('app-lists', default=[],
                 help='application module name to run'),
     cfg.MultiStrOpt('app', positional=True, default=[],
-                    help='application module name to run')
+                    help='application module name to run'),
+    cfg.StrOpt('cprofile', default=None,
+               help='a file to dump cProfile stats')
 ])
 
 
@@ -57,29 +59,38 @@ def main():
 
     log.init_log()
 
-    # always enable ofp for now.
-    CONF.app_lists += ['ryu.controller.ofp_handler']
-    CONF.app_lists += CONF.app
+    if CONF.cprofile:
+        from cProfile import Profile
+        prof = Profile()
+        prof.enable()
 
-    app_mgr = AppManager()
-    app_mgr.load_apps(CONF.app_lists)
-    contexts = app_mgr.create_contexts()
-    app_mgr.instantiate_apps(**contexts)
+    try:
+        # always enable ofp for now.
+        CONF.app_lists += ['ryu.controller.ofp_handler']
+        CONF.app_lists += CONF.app
 
-    services = []
+        app_mgr = AppManager()
+        app_mgr.load_apps(CONF.app_lists)
+        contexts = app_mgr.create_contexts()
+        app_mgr.instantiate_apps(**contexts)
 
-    ctlr = controller.OpenFlowController()
-    thr = gevent.spawn_later(0, ctlr)
-    services.append(thr)
+        services = []
 
-    webapp = wsgi.start_service(app_mgr)
-    if webapp:
-        thr = gevent.spawn_later(0, webapp)
+        ctlr = controller.OpenFlowController()
+        thr = gevent.spawn_later(0, ctlr)
         services.append(thr)
 
-    gevent.joinall(services)
-    app_mgr.close()
+        webapp = wsgi.start_service(app_mgr)
+        if webapp:
+            thr = gevent.spawn_later(0, webapp)
+            services.append(thr)
 
+        gevent.joinall(services)
+        app_mgr.close()
+    finally:
+        if prof:
+            prof.disable()
+            prof.dump_stats(CONF.cprofile)
 
 if __name__ == "__main__":
     main()
