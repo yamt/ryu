@@ -39,6 +39,28 @@ CONF.register_opts([
 class CliHandler(TelnetHandler):
     PROMPT = 'ryu-manager %s> ' % version
 
+    @command('set-log-level')
+    def command_set_log_level(self, params):
+        '''<logger> <level>
+        set log level of the specified logger
+        '''
+        import logging
+        import ryu.logger
+        try:
+            name = params[0]
+            newlvl = int(params[1])
+        except (ValueError, IndexError):
+            self.writeerror('invalid parameter')
+            return
+        if not name in ryu.logger.RyuLogger.loggers:
+            self.writeerror('logger %s is unknown' % (name,))
+            return
+        logger = logging.getLogger(name)
+        oldlvl = logger.getEffectiveLevel()
+        logger.setLevel(newlvl)
+        self.writeresponse('logger %s level %s -> %s' %
+                           (name, oldlvl, newlvl))
+
     @command('show-bricks')
     def command_show_bricks(self, params):
         '''
@@ -47,6 +69,20 @@ class CliHandler(TelnetHandler):
         from ryu.base.app_manager import SERVICE_BRICKS
         for b, x in SERVICE_BRICKS.iteritems():
             self.writeresponse('%s' % (b,))
+
+    @command('show-loggers')
+    def command_show_loggers(self, params):
+        '''
+        show loggers
+        '''
+        import logging
+        import ryu.logger
+
+        def show_logger(name):
+            logger = logging.getLogger(name)
+            self.writeresponse('logger %s level %s' %
+                               (name, logger.getEffectiveLevel()))
+        map(show_logger, ryu.logger.RyuLogger.loggers)
 
     @command('show-options')
     def command_show_options(self, params):
