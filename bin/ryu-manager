@@ -33,6 +33,7 @@ from oslo.config import cfg
 import logging
 import sys
 
+import ryu.logger
 from ryu import log
 log.early_init_log(logging.DEBUG)
 
