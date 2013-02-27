@@ -22,7 +22,7 @@ from gevent import pywsgi
 from routes import Mapper
 from routes.util import URLGenerator
 
-LOG = logging.getLogger('ryu.app.wsgi')
+# LOG = logging.getLogger('ryu.app.wsgi')
 
 CONF = cfg.CONF
 CONF.register_cli_opts([
