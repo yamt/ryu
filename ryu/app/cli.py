@@ -34,8 +34,16 @@ from ryu.base import management
 
 CONF = cfg.CONF
 CONF.register_opts([
-    cfg.StrOpt('cli_host', default='localhost', help='cli listen host'),
-    cfg.IntOpt('cli_port', default=4989, help='cli listen port')
+    cfg.ListOpt('cli-transports', default=[], help='cli transports to enable'),
+    cfg.StrOpt('cli-telnet-host', default='localhost',
+               help='cli telnet listen host'),
+    cfg.IntOpt('cli-telnet-port', default=4989, help='cli telnet listen port'),
+    cfg.StrOpt('cli-ssh-host', default='localhost',
+               help='cli ssh listen host'),
+    cfg.IntOpt('cli-ssh-port', default=4990, help='cli ssh listen port'),
+    cfg.StrOpt('cli-ssh-hostkey', default=None, help='cli ssh host key file'),
+    cfg.StrOpt('cli-ssh-username', default=None, help='cli ssh username'),
+    cfg.StrOpt('cli-ssh-password', default=None, help='cli ssh password')
 ])
 
 
@@ -78,14 +86,14 @@ class CliHandler(TelnetHandler):
         TelnetHandler.__init__(self, request, client_address, server)
 
     def session_start(self):
-        self.logger.info("session start")
+        self.logger.info("%s session start", self.transport)
 
     def session_end(self):
         # XXX due to a bug in telnetsrv 0.4, this isn't called on
         # a forcible disconnect.
         # see https://github.com/yamt/telnetsrvlib/tree/fix-disconnect
         # for a fix.
-        self.logger.info("session end")
+        self.logger.info("%s session end", self.transport)
 
     @command_log('set-log-level')
     def command_set_log_level(self, params):
@@ -136,12 +144,62 @@ class CliHandler(TelnetHandler):
         CONF.log_opt_values(MyLogger(), None)
 
 
+class CliTelnetHandler(CliHandler):
+    transport = 'telnet'
+
+
+class CliSSHHandler(CliHandler):
+    transport = 'ssh'
+
+
 class Cli(app_manager.RyuApp):
     def __init__(self, *args, **kwargs):
         super(Cli, self).__init__(*args, **kwargs)
-        gevent.spawn(self.loop)
+        something_started = False
+        if 'telnet' in CONF.cli_transports:
+            self.logger.info("starting telnet server at %s:%d",
+                             CONF.cli_telnet_host, CONF.cli_telnet_port)
+            gevent.spawn(self.telnet_loop)
+            something_started = True
+        if 'ssh' in CONF.cli_transports:
+            self.logger.info("starting ssh server at %s:%d",
+                             CONF.cli_ssh_host, CONF.cli_ssh_port)
+            gevent.spawn(self.ssh_loop)
+            something_started = True
+        if not something_started:
+            self.logger.warn("cli app has no valid transport configured")
+            self.logger.debug("cli-transports=%s", CONF.cli_transports)
+            self.logger.debug("cli-ssh-hostkey=%s", CONF.cli_ssh_hostkey)
 
-    def loop(self):
-        server = gevent.server.StreamServer((CONF.cli_host, CONF.cli_port),
-                                            CliHandler.streamserver_handle)
+    def telnet_loop(self):
+        server = gevent.server.StreamServer((CONF.cli_telnet_host,
+                                            CONF.cli_telnet_port),
+                                            CliTelnetHandler.
+                                            streamserver_handle)
+        server.serve_forever()
+
+    def ssh_loop(self):
+        from telnetsrv import paramiko_ssh
+
+        class Wrapper(paramiko_ssh.SSHHandler):
+            host_key = paramiko_ssh.getRsaKeyFile(CONF.cli_ssh_hostkey)
+            telnet_handler = CliSSHHandler
+
+            # NOTE: paramiko_ssh from telnetsrv 0.4 allows none auth
+            # by default.
+            def authCallbackUsername(self, username, password):
+                raise RuntimeError('reject none auth')
+
+            # paramiko.ServerInterface
+            def get_allowed_auths(self, usename):
+                return 'password'
+
+            def authCallback(self, username, password):
+                if username != CONF.cli_ssh_username or password != \
+                        CONF.cli_ssh_password:
+                    raise RuntimeError('auth fail')
+
+        server = gevent.server.StreamServer((CONF.cli_ssh_host,
+                                            CONF.cli_ssh_port),
+                                            Wrapper.streamserver_handle)
         server.serve_forever()
