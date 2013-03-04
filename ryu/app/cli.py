@@ -15,17 +15,21 @@
 # limitations under the License.
 
 # a management cli application.
-# this module requires telnetsrv.
 
+from __future__ import print_function
+
+import cmd
+import functools
 import gevent
 import gevent.server
 import logging
-import functools
+import os
+import paramiko
+import pty
+import select
+import sys
 
 from oslo.config import cfg
-
-from telnetsrv.green import command
-from telnetsrv.green import TelnetHandler
 
 from ryu import version
 from ryu.base import app_manager
@@ -35,9 +39,6 @@ from ryu.base import management
 CONF = cfg.CONF
 CONF.register_opts([
     cfg.ListOpt('cli-transports', default=[], help='cli transports to enable'),
-    cfg.StrOpt('cli-telnet-host', default='localhost',
-               help='cli telnet listen host'),
-    cfg.IntOpt('cli-telnet-port', default=4989, help='cli telnet listen port'),
     cfg.StrOpt('cli-ssh-host', default='localhost',
                help='cli ssh listen host'),
     cfg.IntOpt('cli-ssh-port', default=4990, help='cli ssh listen port'),
@@ -63,143 +64,150 @@ class PrefixedLogger(object):
         return method
 
 
-def command_log(*args, **kwargs):
-    def _log(f):
-        # XXX see the implementation of @command for command_name
-        @functools.wraps(f)
-        def wrapper(self, params):
-            self.logger.info("command %s %s" % (wrapper.command_name, params))
-            f(self, params)
-        return wrapper
-    return lambda f: command(*args, **kwargs)(_log(f))
+def command_log(f):
+    @functools.wraps(f)
+    def wrapper(self, params):
+        self.logger.info("command %s %s" % (wrapper.__name__, params))
+        f(self, params)
+    return wrapper
 
 
-class CliHandler(TelnetHandler):
-    PROMPT = 'ryu-manager %s> ' % version
+class CliCmd(cmd.Cmd):
+    prompt = 'ryu-manager %s> ' % version
 
-    def __init__(self, request, client_address, server):
-        self.client_address = client_address
-        logger = logging.getLogger("ryu.app.Cli")
-        plogger = PrefixedLogger(logger, "CLI %s" % (client_address,))
-        self.logger = plogger  # for us
-        self.logging = plogger  # for TelnetHandler
-        TelnetHandler.__init__(self, request, client_address, server)
+    def __init__(self, logger, *args, **kwargs):
+        cmd.Cmd.__init__(self, *args, **kwargs)
+        self.logger = logger
 
-    def session_start(self):
-        self.logger.info("%s session start", self.transport)
-
-    def session_end(self):
-        # XXX due to a bug in telnetsrv 0.4, this isn't called on
-        # a forcible disconnect.
-        # see https://github.com/yamt/telnetsrvlib/tree/fix-disconnect
-        # for a fix.
-        self.logger.info("%s session end", self.transport)
-
-    @command_log('set-log-level')
-    def command_set_log_level(self, params):
+    @command_log
+    def do_set_log_level(self, params):
         '''<logger> <level>
         set log level of the specified logger
         '''
         try:
+            params = params.split()
             name = params[0]
             newlvl = int(params[1])
         except (ValueError, IndexError):
-            self.writeerror('invalid parameter')
+            print('invalid parameter')
             return
         try:
             oldlvl = management.get_log_level(name)
             management.set_log_level(name, newlvl)
         except LookupError:
-            self.writeerror('logger %s is unknown' % (name,))
+            print('logger %s is unknown' % (name,))
             return
-        self.writeresponse('logger %s level %s -> %s' %
-                           (name, oldlvl, newlvl))
+        print('logger %s level %s -> %s' % (name, oldlvl, newlvl))
 
-    @command_log('show-bricks')
-    def command_show_bricks(self, params):
+    @command_log
+    def do_show_bricks(self, params):
         '''
         show a list of configured bricks
         '''
-        map(lambda b: self.writeresponse('%s' % (b,)),
-            management.list_bricks())
+        map(lambda b: print('%s' % (b,)), management.list_bricks())
 
-    @command_log('show-loggers')
-    def command_show_loggers(self, params):
+    @command_log
+    def do_show_loggers(self, params):
         '''
         show loggers
         '''
-        map(lambda name: self.writeresponse('logger %s level %s' %
-                                            (name,
-                                            management.get_log_level(name))),
+        map(lambda name: print('logger %s level %s' %
+                               (name, management.get_log_level(name))),
             management.list_loggers())
 
-    @command_log('show-options')
-    def command_show_options(self, params):
+    @command_log
+    def do_show_options(self, params):
         '''
         show options
         '''
         class MyLogger:
             def log(mylogger_self, lvl, fmt, *args):
-                self.writeresponse(fmt % args)
+                print(fmt % args)
         CONF.log_opt_values(MyLogger(), None)
 
 
-class CliTelnetHandler(CliHandler):
-    transport = 'telnet'
+class SshServer(paramiko.ServerInterface):
+    def __init__(self, logger, *args, **kwargs):
+        super(SshServer, self).__init__(*args, **kwargs)
+        self._logger = logger
 
+    def check_auth_password(self, username, password):
+        print("check_auth_password", username, password)
+        if username == CONF.cli_ssh_username and \
+                password == CONF.cli_ssh_password:
+            return paramiko.AUTH_SUCCESSFUL
+        return paramiko.AUTH_FAILED
 
-class CliSSHHandler(CliHandler):
-    transport = 'ssh'
+    def check_channel_request(self, kind, chanid):
+        if kind == 'session':
+            return paramiko.OPEN_SUCCEEDED
+        return paramiko.OPEN_FAILED_ADMINISTRATIVELY_PROHIBITED
+
+    def check_channel_shell_request(self, chan):
+        gevent.spawn(self.handle_shell_request)
+        return True
+
+    def check_channel_pty_request(self, chan, term, width, height,
+                                  pixelwidth, pixelheight, modes):
+        self.term = term
+        return True
+
+    def pty_loop(self, chan, fd):
+        while True:
+            rfds, wfds, xfds = select.select([chan.fileno(), fd], [],[])
+            if fd in rfds:
+                data = os.read(fd, 1024)
+                if len(data) == 0:
+                    break
+                chan.send(data)
+            if chan.fileno() in rfds:
+                data = chan.recv(1024)
+                if len(data) == 0:
+                    break
+                os.write(fd, data)
+        chan.close()
+
+    def handle_shell_request(self):
+        self.logger.info("session start")
+        chan = self.transport.accept(20)
+        if not chan:
+            self.logger.info("transport.accept timed out")
+            return
+        master_fd, slave_fd = pty.openpty()
+        gevent.spawn(self.pty_loop, chan, master_fd)
+        CliCmd(self.logger, stdin = slave_fd, stdout = slave_fd).cmdloop()
+        c.cmdloop()
+        self.logger.info("session end")
+
+    def streamserver_handle(self, sock, addr):
+        self.logger = PrefixedLogger(self._logger, "CLI-SSH %s" % (addr,))
+        transport = paramiko.Transport(sock)
+        transport.load_server_moduli()
+        host_key = paramiko.RSAKey.from_private_key_file(CONF.cli_ssh_hostkey)
+        transport.add_server_key(host_key)
+        self.transport = transport
+        transport.start_server(server = self)
 
 
 class Cli(app_manager.RyuApp):
     def __init__(self, *args, **kwargs):
         super(Cli, self).__init__(*args, **kwargs)
         something_started = False
-        if 'telnet' in CONF.cli_transports:
-            self.logger.info("starting telnet server at %s:%d",
-                             CONF.cli_telnet_host, CONF.cli_telnet_port)
-            gevent.spawn(self.telnet_loop)
-            something_started = True
         if 'ssh' in CONF.cli_transports:
             self.logger.info("starting ssh server at %s:%d",
                              CONF.cli_ssh_host, CONF.cli_ssh_port)
-            gevent.spawn(self.ssh_loop)
+            gevent.spawn(self.ssh_thread)
             something_started = True
         if not something_started:
             self.logger.warn("cli app has no valid transport configured")
             self.logger.debug("cli-transports=%s", CONF.cli_transports)
             self.logger.debug("cli-ssh-hostkey=%s", CONF.cli_ssh_hostkey)
 
-    def telnet_loop(self):
-        server = gevent.server.StreamServer((CONF.cli_telnet_host,
-                                            CONF.cli_telnet_port),
-                                            CliTelnetHandler.
-                                            streamserver_handle)
-        server.serve_forever()
-
-    def ssh_loop(self):
-        from telnetsrv import paramiko_ssh
-
-        class Wrapper(paramiko_ssh.SSHHandler):
-            host_key = paramiko_ssh.getRsaKeyFile(CONF.cli_ssh_hostkey)
-            telnet_handler = CliSSHHandler
-
-            # NOTE: paramiko_ssh from telnetsrv 0.4 allows none auth
-            # by default.
-            def authCallbackUsername(self, username, password):
-                raise RuntimeError('reject none auth')
-
-            # paramiko.ServerInterface
-            def get_allowed_auths(self, usename):
-                return 'password'
-
-            def authCallback(self, username, password):
-                if username != CONF.cli_ssh_username or password != \
-                        CONF.cli_ssh_password:
-                    raise RuntimeError('auth fail')
-
+    def ssh_thread(self):
+        logging.getLogger('paramiko')
+        logging.getLogger('paramiko.transport')
+        ssh_server = SshServer(self.logger)
         server = gevent.server.StreamServer((CONF.cli_ssh_host,
                                             CONF.cli_ssh_port),
-                                            Wrapper.streamserver_handle)
+                                            ssh_server.streamserver_handle)
         server.serve_forever()
