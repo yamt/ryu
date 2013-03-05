@@ -15,10 +15,29 @@
 # limitations under the License.
 
 # IPC mechanism using pipe
-# assumption: packets are small enough to send via pipe atomically
 
 import os
 import pickle
+import struct
+
+
+HEADER_FORMAT = 'I'
+HEADER_SIZE = struct.calcsize(HEADER_FORMAT)
+
+
+def send_msg(fd, msg):
+    msg_str = pickle.dumps(msg)
+    blen = len(msg_str)
+    hdr = struct.pack(HEADER_FORMAT, blen)
+    os.write(fd, hdr)
+    os.write(fd, msg_str)
+
+
+def recv_msg(fd):
+    hdr = os.read(fd, HEADER_SIZE)
+    blen, = struct.unpack(HEADER_FORMAT, hdr)
+    msg_str = os.read(fd, blen)
+    return pickle.loads(msg_str)
 
 
 class ByNameCall(object):
@@ -62,11 +81,9 @@ class CallViaPipe(object):
 
     def __getattr__(self, name):
         def method(*args, **kwargs):
-            f = ByNameCall(self.basecls, name, *args, **kwargs)
-            os.write(self.wpipe, pickle.dumps(f))
-            replys = os.read(self.rpipe, 1024)
-            reply = pickle.loads(replys)
-            return reply()
+            send_msg(self.wpipe,
+                     ByNameCall(self.basecls, name, *args, **kwargs))
+            return recv_msg(self.rpipe)()
         return method
 
 
@@ -74,11 +91,10 @@ def serve(rpipe, wpipe, dicts):
     """
     serve a single call
     """
-    reqs = os.read(rpipe, 1024)
-    f = pickle.loads(reqs)
+    f = recv_msg(rpipe)
     try:
         ret = f(dicts)
         result = CallViaPipeReply("return", ret)
     except Exception, e:
         result = CallViaPipeReply("exception", e)
-    os.write(wpipe, pickle.dumps(result))
+    send_msg(wpipe, result)
