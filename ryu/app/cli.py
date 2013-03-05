@@ -123,9 +123,15 @@ class CliCmd(cmd.Cmd):
 
 
 class SshServer(paramiko.ServerInterface):
-    def __init__(self, logger, *args, **kwargs):
-        super(SshServer, self).__init__(*args, **kwargs)
-        self._logger = logger
+    def __init__(self, logger, sock, addr):
+        super(SshServer, self).__init__()
+        self.logger = PrefixedLogger(logger, "CLI-SSH %s" % (addr,))
+        transport = paramiko.Transport(sock)
+        transport.load_server_moduli()
+        host_key = paramiko.RSAKey.from_private_key_file(CONF.cli_ssh_hostkey)
+        transport.add_server_key(host_key)
+        self.transport = transport
+        transport.start_server(server = self)
 
     def check_auth_password(self, username, password):
         print("check_auth_password", username, password)
@@ -196,6 +202,14 @@ class SshServer(paramiko.ServerInterface):
         self.transport = transport
         transport.start_server(server = self)
 
+class SshServerFactory(object):
+    def __init__(self, logger, *args, **kwargs):
+        super(SshServerFactory, self).__init__(*args, **kwargs)
+        self.logger = logger
+
+    def streamserver_handle(self, sock, addr):
+        SshServer(self.logger, sock, addr)
+
 
 class Cli(app_manager.RyuApp):
     def __init__(self, *args, **kwargs):
@@ -214,8 +228,8 @@ class Cli(app_manager.RyuApp):
     def ssh_thread(self):
         logging.getLogger('paramiko')
         logging.getLogger('paramiko.transport')
-        ssh_server = SshServer(self.logger)
+        factory = SshServerFactory(self.logger)
         server = gevent.server.StreamServer((CONF.cli_ssh_host,
                                             CONF.cli_ssh_port),
-                                            ssh_server.streamserver_handle)
+                                            factory.streamserver_handle)
         server.serve_forever()
