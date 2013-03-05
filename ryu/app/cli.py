@@ -78,6 +78,8 @@ class CliCmd(cmd.Cmd):
 
     def __init__(self, rpipe, wpipe, *args, **kwargs):
         cmd.Cmd.__init__(self, *args, **kwargs)
+        # it's safe to use the same set of pipes as far as we are
+        # single-threaded.
         self.management = call_via_pipe.CallViaPipe(rpipe, wpipe, "management")
         self.logger = call_via_pipe.CallViaPipe(rpipe, wpipe, "logger")
 
