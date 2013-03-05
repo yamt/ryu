@@ -109,8 +109,7 @@ class CliCmd(cmd.Cmd):
         '''
         show options
         '''
-        # XXX
-        # this shows CONF of child process.
+        # NOTE: this shows CONF of the child process.
         # currently it isn't a problem because we don't modify CONF
         # after startup.
         class MyLogger:
