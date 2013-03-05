@@ -183,8 +183,8 @@ class SshServer(paramiko.ServerInterface):
         os.close(rpipe_reply)
         self.pty_loop(chan, master_fd, rpipe_request, wpipe_reply)
         self.logger.info("session end")
-        os.kill(pid)
-        os.waitpid(pid)
+        os.kill(child_pid)
+        os.waitpid(child_pid)
 
     def streamserver_handle(self, sock, addr):
         self.logger = PrefixedLogger(self._logger, "CLI-SSH %s" % (addr,))
