@@ -173,10 +173,11 @@ class SshServer(paramiko.ServerInterface):
         if not chan:
             self.logger.info("transport.accept timed out")
             return
-        master_fd, slave_fd = pty.openpty()
-        gevent.spawn(self.pty_loop, chan, master_fd)
-        CliCmd(self.logger, stdin = slave_fd, stdout = slave_fd).cmdloop()
-        c.cmdloop()
+        child_pid, master_fd = pty.fork()
+        if not child_pid:
+            CliCmd(self.logger).cmdloop()
+            return
+        self.pty_loop(chan, master_fd)
         self.logger.info("session end")
 
     def streamserver_handle(self, sock, addr):
