@@ -25,6 +25,7 @@ import gevent.server
 import logging
 import os
 import paramiko
+import pickle
 import pty
 import select
 import sys
@@ -67,17 +68,75 @@ class PrefixedLogger(object):
 def command_log(f):
     @functools.wraps(f)
     def wrapper(self, params):
-        self.logger.info("command %s %s" % (wrapper.__name__, params))
+#XXX        self.logger.info("command %s %s" % (wrapper.__name__, params))
         f(self, params)
     return wrapper
+
+
+class ByNameCall(object):
+    def __init__(self, obj, method, *args, **kwargs):
+        self.obj = obj
+        self.method = method
+        self.args = args
+        self.kwargs = kwargs
+
+    def __call__(self):
+        obj = globals()[self.obj]
+        method = getattr(obj, self.method)
+        return method(*self.args, **self.kwargs)
+
+    def __str__(self):
+        return "CallByName %s %s %s %s" % (self.obj, self.method, self.args,
+                                           self.kwargs)
+
+
+class CallViaPipeReply(object):
+    def __init__(self, type, value):
+        self.type = type
+        self.value = value
+
+    def __call__(self):
+        if self.type == "exception":
+            raise(self.value)
+        return self.value
+
+
+class CallViaPipe(object):
+    def __init__(self, rpipe, wpipe, basecls):
+        self.rpipe = rpipe
+        self.wpipe = wpipe
+        self.basecls = basecls
+
+    def __getattr__(self, name):
+        def method(*args, **kwargs):
+            f = ByNameCall(self.basecls, name, *args, **kwargs)
+            # XXX assume the packet small enough to be atomic
+            os.write(self.wpipe, pickle.dumps(f))
+            replys = os.read(self.rpipe, 1024)
+            reply = pickle.loads(replys)
+            return reply()
+        return method
+
+
+def serve_call_via_pipe(rpipe, wpipe):
+    reqs = os.read(rpipe, 1024)
+    f = pickle.loads(reqs)
+    print("REQ", f)
+    try:
+        ret = f()
+        result = CallViaPipeReply("return", ret)
+        print("REPLY", ret)
+    except Exception, e:
+        result = CallViaPipeReply("exception", e)
+    os.write(wpipe, pickle.dumps(result))
 
 
 class CliCmd(cmd.Cmd):
     prompt = 'ryu-manager %s> ' % version
 
-    def __init__(self, logger, *args, **kwargs):
+    def __init__(self, rpipe, wpipe, *args, **kwargs):
         cmd.Cmd.__init__(self, *args, **kwargs)
-        self.logger = logger
+        self.management = CallViaPipe(rpipe, wpipe, "management")
 
     @command_log
     def do_set_log_level(self, params):
@@ -92,8 +151,8 @@ class CliCmd(cmd.Cmd):
             print('invalid parameter')
             return
         try:
-            oldlvl = management.get_log_level(name)
-            management.set_log_level(name, newlvl)
+            oldlvl = self.management.get_log_level(name)
+            self.management.set_log_level(name, newlvl)
         except LookupError:
             print('logger %s is unknown' % (name,))
             return
@@ -104,7 +163,7 @@ class CliCmd(cmd.Cmd):
         '''
         show a list of configured bricks
         '''
-        map(lambda b: print('%s' % (b,)), management.list_bricks())
+        map(lambda b: print('%s' % (b,)), self.management.list_bricks())
 
     @command_log
     def do_show_loggers(self, params):
@@ -112,14 +171,17 @@ class CliCmd(cmd.Cmd):
         show loggers
         '''
         map(lambda name: print('logger %s level %s' %
-                               (name, management.get_log_level(name))),
-            management.list_loggers())
+                               (name, self.management.get_log_level(name))),
+            self.management.list_loggers())
 
     @command_log
     def do_show_options(self, params):
         '''
         show options
         '''
+        # XXX this shows CONF of child process.
+        # currently it isn't a problem because we don't modify CONF
+        # after startup.
         class MyLogger:
             def log(mylogger_self, lvl, fmt, *args):
                 print(fmt % args)
@@ -152,9 +214,9 @@ class SshServer(paramiko.ServerInterface):
         self.term = term
         return True
 
-    def pty_loop(self, chan, fd):
+    def pty_loop(self, chan, fd, rpipe, wpipe):
         while True:
-            rfds, wfds, xfds = select.select([chan.fileno(), fd], [],[])
+            rfds, wfds, xfds = select.select([chan.fileno(), fd, rpipe], [],[])
             if fd in rfds:
                 data = os.read(fd, 1024)
                 if len(data) == 0:
@@ -165,6 +227,8 @@ class SshServer(paramiko.ServerInterface):
                 if len(data) == 0:
                     break
                 os.write(fd, data)
+            if rpipe in rfds:
+                serve_call_via_pipe(rpipe, wpipe)
         chan.close()
 
     def handle_shell_request(self):
@@ -173,11 +237,17 @@ class SshServer(paramiko.ServerInterface):
         if not chan:
             self.logger.info("transport.accept timed out")
             return
+        rpipe_request, wpipe_request = os.pipe()
+        rpipe_reply, wpipe_reply = os.pipe()
         child_pid, master_fd = pty.fork()
         if not child_pid:
-            CliCmd(self.logger).cmdloop()
+            os.close(rpipe_request)
+            os.close(wpipe_reply)
+            CliCmd(rpipe_reply, wpipe_request).cmdloop()
             return
-        self.pty_loop(chan, master_fd)
+        os.close(wpipe_request)
+        os.close(rpipe_reply)
+        self.pty_loop(chan, master_fd, rpipe_request, wpipe_reply)
         self.logger.info("session end")
 
     def streamserver_handle(self, sock, addr):
