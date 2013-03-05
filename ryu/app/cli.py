@@ -91,6 +91,12 @@ class CliCmd(cmd.Cmd):
             return
         print('logger %s level %s -> %s' % (name, oldlvl, newlvl))
 
+    def complete_set_log_level(self, text, line, begidx, endidx):
+        if len((line + "x").split()) >= 3:
+            return []
+        return [x for x in self.management.list_loggers()
+                if x.startswith(text)]
+
     @command_log
     def do_show_bricks(self, params):
         '''
