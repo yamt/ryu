@@ -68,7 +68,7 @@ class PrefixedLogger(object):
 def command_log(f):
     @functools.wraps(f)
     def wrapper(self, params):
-#XXX        self.logger.info("command %s %s" % (wrapper.__name__, params))
+        self.logger.info("command %s %s" % (wrapper.__name__, params))
         f(self, params)
     return wrapper
 
@@ -80,8 +80,13 @@ class ByNameCall(object):
         self.args = args
         self.kwargs = kwargs
 
-    def __call__(self):
-        obj = globals()[self.obj]
+    def __call__(self, dicts):
+        for dict in dicts:
+            try:
+                obj = dict[self.obj]
+                break
+            except:
+                pass
         method = getattr(obj, self.method)
         return method(*self.args, **self.kwargs)
 
@@ -101,6 +106,7 @@ class CallViaPipeReply(object):
         return self.value
 
 
+# XXX assuming packets are small enough to send via pipe atomically
 class CallViaPipe(object):
     def __init__(self, rpipe, wpipe, basecls):
         self.rpipe = rpipe
@@ -110,7 +116,6 @@ class CallViaPipe(object):
     def __getattr__(self, name):
         def method(*args, **kwargs):
             f = ByNameCall(self.basecls, name, *args, **kwargs)
-            # XXX assume the packet small enough to be atomic
             os.write(self.wpipe, pickle.dumps(f))
             replys = os.read(self.rpipe, 1024)
             reply = pickle.loads(replys)
@@ -118,14 +123,12 @@ class CallViaPipe(object):
         return method
 
 
-def serve_call_via_pipe(rpipe, wpipe):
+def serve_call_via_pipe(rpipe, wpipe, dicts):
     reqs = os.read(rpipe, 1024)
     f = pickle.loads(reqs)
-    print("REQ", f)
     try:
-        ret = f()
+        ret = f(dicts)
         result = CallViaPipeReply("return", ret)
-        print("REPLY", ret)
     except Exception, e:
         result = CallViaPipeReply("exception", e)
     os.write(wpipe, pickle.dumps(result))
@@ -137,6 +140,7 @@ class CliCmd(cmd.Cmd):
     def __init__(self, rpipe, wpipe, *args, **kwargs):
         cmd.Cmd.__init__(self, *args, **kwargs)
         self.management = CallViaPipe(rpipe, wpipe, "management")
+        self.logger = CallViaPipe(rpipe, wpipe, "logger")
 
     @command_log
     def do_set_log_level(self, params):
@@ -179,7 +183,8 @@ class CliCmd(cmd.Cmd):
         '''
         show options
         '''
-        # XXX this shows CONF of child process.
+        # XXX
+        # this shows CONF of child process.
         # currently it isn't a problem because we don't modify CONF
         # after startup.
         class MyLogger:
@@ -228,7 +233,8 @@ class SshServer(paramiko.ServerInterface):
                     break
                 os.write(fd, data)
             if rpipe in rfds:
-                serve_call_via_pipe(rpipe, wpipe)
+                logger = self.logger
+                serve_call_via_pipe(rpipe, wpipe, [locals(), globals()])
         chan.close()
 
     def handle_shell_request(self):
