@@ -25,7 +25,6 @@ import gevent.server
 import logging
 import os
 import paramiko
-import pickle
 import pty
 import select
 import sys
@@ -35,6 +34,7 @@ from oslo.config import cfg
 from ryu import version
 from ryu.base import app_manager
 from ryu.base import management
+from ryu import call_via_pipe
 
 
 CONF = cfg.CONF
@@ -73,74 +73,13 @@ def command_log(f):
     return wrapper
 
 
-class ByNameCall(object):
-    def __init__(self, obj, method, *args, **kwargs):
-        self.obj = obj
-        self.method = method
-        self.args = args
-        self.kwargs = kwargs
-
-    def __call__(self, dicts):
-        for dict in dicts:
-            try:
-                obj = dict[self.obj]
-                break
-            except:
-                pass
-        method = getattr(obj, self.method)
-        return method(*self.args, **self.kwargs)
-
-    def __str__(self):
-        return "CallByName %s %s %s %s" % (self.obj, self.method, self.args,
-                                           self.kwargs)
-
-
-class CallViaPipeReply(object):
-    def __init__(self, type, value):
-        self.type = type
-        self.value = value
-
-    def __call__(self):
-        if self.type == "exception":
-            raise(self.value)
-        return self.value
-
-
-# XXX assuming packets are small enough to send via pipe atomically
-class CallViaPipe(object):
-    def __init__(self, rpipe, wpipe, basecls):
-        self.rpipe = rpipe
-        self.wpipe = wpipe
-        self.basecls = basecls
-
-    def __getattr__(self, name):
-        def method(*args, **kwargs):
-            f = ByNameCall(self.basecls, name, *args, **kwargs)
-            os.write(self.wpipe, pickle.dumps(f))
-            replys = os.read(self.rpipe, 1024)
-            reply = pickle.loads(replys)
-            return reply()
-        return method
-
-
-def serve_call_via_pipe(rpipe, wpipe, dicts):
-    reqs = os.read(rpipe, 1024)
-    f = pickle.loads(reqs)
-    try:
-        ret = f(dicts)
-        result = CallViaPipeReply("return", ret)
-    except Exception, e:
-        result = CallViaPipeReply("exception", e)
-    os.write(wpipe, pickle.dumps(result))
-
-
 class CliCmd(cmd.Cmd):
     prompt = 'ryu-manager %s> ' % version
 
     def __init__(self, rpipe, wpipe, *args, **kwargs):
         cmd.Cmd.__init__(self, *args, **kwargs)
-        self.management = CallViaPipe(rpipe, wpipe, "management")
-        self.logger = CallViaPipe(rpipe, wpipe, "logger")
+        self.management = call_via_pipe.CallViaPipe(rpipe, wpipe, "management")
+        self.logger = call_via_pipe.CallViaPipe(rpipe, wpipe, "logger")
 
     @command_log
     def do_set_log_level(self, params):
@@ -234,7 +173,7 @@ class SshServer(paramiko.ServerInterface):
                 os.write(fd, data)
             if rpipe in rfds:
                 logger = self.logger
-                serve_call_via_pipe(rpipe, wpipe, [locals(), globals()])
+                call_via_pipe.serve(rpipe, wpipe, [locals(), globals()])
         chan.close()
 
     def handle_shell_request(self):
