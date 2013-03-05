@@ -35,6 +35,7 @@ from ryu import version
 from ryu.base import app_manager
 from ryu.base import management
 from ryu import call_via_pipe
+from ryu.plogger import PrefixedLogger
 
 
 CONF = cfg.CONF
@@ -47,22 +48,6 @@ CONF.register_opts([
     cfg.StrOpt('cli-ssh-username', default=None, help='cli ssh username'),
     cfg.StrOpt('cli-ssh-password', default=None, help='cli ssh password')
 ])
-
-
-class PrefixedLogger(object):
-    def __init__(self, logger, prefix):
-        self.logger = logger
-        self.prefix = prefix
-
-    def __getattr__(self, name):
-        basemethod = getattr(self.logger, name)
-        if not name in ['debug', 'info', 'warn', 'error', 'critical',
-                        'exception']:
-            raise AttributeError
-
-        def method(msg, *args, **kwargs):
-            return basemethod("%s %s" % (self.prefix, msg), *args, **kwargs)
-        return method
 
 
 def command_log(f):
