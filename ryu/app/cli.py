@@ -53,7 +53,10 @@ CONF.register_opts([
 def command_log(f):
     @functools.wraps(f)
     def wrapper(self, params):
-        self.logger.info("command %s %s" % (wrapper.__name__, params))
+        name = wrapper.__name__
+        assert(name.startswith('do_'))
+        command_name = name[len('do_'):]
+        self.logger.info("command %s %s" % (command_name, params))
         f(self, params)
     return wrapper
 
