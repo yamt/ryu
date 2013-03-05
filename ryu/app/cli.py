@@ -27,6 +27,7 @@ import os
 import paramiko
 import pty
 import select
+import signal
 import sys
 
 from oslo.config import cfg
@@ -183,8 +184,8 @@ class SshServer(paramiko.ServerInterface):
         os.close(rpipe_reply)
         self.pty_loop(chan, master_fd, rpipe_request, wpipe_reply)
         self.logger.info("session end")
-        os.kill(child_pid)
-        os.waitpid(child_pid)
+        os.kill(child_pid, signal.SIGTERM)
+        os.waitpid(child_pid, 0)
 
     def streamserver_handle(self, sock, addr):
         self.logger = PrefixedLogger(self._logger, "CLI-SSH %s" % (addr,))
