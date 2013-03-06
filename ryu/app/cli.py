@@ -191,7 +191,7 @@ class SshServer(paramiko.ServerInterface):
             os.close(rpipe_request)
             os.close(wpipe_reply)
             CliCmd(rpipe_reply, wpipe_request).cmdloop()
-            return
+            os._exit(0)
         os.close(wpipe_request)
         os.close(rpipe_reply)
         self._pty_loop(chan, master_fd, rpipe_request, wpipe_reply)
