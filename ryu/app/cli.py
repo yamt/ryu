@@ -57,7 +57,7 @@ def command_log(f):
         assert(name.startswith('do_'))
         command_name = name[len('do_'):]
         self.logger.info("command %s %s" % (command_name, params))
-        f(self, params)
+        return f(self, params)
     return wrapper
 
 
