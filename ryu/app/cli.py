@@ -175,7 +175,10 @@ class SshServer(paramiko.ServerInterface):
                 os.write(fd, data)
             if rpipe in rfds:
                 logger = self.logger
-                call_via_pipe.serve(rpipe, wpipe, [locals(), globals()])
+                try:
+                    call_via_pipe.serve(rpipe, wpipe, [locals(), globals()])
+                except EOFError:
+                    break
         chan.close()
 
     def _handle_shell_request(self):
