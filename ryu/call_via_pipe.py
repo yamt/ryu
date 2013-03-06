@@ -35,8 +35,12 @@ def send_msg(fd, msg):
 
 def recv_msg(fd):
     hdr = os.read(fd, HEADER_SIZE)
+    if len(hdr) == 0:
+        raise EOFError
     blen, = struct.unpack(HEADER_FORMAT, hdr)
     msg_str = os.read(fd, blen)
+    if len(msg_str) == 0:
+        raise EOFError
     return pickle.loads(msg_str)
 
 
