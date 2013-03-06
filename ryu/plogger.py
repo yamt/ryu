@@ -15,17 +15,13 @@
 # limitations under the License.
 
 
-class PrefixedLogger(object):
+import logging
+
+
+class PrefixedLogger(logging.LoggerAdapter):
     def __init__(self, logger, prefix):
-        self.logger = logger
-        self.prefix = prefix
+        logging.LoggerAdapter.__init__(self, logger, {})
+        self.__prefix = prefix
 
-    def __getattr__(self, name):
-        basemethod = getattr(self.logger, name)
-        if not name in ['debug', 'info', 'warn', 'error', 'critical',
-                        'exception']:
-            raise AttributeError
-
-        def method(msg, *args, **kwargs):
-            return basemethod("%s %s" % (self.prefix, msg), *args, **kwargs)
-        return method
+    def process(self, msg, kwargs):
+        return ("%s %s" % (self.__prefix, msg), kwargs)
