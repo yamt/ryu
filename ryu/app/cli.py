@@ -145,7 +145,7 @@ class SshServer(paramiko.ServerInterface):
         return paramiko.OPEN_FAILED_ADMINISTRATIVELY_PROHIBITED
 
     def check_channel_shell_request(self, chan):
-        gevent.spawn(self.handle_shell_request)
+        gevent.spawn(self._handle_shell_request)
         return True
 
     def check_channel_pty_request(self, chan, term, width, height,
@@ -153,7 +153,7 @@ class SshServer(paramiko.ServerInterface):
         self.term = term
         return True
 
-    def pty_loop(self, chan, fd, rpipe, wpipe):
+    def _pty_loop(self, chan, fd, rpipe, wpipe):
         while True:
             rfds, wfds, xfds = select.select([chan.fileno(), fd, rpipe], [],
                                              [])
@@ -172,7 +172,7 @@ class SshServer(paramiko.ServerInterface):
                 call_via_pipe.serve(rpipe, wpipe, [locals(), globals()])
         chan.close()
 
-    def handle_shell_request(self):
+    def _handle_shell_request(self):
         self.logger.info("session start")
         chan = self.transport.accept(20)
         if not chan:
@@ -188,7 +188,7 @@ class SshServer(paramiko.ServerInterface):
             return
         os.close(wpipe_request)
         os.close(rpipe_reply)
-        self.pty_loop(chan, master_fd, rpipe_request, wpipe_reply)
+        self._pty_loop(chan, master_fd, rpipe_request, wpipe_reply)
         self.logger.info("session end")
         os.kill(child_pid, signal.SIGTERM)
         os.waitpid(child_pid, 0)
@@ -210,14 +210,14 @@ class Cli(app_manager.RyuApp):
         if 'ssh' in CONF.cli_transports:
             self.logger.info("starting ssh server at %s:%d",
                              CONF.cli_ssh_host, CONF.cli_ssh_port)
-            gevent.spawn(self.ssh_thread)
+            gevent.spawn(self._ssh_thread)
             something_started = True
         if not something_started:
             self.logger.warn("cli app has no valid transport configured")
             self.logger.debug("cli-transports=%s", CONF.cli_transports)
             self.logger.debug("cli-ssh-hostkey=%s", CONF.cli_ssh_hostkey)
 
-    def ssh_thread(self):
+    def _ssh_thread(self):
         logging.getLogger('paramiko')
         logging.getLogger('paramiko.transport')
         factory = SshServerFactory(self.logger)
