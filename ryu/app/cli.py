@@ -126,6 +126,10 @@ class CliCmd(cmd.Cmd):
                 print(fmt % args)
         CONF.log_opt_values(MyLogger(), None)
 
+    @command_log
+    def do_EOF(self, params):
+        return True
+
 
 class SshServer(paramiko.ServerInterface):
     def __init__(self, logger, sock, addr):
