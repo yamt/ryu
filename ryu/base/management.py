@@ -55,3 +55,10 @@ def list_bricks():
     """
     from ryu.base.app_manager import SERVICE_BRICKS
     return SERVICE_BRICKS.keys()
+
+def list_datapaths():
+    """
+    Return a list of connected datapaths
+    """
+    from ryu.controller.controller import Datapath
+    return [d.id for d in Datapath if not d.id is None]
