@@ -105,6 +105,13 @@ class CliCmd(cmd.Cmd):
         map(lambda b: print('%s' % (b,)), self.management.list_bricks())
 
     @command_log
+    def do_show_datapaths(self, params):
+        '''
+        show a list of connected datapaths
+        '''
+        map(lambda b: print('%s' % (b,)), self.management.list_datapaths())
+
+    @command_log
     def do_show_loggers(self, params):
         '''
         show loggers
