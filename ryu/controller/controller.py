@@ -40,6 +40,8 @@ from ryu.ofproto import nx_match
 from ryu.controller import handler
 from ryu.controller import ofp_event
 
+from ryu.instance_registry import InstanceRegistry
+
 LOG = logging.getLogger('ryu.controller.controller')
 
 CONF = cfg.CONF
@@ -106,6 +108,8 @@ def _deactivate(method):
 
 
 class Datapath(object):
+    __metaclass__ = InstanceRegistry
+
     supported_ofp_version = {
         ofproto_v1_0.OFP_VERSION: (ofproto_v1_0,
                                    ofproto_v1_0_parser),
@@ -136,6 +140,7 @@ class Datapath(object):
 
     def close(self):
         self.set_state(handler.DEAD_DISPATCHER)
+        self.instance_registry_unregister()
 
     def set_state(self, state):
         self.state = state
