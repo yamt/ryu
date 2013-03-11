@@ -15,6 +15,9 @@
 # limitations under the License.
 
 # internal management api
+#
+# this module is intended to contain thin api wrappers.
+# ideally each of them would be a call to an appropriate RyuApp.
 
 import logging
 
