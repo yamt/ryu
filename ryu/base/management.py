@@ -59,6 +59,7 @@ def list_bricks():
     from ryu.base.app_manager import SERVICE_BRICKS
     return SERVICE_BRICKS.keys()
 
+
 def list_datapaths():
     """
     Return a list of connected datapaths
