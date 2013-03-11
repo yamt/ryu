@@ -70,7 +70,7 @@ if __name__ == '__main__':
     a = A("a1")
     b = B("b1")
 
-    print a,b
+    print a, b
 
     print "iterate A"
     for i in A:
