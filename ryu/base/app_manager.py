@@ -71,14 +71,14 @@ class RyuApp(object):
         self.event_handlers.setdefault(ev_cls, [])
         self.event_handlers[ev_cls].append(handler)
 
-    def register_observer(self, ev_cls, name, states=None):
+    def _register_observer(self, ev_cls, name, states=None):
         states = states or []
         self.observers.setdefault(ev_cls, {})[name] = states
 
-    def get_handlers(self, ev):
+    def _get_handlers(self, ev):
         return self.event_handlers.get(ev.__class__, [])
 
-    def get_observers(self, ev, state):
+    def _get_observers(self, ev, state):
         observers = []
         for k, v in self.observers.get(ev.__class__, {}).iteritems():
             if not state or not v or state in v:
@@ -98,7 +98,7 @@ class RyuApp(object):
     def _event_loop(self):
         while True:
             ev = self.events.get()
-            handlers = self.get_handlers(ev)
+            handlers = self._get_handlers(ev)
             for handler in handlers:
                 handler(ev)
 
@@ -115,7 +115,7 @@ class RyuApp(object):
                       (self.name, name, ev.__class__.__name__))
 
     def send_event_to_observers(self, ev, state=None):
-        for observer in self.get_observers(ev, state):
+        for observer in self._get_observers(ev, state):
             self.send_event(observer, ev)
 
     def close(self):
@@ -200,14 +200,14 @@ class AppManager(object):
                     name = m.observer.split('.')[-1]
                     if name in SERVICE_BRICKS:
                         brick = SERVICE_BRICKS[name]
-                        brick.register_observer(m.ev_cls, i.name,
-                                                m.dispatchers)
+                        brick._register_observer(m.ev_cls, i.name,
+                                                 m.dispatchers)
 
                 # allow RyuApp and Event class are in different module
                 if hasattr(m, 'ev_cls'):
                     for brick in SERVICE_BRICKS.itervalues():
                         if m.ev_cls in brick._EVENTS:
-                            brick.register_observer(m.ev_cls, i.name)
+                            brick._register_observer(m.ev_cls, i.name)
 
         for brick, i in SERVICE_BRICKS.items():
             LOG.debug("BRICK %s" % brick)

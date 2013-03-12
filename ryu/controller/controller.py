@@ -172,7 +172,7 @@ class Datapath(object):
                 ev = ofp_event.ofp_msg_to_ev(msg)
                 self.ofp_brick.send_event_to_observers(ev, self.state)
 
-                handlers = self.ofp_brick.get_handlers(ev)
+                handlers = self.ofp_brick._get_handlers(ev)
                 for handler in handlers:
                     if self.state in handler.dispatchers:
                         handler(ev)

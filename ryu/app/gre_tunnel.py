@@ -394,7 +394,9 @@ class GRETunnel(app_manager.RyuApp):
         self.tunnels = kwargs['tunnels']
 
         self.port_set = PortSet(**kwargs)
-        map(lambda ev_cls: self.port_set.register_observer(ev_cls, self.name),
+
+        # XXX should not call _register_observer directly
+        map(lambda ev_cls: self.port_set._register_observer(ev_cls, self.name),
             [dpset.EventDP, PortSet.EventTunnelKeyDel, PortSet.EventVMPort,
             PortSet.EventTunnelPort, ofp_event.EventOFPPacketIn])
 
