@@ -21,24 +21,28 @@ from oslo.config import cfg
 
 CONF = cfg.CONF
 
+quantum_group = cfg.OptGroup(name='quantum',
+                             title='Openstack Quantum related options')
+CONF.register_group(quantum_group)
 CONF.register_cli_opts([
     # app/quantum_adapter
-    cfg.StrOpt('quantum-url', default='http://localhost:9696',
+    cfg.StrOpt('url', default='http://localhost:9696',
                help='URL for connecting to quantum'),
-    cfg.IntOpt('quantum-url-timeout', default=30,
+    cfg.IntOpt('url-timeout', default=30,
                help='timeout value for connecting to quantum in seconds'),
-    cfg.StrOpt('quantum-admin-username', default='quantum',
+    cfg.StrOpt('admin-username', default='quantum',
                help='username for connecting to quantum in admin context'),
-    cfg.StrOpt('quantum-admin-password', default='service_password',
+    cfg.StrOpt('admin-password', default='service_password',
                help='password for connecting to quantum in admin context'),
-    cfg.StrOpt('quantum-admin-tenant-name', default='service',
+    cfg.StrOpt('admin-tenant-name', default='service',
                help='tenant name for connecting to quantum in admin context'),
-    cfg.StrOpt('quantum-admin-auth-url', default='http://localhost:5000/v2.0',
+    cfg.StrOpt('admin-auth-url', default='http://localhost:5000/v2.0',
                help='auth url for connecting to quantum in admin context'),
-    cfg.StrOpt('quantum-auth-strategy', default='keystone',
+    cfg.StrOpt('auth-strategy', default='keystone',
                help='auth strategy for connecting to quantum in admin'
                'context'),
-    cfg.StrOpt('quantum-controller-addr', default=None,
+    cfg.StrOpt('controller-addr', default=None,
                help='openflow method:address:port to set controller of'
                'ovs bridge')
-])
+], group=quantum_group)
+

@@ -45,12 +45,12 @@ CONF = cfg.CONF
 
 def _get_auth_token(logger):
     httpclient = q_client.HTTPClient(
-        username=CONF.quantum_admin_username,
-        tenant_name=CONF.quantum_admin_tenant_name,
-        password=CONF.quantum_admin_password,
-        auth_url=CONF.quantum_admin_auth_url,
-        timeout=CONF.quantum_url_timeout,
-        auth_strategy=CONF.quantum_auth_strategy)
+        username=CONF.quantum.admin_username,
+        tenant_name=CONF.quantum.admin_tenant_name,
+        password=CONF.quantum.admin_password,
+        auth_url=CONF.quantum.admin_auth_url,
+        timeout=CONF.quantum.url_timeout,
+        auth_strategy=CONF.quantum.auth_strategy)
     try:
         httpclient.authenticate()
     except (q_exc.Unauthorized, q_exc.Forbidden, q_exc.EndpointNotFound) as e:
@@ -63,12 +63,12 @@ def _get_auth_token(logger):
 def _get_quantum_client(token):
     if token:
         my_client = q_clientv2.Client(
-            endpoint_url=CONF.quantum_url,
-            token=token, timeout=CONF.quantum_url_timeout)
+            endpoint_url=CONF.quantum.url,
+            token=token, timeout=CONF.quantum.url_timeout)
     else:
         my_client = q_clientv2.Client(
-            endpoint_url=CONF.quantum_url,
-            auth_strategy=None, timeout=CONF.quantum_url_timeout)
+            endpoint_url=CONF.quantum.url,
+            auth_strategy=None, timeout=CONF.quantum.url_timeout)
     return my_client
 
 
@@ -128,7 +128,7 @@ class OVSSwitch(object):
     def __init__(self, dpid, nw, ifaces, logger):
         # TODO: clean up
         token = None
-        if CONF.quantum_auth_strategy:
+        if CONF.quantum.auth_strategy:
             token = _get_auth_token(logger)
         q_api = _get_quantum_client(token)
 
@@ -137,7 +137,7 @@ class OVSSwitch(object):
         self.ifaces = ifaces
         self.logger = logger
         self.q_api = q_api
-        self.ctrl_addr = CONF.quantum_controller_addr
+        self.ctrl_addr = CONF.quantum.controller_addr
 
         self.ovsdb_addr = None
         self.tunnel_ip = None
