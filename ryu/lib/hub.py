@@ -16,23 +16,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# use gevent if available.  otherwise use eventlet.
+import os
 
-try:
+
+# we don't bother to use cfg.py because monkey patch needs to be
+# called very early.  instead, we use an environment variable to
+# select the type of hub.
+HUB_TYPE = os.getenv('RYU_HUB_TYPE', 'eventlet')
+
+if HUB_TYPE == 'gevent':
     import gevent
     import gevent.monkey
     import gevent.pywsgi
     import gevent.queue
-    GEVENT = True
-except:
-    import eventlet
-    import eventlet.wsgi
-    import eventlet.timeout
-    import eventlet.queue
-    import ssl
-    GEVENT = False
 
-if GEVENT:
     spawn = gevent.spawn
     patch = gevent.monkey.patch_all
     sleep = gevent.sleep
@@ -52,7 +49,14 @@ if GEVENT:
 
         def wait(self, timeout=None):
             self._ev.wait(timeout)
-else:
+elif HUB_TYPE == 'eventlet':
+    import eventlet
+    import eventlet.event
+    import eventlet.queue
+    import eventlet.timeout
+    import eventlet.wsgi
+    import ssl
+
     spawn = eventlet.spawn
     patch = eventlet.monkey_patch
     sleep = eventlet.sleep
