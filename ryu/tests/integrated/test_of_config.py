@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import gevent
+from ryu.lib import hub
 import traceback
 
 import lxml.etree
@@ -121,7 +121,7 @@ class OFConfigClient(app_manager.RyuApp):
         super(OFConfigClient, self).__init__(*args, **kwargs)
         self.switch = capable_switch.OFCapableSwitch(
             host=HOST, port=PORT, username=USERNAME, password=PASSWORD)
-        gevent.spawn(self._do_of_config)
+        hub.spawn(self._do_of_config)
 
     def _validate(self, tree):
         xmlschema = _get_schema()
