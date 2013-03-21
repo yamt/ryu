@@ -65,7 +65,11 @@ elif HUB_TYPE == 'eventlet':
         thread.kill()
 
     def joinall(threads):
-        map(lambda x: x.wait(), threads)
+        for t in threads:
+            try:
+                t.wait()
+            except:
+                pass
 
     Queue = eventlet.queue.Queue
 
