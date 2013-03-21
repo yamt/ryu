@@ -36,6 +36,7 @@ if HUB_TYPE == 'gevent':
     kill = gevent.kill
     joinall = gevent.joinall
     Queue = gevent.queue.Queue
+    QueueEmpty = gevent.queue.Empty
     StreamServer = gevent.server.StreamServer
     WSGIServer = gevent.pywsgi.WSGIServer
     Timeout = gevent.Timeout
@@ -72,6 +73,7 @@ elif HUB_TYPE == 'eventlet':
                 pass
 
     Queue = eventlet.queue.Queue
+    QueueEmpty = eventlet.queue.Empty
 
     class StreamServer(object):
         def __init__(self, listen_info, handle=None, backlog=None,
