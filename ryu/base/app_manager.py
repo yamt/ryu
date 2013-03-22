@@ -135,6 +135,7 @@ class AppManager(object):
 
     def load_app(self, name):
         mod = utils.import_module(name)
+        # note: a list returned by inspect.getmembers is sorted by name.
         clses = inspect.getmembers(mod, lambda cls: (inspect.isclass(cls) and
                                                      issubclass(cls, RyuApp)))
         if clses:
