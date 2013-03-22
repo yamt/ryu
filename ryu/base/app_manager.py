@@ -128,10 +128,10 @@ class RyuApp(object):
 
 class AppManager(object):
     def __init__(self):
-        self.applications_cls = {}
-        self.applications = {}
-        self.contexts_cls = {}
-        self.contexts = {}
+        self.applications_cls = {}  # app name -> RyuApp sub-class
+        self.applications = {}      # app name -> RyuApp instance
+        self.contexts_cls = {}      # context name -> context class
+        self.contexts = {}          # context name -> context instance
 
     def load_app(self, name):
         mod = utils.import_module(name)
