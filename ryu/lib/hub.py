@@ -31,6 +31,7 @@ if HUB_TYPE == 'gevent':
     import gevent.queue
 
     spawn = gevent.spawn
+    getcurrent = gevent.getcurrent
     patch = gevent.monkey.patch_all
     sleep = gevent.sleep
     kill = gevent.kill
@@ -58,6 +59,7 @@ elif HUB_TYPE == 'eventlet':
     import ssl
 
     spawn = eventlet.spawn
+    getcurrent = eventlet.getcurrent
     patch = eventlet.monkey_patch
     sleep = eventlet.sleep
 
