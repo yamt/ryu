@@ -24,34 +24,7 @@ import os
 # select the type of hub.
 HUB_TYPE = os.getenv('RYU_HUB_TYPE', 'eventlet')
 
-if HUB_TYPE == 'gevent':
-    import gevent
-    import gevent.monkey
-    import gevent.pywsgi
-    import gevent.queue
-
-    spawn = gevent.spawn
-    getcurrent = gevent.getcurrent
-    patch = gevent.monkey.patch_all
-    sleep = gevent.sleep
-    kill = gevent.kill
-    joinall = gevent.joinall
-    Queue = gevent.queue.Queue
-    QueueEmpty = gevent.queue.Empty
-    StreamServer = gevent.server.StreamServer
-    WSGIServer = gevent.pywsgi.WSGIServer
-    Timeout = gevent.Timeout
-
-    class Event(object):
-        def __init__(self):
-            self._ev = gevent.event.Event()
-
-        def set(self):
-            self._ev.set()
-
-        def wait(self, timeout=None):
-            self._ev.wait(timeout)
-elif HUB_TYPE == 'eventlet':
+if HUB_TYPE == 'eventlet':
     import eventlet
     import eventlet.event
     import eventlet.queue
