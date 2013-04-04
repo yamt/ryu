@@ -40,14 +40,53 @@ from oslo.config import cfg
 LOG = logging.getLogger('ryu.utils')
 
 
+def _abspath(path):
+    if path == '':
+        path = '.'
+    return os.path.abspath(path)
+
+
+def _split_modname(modpath):
+    sys_path = [_abspath(path) for path in sys.path]
+    modname = os.path.basename(modpath)
+    dirname = os.path.dirname(modpath)
+    while True:
+        if dirname in sys_path:
+            break
+        if not os.path.exists(os.path.join(dirname, '__init__.py')):
+            break
+
+        basename = os.path.basename(dirname)
+        if basename:
+            old_dirname = dirname
+            dirname = os.path.dirname(dirname)
+            if old_dirname == dirname:
+                break
+            if modname:
+                modname = basename + '.' + modname
+            else:
+                modname = basename
+        else:
+            break
+
+    return dirname, modname
+
+
+def _import(modname):
+    __import__(modname)
+    return sys.modules[modname]
+
+
 def import_module(modname):
     try:
         __import__(modname)
     except:
-        sys.path.append(os.path.dirname(os.path.abspath(modname)))
-        name = os.path.basename(modname)
-        if name.endswith('.py'):
-            name = name[:-3]
+        modname = os.path.abspath(modname)
+        if modname.endswith('.py'):
+            modname = modname[:-3]
+        dirname, name = _split_modname(modname)
+        if dirname not in [_abspath(path) for path in sys.path]:
+            sys.path.append(dirname)
         try:
             __import__(name)
         except cfg.ArgsAlreadyParsedError:
