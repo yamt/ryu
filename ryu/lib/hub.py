@@ -79,15 +79,28 @@ if HUB_TYPE == 'eventlet':
     class Event(object):
         def __init__(self):
             self._ev = eventlet.event.Event()
+            self._cond = False
+
+        def _wait(self, timeout=None):
+            while not self._cond:
+                self._ev.wait()
+
+        def _broadcast(self):
+            self._ev.send()
+            # because eventlet Event doesn't allow mutiple send() on an event,
+            # re-create the underlying event.
+            # note: _ev.reset() is obsolete.
+            self._ev = eventlet.event.Event()
 
         def set(self):
-            self._ev.send()
+            self._cond = True
+            self._broadcast()
 
         def clear(self):
-            self._ev = eventlet.event.Event()
+            self._cond = False
 
         def wait(self, timeout=None):
             if timeout is None:
-                self._ev.wait()
+                self._wait()
             with Timeout(timeout):
-                self._ev.wait()
+                self._wait()
