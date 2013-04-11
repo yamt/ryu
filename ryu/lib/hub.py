@@ -83,6 +83,9 @@ if HUB_TYPE == 'eventlet':
         def set(self):
             self._ev.send()
 
+        def clear(self):
+            self._ev = eventlet.event.Event()
+
         def wait(self, timeout=None):
             if timeout is None:
                 self._ev.wait()
