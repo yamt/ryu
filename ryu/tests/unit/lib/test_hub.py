@@ -57,7 +57,7 @@ class Test_hub(unittest.TestCase):
         # sleep some more to ensure timer cancelation
         hub.sleep(2)
 
-    def test_spawn_event(self):
+    def test_spawn_event1(self):
         def _child(ev, result):
             hub.sleep(1)
             result.append(1)
@@ -87,6 +87,24 @@ class Test_hub(unittest.TestCase):
                 pass
         assert len(result) == 0
 
+    def test_spawn_event3(self):
+        def _child(ev, ev2, result):
+            ev2.wait()
+            hub.sleep(0.5)
+            result.append(1)
+            ev.set()
+
+        ev = hub.Event()
+        ev2 = hub.Event()
+        result = []
+        with hub.Timeout(2):
+            hub.spawn(_child, ev, ev2, result)
+            hub.spawn(_child, ev, ev2, result)
+            hub.sleep(0.5)
+            ev2.set()  # this should wake up the above created two threads
+            ev.wait(timeout=1)
+        assert len(result) == 2
+
     def test_event1(self):
         ev = hub.Event()
         ev.set()
@@ -98,4 +116,3 @@ class Test_hub(unittest.TestCase):
         # allow multiple sets unlike eventlet Event
         ev.set()
         ev.set()
-
