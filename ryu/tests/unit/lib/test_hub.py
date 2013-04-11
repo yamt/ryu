@@ -38,18 +38,64 @@ class Test_hub(unittest.TestCase):
     def tearDown(self):
         pass
 
+    # we want to test timeout first because the rest of tests rely on it.
+    # thus test_0_ prefix.
+
     @raises(hub.Timeout)
-    def test_timeout1(self):
+    def test_0_timeout1(self):
         with hub.Timeout(0.1):
             hub.sleep(1)
 
     @raises(MyException)
-    def test_timeout2(self):
+    def test_0_timeout2(self):
         with hub.Timeout(0.1, MyException):
             hub.sleep(1)
 
-    def test_timeout3(self):
+    def test_0_timeout3(self):
         with hub.Timeout(1):
             hub.sleep(0.1)
         # sleep some more to ensure timer cancelation
         hub.sleep(2)
+
+    def test_spawn_event(self):
+        def _child(ev, result):
+            hub.sleep(1)
+            result.append(1)
+            ev.set()
+
+        ev = hub.Event()
+        result = []
+        with hub.Timeout(2):
+            hub.spawn(_child, ev, result)
+            ev.wait()
+        assert len(result) == 1
+
+    def test_spawn_event2(self):
+        def _child(ev, result):
+            hub.sleep(1)
+            result.append(1)
+            ev.set()
+
+        ev = hub.Event()
+        result = []
+        with hub.Timeout(2):
+            hub.spawn(_child, ev, result)
+            try:
+                ev.wait(timeout=0.5)
+                raise BaseException("should timed out")
+            except hub.Timeout:
+                pass
+        assert len(result) == 0
+
+    def test_event1(self):
+        ev = hub.Event()
+        ev.set()
+        with hub.Timeout(1):
+            ev.wait()  # should return immediately
+
+    def test_event2(self):
+        ev = hub.Event()
+        # allow multiple sets unlike eventlet Event
+        ev.set()
+        ev.set()
+
