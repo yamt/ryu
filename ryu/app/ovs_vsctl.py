@@ -15,15 +15,25 @@
 # limitations under the License.
 
 
-import gevent
-import gflags
+from ryu.lib import hub
+from oslo.config import cfg
 import logging
 import sys
 
 from ryu.base import app_manager
 from ryu.lib.ovs import vsctl as lib_vsctl
 
-FLAGS = gflags.FLAGS
+
+CONF = cfg.CONF
+ovs_vsctl_group = cfg.OptGroup(name='vsctl',
+                               title='ovs_vsctl.py related options')
+CONF.register_group(ovs_vsctl_group)
+CONF.register_opts([
+    cfg.StrOpt('remote', default='tcp:127.0.0.1:6634', help='remote'),
+    cfg.StrOpt('command', default='list-br', help='command'),
+    cfg.MultiStrOpt('args', default=[], help='args')
+], group=ovs_vsctl_group)
+
 LOG = logging.getLogger(__name__)
 
 
@@ -32,16 +42,15 @@ class OVSVSCtl(app_manager.RyuApp):
 
     def __init__(self, *_args, **_kwargs):
         super(OVSVSCtl, self).__init__()
-        LOG.debug('argv %s', sys.argv)
+        hub.spawn(self.run)
 
-        args = FLAGS(sys.argv)
-        LOG.debug('args %s', args)
-        args = args[args.index('--', 1) + 1:]
-        LOG.debug('args %s', args)
-
-        remote = args[0]
-        command = args[1]
-        args = args[2:]
+    def run(self):
+        remote = CONF.vsctl.remote
+        command = CONF.vsctl.command
+        args = CONF.vsctl.args
+        LOG.info('remote %s command %s args %s', remote, command, args)
         vsctl = lib_vsctl.VSCtl(remote)
-        gevent.spawn_later(0, vsctl.run_command,
-                           commands=[lib_vsctl.VSCtlCommand(command, args)])
+        LOG.info('calling run_command')
+        vsctl_command = lib_vsctl.VSCtlCommand(command, args)
+        vsctl.run_command(commands=[vsctl_command])
+        LOG.info('run_command result %s', vsctl_command.result)
