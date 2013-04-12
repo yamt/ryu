@@ -19,6 +19,7 @@ from ryu.lib import hub
 from oslo.config import cfg
 import logging
 import sys
+import time
 
 from ryu.base import app_manager
 from ryu.lib.ovs import vsctl as lib_vsctl
@@ -42,15 +43,19 @@ class OVSVSCtl(app_manager.RyuApp):
 
     def __init__(self, *_args, **_kwargs):
         super(OVSVSCtl, self).__init__()
-        hub.spawn(self.run)
+        hub.spawn(self._run)
 
-    def run(self):
+    def _run(self):
         remote = CONF.vsctl.remote
         command = CONF.vsctl.command
         args = CONF.vsctl.args
         LOG.info('remote %s command %s args %s', remote, command, args)
-        vsctl = lib_vsctl.VSCtl(remote)
-        LOG.info('calling run_command')
-        vsctl_command = lib_vsctl.VSCtlCommand(command, args)
-        vsctl.run_command(commands=[vsctl_command])
-        LOG.info('run_command result %s', vsctl_command.result)
+        while True:
+	    vsctl = lib_vsctl.VSCtl(remote)
+            vsctl_command = lib_vsctl.VSCtlCommand(command, args)
+#            LOG.info('calling run_command')
+            start = time.time()
+            vsctl.run_command(commands=[vsctl_command])
+            end = time.time()
+            LOG.info('run_command %s secs result %s', end - start,
+                     vsctl_command.result)
