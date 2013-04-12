@@ -59,6 +59,10 @@ class _SelectSelect(object):
             timeout = None
         else:
             timeout = float(timeout) / 1000
+        # XXX workaround a bug in eventlet
+        # see https://github.com/eventlet/eventlet/pull/25
+        if timeout == 0:
+            timeout = 0.1
 
         rlist, wlist, xlist = select.select(self.rlist, self.wlist, self.xlist,
                                             timeout)
