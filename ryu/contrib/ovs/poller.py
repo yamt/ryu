@@ -18,6 +18,15 @@ import ovs.vlog
 import select
 import socket
 
+try:
+    import eventlet.patcher
+
+    def _using_eventlet_green_select():
+        return eventlet.patcher.is_monkey_patched(select)
+except:
+    def _using_eventlet_green_select():
+        return False
+
 vlog = ovs.vlog.Vlog("poller")
 
 POLLIN = 0x001
@@ -61,7 +70,7 @@ class _SelectSelect(object):
             timeout = float(timeout) / 1000
         # XXX workaround a bug in eventlet
         # see https://github.com/eventlet/eventlet/pull/25
-        if timeout == 0:
+        if timeout == 0 and _using_eventlet_green_select():
             timeout = 0.1
 
         rlist, wlist, xlist = select.select(self.rlist, self.wlist, self.xlist,
