@@ -289,6 +289,8 @@ class MacAddresses(dict):
 
 
 class Network(app_manager.RyuApp):
+    _CAN_PROXY = True
+
     def __init__(self, nw_id_unknown=NW_ID_UNKNOWN):
         super(Network, self).__init__()
         self.name = 'network'
