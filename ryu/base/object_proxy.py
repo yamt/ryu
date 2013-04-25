@@ -37,7 +37,7 @@ class ObjectFrontend(object):
     def __init__(self, backend_queue_id):
         self._backend_queue_id = backend_queue_id
         self._replies = named_queue.NamedQueue()
-        self._calling = False  # debug
+        self._calling = None  # debug
 
     def get_backend_queue(self):
         return self._backend_queue_id
@@ -51,12 +51,16 @@ class ObjectFrontend(object):
             return pickle.loads(self._replies.get())()
 
         def wrapper(*args, **kwargs):
+            if self._calling:
+                raise Exception("_calling=%s, current=%s" % \
+                    (self._calling, hub.getcurrent()))
+
             assert not self._calling
-            self._calling = True
+            self._calling = hub.getcurrent()
             try:
                 return wrapper2(*args, **kwargs)
             finally:
-                self._calling = False
+                self._calling = None
 
         return wrapper
 
