@@ -23,6 +23,7 @@ from ryu.controller.handler import register_instance
 from ryu.controller.controller import Datapath
 from ryu.controller.event import EventRequestBase, EventReplyBase
 from ryu.lib import hub
+from ryu.base import object_proxy
 
 LOG = logging.getLogger('ryu.base.app_manager')
 
@@ -38,6 +39,18 @@ def register_app(app):
     assert not app.name in SERVICE_BRICKS
     SERVICE_BRICKS[app.name] = app
     register_instance(app)
+
+
+def create_context_frontend(contexts):
+    d = {}
+    for k, v in contexts.iteritems():
+        if isinstance(v, object_proxy.ObjectBackend):
+            d[k] = object_proxy.ObjectFrontend(v.get_queue())
+        elif isinstance(v, object_proxy.ObjectFrontend):
+            d[k] = object_proxy.ObjectFrontend(v.get_backend_queue())
+        else:
+            d[k] = v
+    return d
 
 
 class RyuApp(object):
@@ -174,9 +187,12 @@ class AppManager(object):
 
     def create_contexts(self):
         for key, cls in self.contexts_cls.items():
-            context = cls()
             LOG.info('creating context %s', key)
             assert not key in self.contexts
+            context = cls()
+            if getattr(cls, '_CAN_PROXY', False):
+                LOG.info('proxying context %s', key)
+                context = object_proxy.ObjectBackend(context)
             self.contexts[key] = context
             # hack for dpset
             if context.__class__.__base__ == RyuApp:
@@ -199,7 +215,7 @@ class AppManager(object):
                 'No OpenFlow version is available'
 
             assert app_name not in self.applications
-            app = cls(*args, **kwargs)
+            app = cls(*args, **create_context_frontend(kwargs))
             register_app(app)
             self.applications[app_name] = app
 
