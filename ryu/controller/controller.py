@@ -161,7 +161,7 @@ class Datapath(object):
 
                 msg = ofproto_parser.msg(self,
                                          version, msg_type, msg_len, xid, buf)
-                #LOG.debug('queue msg %s cls %s', msg, msg.__class__)
+                LOG.debug('queue msg %s cls %s', msg, msg.__class__)
                 ev = ofp_event.ofp_msg_to_ev(msg)
                 self.ofp_brick.send_event_to_observers(ev, self.state)
 
