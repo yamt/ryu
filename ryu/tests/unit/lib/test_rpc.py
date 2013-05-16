@@ -16,6 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
 import time
 import unittest
 from nose.tools import raises
@@ -96,16 +97,43 @@ class Test_rpc(unittest.TestCase):
     def test_0_call_int(self):
         c = rpc.Client(self._client_sock)
         obj = 12345
+        assert isinstance(obj, int)
         result = c.call("resp", [obj])
         assert result == obj
-        assert isinstance(result, int)
+        assert isinstance(result, type(obj))
+
+    def test_0_call_int2(self):
+        c = rpc.Client(self._client_sock)
+        obj = sys.maxint
+        assert isinstance(obj, int)
+        result = c.call("resp", [obj])
+        assert result == obj
+        assert isinstance(result, type(obj))
+
+    def test_0_call_int3(self):
+        c = rpc.Client(self._client_sock)
+        obj = - sys.maxint - 1
+        assert isinstance(obj, int)
+        result = c.call("resp", [obj])
+        assert result == obj
+        assert isinstance(result, type(obj))
 
     def test_0_call_long(self):
         c = rpc.Client(self._client_sock)
-        obj = 123456789000
+        obj = 0xffffffffffffffff  # max value for msgpack
+        assert isinstance(obj, long)
         result = c.call("resp", [obj])
         assert result == obj
-        assert isinstance(result, long)
+        assert isinstance(result, type(obj))
+
+    def test_0_call_long2(self):
+        c = rpc.Client(self._client_sock)
+        # NOTE: the python type of this value is int for 64-bit arch
+        obj = -0x8000000000000000  # min value for msgpack
+        assert isinstance(obj, (int, long))
+        result = c.call("resp", [obj])
+        assert result == obj
+        assert isinstance(result, type(obj))
 
     @raises(TypeError)
     def test_0_call_bytearray(self):
