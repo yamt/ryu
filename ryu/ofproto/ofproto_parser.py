@@ -14,8 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import base64
+import collections
 import logging
 import struct
+import sys
 import functools
 import inspect
 
@@ -61,6 +64,9 @@ def create_list_of_base_attributes(f):
     return wrapper
 
 
+_mapdict_key = lambda f, d: dict([(k, f(v)) for k, v in d.items()])
+
+
 class StringifyMixin(object):
     def __str__(self):
         buf = ''
@@ -71,6 +77,57 @@ class StringifyMixin(object):
             sep = ','
         return self.__class__.__name__ + '(' + buf + ')'
     __repr__ = __str__  # note: str(list) uses __repr__ for elements
+
+    @staticmethod
+    def _encode_value(v):
+        if isinstance(v, (bytes, unicode)):
+            json_value = base64.b64encode(v)
+        elif isinstance(v, list):
+            json_value = map(StringifyMixin._encode_value, v)
+        elif isinstance(v, dict):
+            json_value = _mapdict_key(StringifyMixin._encode_value, v)
+        else:
+            try:
+                json_value = v.to_jsondict()
+            except:
+                json_value = v
+        return json_value
+
+    def to_jsondict(self):
+        """returns an object to feed json.dumps()
+        """
+        dict = {}
+        for k, v in ofp_attrs(self):
+            # XXX type_ vs type
+            dict[k] = self._encode_value(v)
+        return {self.__class__.__name__: dict}
+
+    @staticmethod
+    def _decode_value(json_value):
+        if isinstance(json_value, (bytes, unicode)):
+            v = base64.b64decode(json_value)
+        elif isinstance(json_value, list):
+            v = map(StringifyMixin._decode_value, json_value)
+        elif isinstance(json_value, dict):
+            v = _mapdict_key(StringifyMixin._decode_value, json_value)
+        else:
+            v = json_value
+        return v
+
+    @classmethod
+    def from_jsondict(cls, dict):
+        """create an instance from a result of json.loads()
+        """
+        dict2 = {}
+        for k, v in dict.iteritems():
+            dict2[k] = cls._decode_value(v)
+        return cls(**dict2)
+
+
+def ofp_from_jsondict(parser, jsondict):
+    assert len(jsondict) == 1
+    for k, v in jsondict.iteritems():
+        return getattr(parser, k).from_jsondict(v)
 
 
 class MsgBase(StringifyMixin):
@@ -162,6 +219,13 @@ def msg_pack_into(fmt, buf, offset, *args):
 
 
 def ofp_attrs(msg_):
+    import collections
+    # a special case for namedtuple which seems widely used in
+    # ofp parser implementations.
+    if hasattr(msg_, '_fields'):
+        for k in msg_._fields:
+            yield(k, getattr(msg_, k))
+        return
     base = getattr(msg_, '_base_attributes', [])
     for k, v in inspect.getmembers(msg_):
         if k.startswith('_'):
@@ -173,6 +237,13 @@ def ofp_attrs(msg_):
         if hasattr(msg_.__class__, k):
             continue
         yield (k, v)
+
+
+def namedtuple(typename, fields, **kwargs):
+    class _namedtuple(StringifyMixin,
+                      collections.namedtuple(typename, fields, **kwargs)):
+        pass
+    return _namedtuple
 
 
 def msg_str_attr(msg_, buf, attr_list=None):
