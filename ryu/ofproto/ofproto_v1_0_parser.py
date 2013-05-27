@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import collections
 import struct
 import binascii
 
@@ -79,7 +78,7 @@ def _set_msg_reply(msg_reply):
 # common structures
 #
 
-class OFPPhyPort(collections.namedtuple('OFPPhyPort', (
+class OFPPhyPort(ofproto_parser.namedtuple('OFPPhyPort', (
         'port_no', 'hw_addr', 'name', 'config', 'state', 'curr', 'advertised',
         'supported', 'peer'))):
 
@@ -970,7 +969,7 @@ class NXActionFinTimeout(NXActionHeader):
         return cls(fin_idle_timeout, fin_hard_timeout)
 
 
-class OFPDescStats(collections.namedtuple('OFPDescStats', (
+class OFPDescStats(ofproto_parser.namedtuple('OFPDescStats', (
         'mfr_desc', 'hw_desc', 'sw_desc', 'serial_num', 'dp_desc'))):
     @classmethod
     def parser(cls, buf, offset):
@@ -1031,7 +1030,7 @@ class OFPFlowStats(StringifyMixin):
         return flow_stats
 
 
-class OFPAggregateStats(collections.namedtuple('OFPAggregateStats', (
+class OFPAggregateStats(ofproto_parser.namedtuple('OFPAggregateStats', (
         'packet_count', 'byte_count', 'flow_count'))):
     @classmethod
     def parser(cls, buf, offset):
@@ -1042,7 +1041,7 @@ class OFPAggregateStats(collections.namedtuple('OFPAggregateStats', (
         return stats
 
 
-class OFPTableStats(collections.namedtuple('OFPTableStats', (
+class OFPTableStats(ofproto_parser.namedtuple('OFPTableStats', (
         'table_id', 'name', 'wildcards', 'max_entries', 'active_count',
         'lookup_count', 'matched_count'))):
     @classmethod
@@ -1054,7 +1053,7 @@ class OFPTableStats(collections.namedtuple('OFPTableStats', (
         return stats
 
 
-class OFPPortStats(collections.namedtuple('OFPPortStats', (
+class OFPPortStats(ofproto_parser.namedtuple('OFPPortStats', (
         'port_no', 'rx_packets', 'tx_packets', 'rx_bytes', 'tx_bytes',
         'rx_dropped', 'tx_dropped', 'rx_errors', 'tx_errors',
         'rx_frame_err', 'rx_over_err', 'rx_crc_err', 'collisions'))):
@@ -1067,7 +1066,7 @@ class OFPPortStats(collections.namedtuple('OFPPortStats', (
         return stats
 
 
-class OFPQueueStats(collections.namedtuple('OFPQueueStats', (
+class OFPQueueStats(ofproto_parser.namedtuple('OFPQueueStats', (
         'port_no', 'queue_id', 'tx_bytes', 'tx_packets', 'tx_errors'))):
     @classmethod
     def parser(cls, buf, offset):
@@ -1078,8 +1077,8 @@ class OFPQueueStats(collections.namedtuple('OFPQueueStats', (
         return stats
 
 
-class OFPVendorStats(collections.namedtuple('OFPVendorStats',
-                                            ('specific_data'))):
+class OFPVendorStats(ofproto_parser.namedtuple('OFPVendorStats',
+                                               ('specific_data'))):
     @classmethod
     def parser(cls, buf, offset):
         stats = cls(buf[offset:])
@@ -1141,7 +1140,7 @@ class NXFlowStats(StringifyMixin):
         return nxflow_stats
 
 
-class NXAggregateStats(collections.namedtuple('NXAggregateStats', (
+class NXAggregateStats(ofproto_parser.namedtuple('NXAggregateStats', (
         'packet_count', 'byte_count', 'flow_count'))):
     @classmethod
     def parser(cls, buf, offset):
