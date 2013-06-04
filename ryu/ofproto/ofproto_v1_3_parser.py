@@ -14,13 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import collections
 import struct
 import itertools
 
 from ryu.lib import mac
 from ryu import utils
-from ofproto_parser import MsgBase, msg_pack_into, msg_str_attr
+from ofproto_parser import MsgBase, msg_pack_into, msg_str_attr, namedtuple
 from . import ofproto_parser
 from . import ofproto_v1_3
 
@@ -1394,7 +1393,7 @@ class OFPFlowRemoved(MsgBase):
         return msg
 
 
-class OFPPort(collections.namedtuple('OFPPort', (
+class OFPPort(ofproto_parser.namedtuple('OFPPort', (
         'port_no', 'hw_addr', 'name', 'config', 'state', 'curr',
         'advertised', 'supported', 'peer', 'curr_speed', 'max_speed'))):
 
@@ -2060,7 +2059,7 @@ class OFPMultipartReply(MsgBase):
         return msg
 
 
-class OFPDescStats(collections.namedtuple('OFPDescStats', (
+class OFPDescStats(ofproto_parser.namedtuple('OFPDescStats', (
         'mfr_desc', 'hw_desc', 'sw_desc', 'serial_num', 'dp_desc'))):
     @classmethod
     def parser(cls, buf, offset):
@@ -2171,7 +2170,7 @@ class OFPFlowStatsReply(OFPMultipartReply):
         super(OFPFlowStatsReply, self).__init__(datapath)
 
 
-class OFPAggregateStats(collections.namedtuple('OFPAggregateStats', (
+class OFPAggregateStats(ofproto_parser.namedtuple('OFPAggregateStats', (
         'packet_count', 'byte_count', 'flow_count'))):
     @classmethod
     def parser(cls, buf, offset):
@@ -2205,7 +2204,7 @@ class OFPAggregateStatsReply(OFPMultipartReply):
         super(OFPAggregateStatsReply, self).__init__(datapath)
 
 
-class OFPTableStats(collections.namedtuple('OFPTableStats', (
+class OFPTableStats(ofproto_parser.namedtuple('OFPTableStats', (
         'table_id', 'active_count', 'lookup_count',
         'matched_count'))):
     @classmethod
@@ -2232,7 +2231,7 @@ class OFPTableStatsReply(OFPMultipartReply):
         super(OFPTableStatsReply, self).__init__(datapath)
 
 
-class OFPPortStats(collections.namedtuple('OFPPortStats', (
+class OFPPortStats(ofproto_parser.namedtuple('OFPPortStats', (
         'port_no', 'rx_packets', 'tx_packets', 'rx_bytes', 'tx_bytes',
         'rx_dropped', 'tx_dropped', 'rx_errors', 'tx_errors',
         'rx_frame_err', 'rx_over_err', 'rx_crc_err', 'collisions',
@@ -2268,7 +2267,7 @@ class OFPPortStatsReply(OFPMultipartReply):
         super(OFPPortStatsReply, self).__init__(datapath)
 
 
-class OFPQueueStats(collections.namedtuple('OFPQueueStats', (
+class OFPQueueStats(ofproto_parser.namedtuple('OFPQueueStats', (
         'port_no', 'queue_id', 'tx_bytes', 'tx_packets', 'tx_errors',
         'duration_sec', 'duration_nsec'))):
     @classmethod
@@ -2303,7 +2302,7 @@ class OFPQueueStatsReply(OFPMultipartReply):
         super(OFPQueueStatsReply, self).__init__(datapath)
 
 
-class OFPGroupStats(collections.namedtuple('OFPGroupStats', (
+class OFPGroupStats(ofproto_parser.namedtuple('OFPGroupStats', (
         'length', 'group_id', 'ref_count', 'packet_count',
         'byte_count', 'duration_sec', 'duration_nsec'))):
     @classmethod
@@ -2380,7 +2379,7 @@ class OFPGroupDescStatsReply(OFPMultipartReply):
         super(OFPGroupDescStatsReply, self).__init__(datapath)
 
 
-class OFPGroupFeaturesStats(collections.namedtuple('OFPGroupFeaturesStats', (
+class OFPGroupFeaturesStats(ofproto_parser.namedtuple('OFPGroupFeaturesStats', (
         'types', 'capabilities', 'max_groups', 'actions'))):
     @classmethod
     def parser(cls, buf, offset):
@@ -2543,7 +2542,7 @@ class OFPMeterConfigStatsReply(OFPMultipartReply):
         super(OFPMeterConfigStatsReply, self).__init__(datapath)
 
 
-class OFPMeterFeaturesStats(collections.namedtuple('OFPMeterFeaturesStats', (
+class OFPMeterFeaturesStats(ofproto_parser.namedtuple('OFPMeterFeaturesStats', (
         'max_meter', 'band_types', 'capabilities', 'max_band',
         'max_color'))):
     @classmethod
