@@ -64,6 +64,26 @@ def create_list_of_base_attributes(f):
     return wrapper
 
 
+# Some arguments to __init__ is mungled in order to avoid name conflicts
+# with builtin names.
+# The standard mangling is to append '_' in order to avoid name clashes
+# with reserved keywords.
+#
+# PEP8:
+# Function and method arguments
+#   If a function argument's name clashes with a reserved keyword,
+#   it is generally better to append a single trailing underscore
+#   rather than use an abbreviation or spelling corruption. Thus
+#   class_ is better than clss. (Perhaps better is to avoid such
+#   clashes by using a synonym.)
+#
+# grep __init__ *.py | grep '[^_]_\>' showed that
+# 'len', 'property', 'set', 'type'
+# A bit more generic way is adopted
+import __builtin__
+__RESERVED_KEYWORD = dir(__builtin__)
+
+
 _mapdict_key = lambda f, d: dict([(k, f(v)) for k, v in d.items()])
 
 
@@ -71,7 +91,7 @@ class StringifyMixin(object):
     def __str__(self):
         buf = ''
         sep = ''
-        for k, v in ofp_attrs(self):
+        for k, v in ofp_python_attrs(self):
             buf += sep
             buf += "%s=%s" % (k, repr(v))  # repr() to escape binaries
             sep = ','
@@ -218,7 +238,7 @@ def msg_pack_into(fmt, buf, offset, *args):
     struct.pack_into(fmt, buf, offset, *args)
 
 
-def ofp_attrs(msg_):
+def ofp_python_attrs(msg_):
     import collections
     # a special case for namedtuple which seems widely used in
     # ofp parser implementations.
@@ -237,6 +257,13 @@ def ofp_attrs(msg_):
         if hasattr(msg_.__class__, k):
             continue
         yield (k, v)
+
+
+def ofp_attrs(msg_):
+    for k, v in ofp_python_attrs(msg_):
+	if k.endswith('_') and k[:-1] in __RESERVED_KEYWORD:
+	    k = k[:-1]
+	yield (k, v)
 
 
 def namedtuple(typename, fields, **kwargs):
