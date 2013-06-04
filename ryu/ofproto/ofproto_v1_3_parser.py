@@ -19,7 +19,7 @@ import itertools
 
 from ryu.lib import mac
 from ryu import utils
-from ofproto_parser import MsgBase, msg_pack_into, msg_str_attr, namedtuple
+from ofproto_parser import MsgBase, msg_pack_into, msg_str_attr
 from . import ofproto_parser
 from . import ofproto_v1_3
 
