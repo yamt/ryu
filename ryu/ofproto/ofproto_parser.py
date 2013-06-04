@@ -96,11 +96,11 @@ class StringifyMixin(object):
     def to_jsondict(self):
         """returns an object to feed json.dumps()
         """
-        dict = {}
+        dict_ = {}
         for k, v in ofp_attrs(self):
             # XXX type_ vs type
-            dict[k] = self._encode_value(v)
-        return {self.__class__.__name__: dict}
+            dict_[k] = self._encode_value(v)
+        return {self.__class__.__name__: dict_}
 
     @staticmethod
     def _decode_value(json_value):
@@ -115,11 +115,11 @@ class StringifyMixin(object):
         return v
 
     @classmethod
-    def from_jsondict(cls, dict):
+    def from_jsondict(cls, dict_):
         """create an instance from a result of json.loads()
         """
         dict2 = {}
-        for k, v in dict.iteritems():
+        for k, v in dict_.iteritems():
             dict2[k] = cls._decode_value(v)
         return cls(**dict2)
 
