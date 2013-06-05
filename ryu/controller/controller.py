@@ -164,6 +164,7 @@ class Datapath(object):
                 msg = ofproto_parser.msg(self,
                                          version, msg_type, msg_len, xid, buf)
                 LOG.debug('queue msg %s cls %s', msg, msg.__class__)
+                LOG.debug('queue msg (json) %s', msg.to_jsondict())
                 ev = ofp_event.ofp_msg_to_ev(msg)
                 self.ofp_brick.send_event_to_observers(ev, self.state)
 
@@ -218,7 +219,8 @@ class Datapath(object):
         if msg.xid is None:
             self.set_xid(msg)
         msg.serialize()
-        # LOG.debug('send_msg %s', msg)
+        LOG.debug('send_msg %s', msg)
+        LOG.debug('send_msg (json) %s', msg.to_jsondict())
         self.send(msg.buf)
 
     def serve(self):
