@@ -1999,7 +1999,7 @@ class OFPMatchField(StringifyMixin):
     @classmethod
     def cls_to_header(cls, cls_):
         # XXX efficiency
-        inv = { v: k for k, v in cls._FIELDS_HEADERS.iteritems() }
+        inv = dict((v, k) for k, v in cls._FIELDS_HEADERS.iteritems())
         return inv[cls_]
 
     @staticmethod
