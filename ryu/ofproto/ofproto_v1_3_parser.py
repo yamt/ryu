@@ -358,6 +358,10 @@ class OFPMatch(StringifyMixin):
                 self.fields.append(f)
             self.serialize(bytearray(), 0)
 
+    def to_jsondict(self):
+        d = reduce(lambda a, x: dict(a, **x.to_jsondict()), self.fields, {})
+        return { self.__class__.__name__: d }
+
     def append_field(self, header, value, mask=None):
         self.fields.append(OFPMatchField.make(header, value, mask))
 
@@ -841,10 +845,6 @@ class OFPMatch(StringifyMixin):
         self._wc.ft_set(ofproto_v1_3.OFPXMT_OFB_IPV6_EXTHDR)
         self._wc.ipv6_exthdr_mask = mask
         self._flow.ipv6_exthdr = hdr
-
-    def to_jsondict(self):
-        d = reduce(lambda a, x: dict(a, **x.to_jsondict()), self.fields, {})
-        return { self.__class__.__name__: d }
 
 
 class OFPMatchField(StringifyMixin):
