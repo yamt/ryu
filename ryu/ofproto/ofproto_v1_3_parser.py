@@ -19,7 +19,7 @@ import itertools
 
 from ryu.lib import mac
 from ryu import utils
-from ofproto_parser import MsgBase, msg_pack_into, msg_str_attr
+from ofproto_parser import StringifyMixin, MsgBase, msg_pack_into, msg_str_attr
 from . import ofproto_parser
 from . import ofproto_v1_3
 
@@ -339,12 +339,24 @@ class FlowWildcards(object):
         return not self.wildcards & (1 << shift)
 
 
-class OFPMatch(object):
-    def __init__(self):
+class OFPMatch(StringifyMixin):
+    def __init__(self, **kwargs):
         super(OFPMatch, self).__init__()
         self._wc = FlowWildcards()
         self._flow = Flow()
         self.fields = []
+        if kwargs:
+            # mimic appropriate set_foo calls
+            import sys
+            this_module = sys.modules[__name__]
+            for k, v in kwargs.iteritems():
+                cls = getattr(this_module, k)
+                value = v["value"]
+                mask = getattr(v, "mask", None)
+                header = OFPMatchField.cls_to_header(cls)
+                f = cls(header, value, mask)
+                self.fields.append(f)
+            self.serialize(bytearray(), 0)
 
     def append_field(self, header, value, mask=None):
         self.fields.append(OFPMatchField.make(header, value, mask))
@@ -830,8 +842,12 @@ class OFPMatch(object):
         self._wc.ipv6_exthdr_mask = mask
         self._flow.ipv6_exthdr = hdr
 
+    def to_jsondict(self):
+        d = reduce(lambda a, x: dict(a, **x.to_jsondict()), self.fields, {})
+        return { self.__class__.__name__: d }
 
-class OFPMatchField(object):
+
+class OFPMatchField(StringifyMixin):
     _FIELDS_HEADERS = {}
 
     @staticmethod
@@ -850,6 +866,12 @@ class OFPMatchField(object):
         else:
             self.n_bytes = header & 0xff
         self.length = 0
+
+    @classmethod
+    def cls_to_header(cls, cls_):
+        # XXX efficiency
+        inv = { v: k for k, v in cls._FIELDS_HEADERS.iteritems() }
+        return inv[cls_]
 
     @staticmethod
     def make(header, value, mask=None):
@@ -915,6 +937,15 @@ class OFPMatchField(object):
 
     def oxm_len(self):
         return self.header & 0xff
+
+    def to_jsondict(self):
+        # remove some redundant attributes
+        d = super(OFPMatchField, self).to_jsondict()
+        v = d[self.__class__.__name__]
+        del v['header']
+        del v['length']
+        del v['n_bytes']
+        return d
 
 
 @OFPMatchField.register_field_header([ofproto_v1_3.OXM_OF_IN_PORT])
