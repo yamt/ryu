@@ -6948,8 +6948,7 @@ class TestOFPMatch(unittest.TestCase):
             match.set_ipv4_src(ip)
         else:
             mask = unpack('!I', socket.inet_aton(mask))[0]
-            if (mask + 1) >> 32 != 1:
-                header = ofproto_v1_2.OXM_OF_IPV4_SRC_W
+            header = ofproto_v1_2.OXM_OF_IPV4_SRC_W
             match.set_ipv4_src_masked(ip, mask)
         self._test_serialize_and_parser(match, header, ip, mask)
 
