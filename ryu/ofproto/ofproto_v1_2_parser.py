@@ -1541,8 +1541,8 @@ class OFPMatch(StringifyMixin):
             for k, v in kwargs.iteritems():
                 cls = getattr(this_module, k)
                 value = v["value"]
-                mask = getattr(v, "mask", None)
-                header = OFPMatchField.cls_to_header(cls)
+                mask = v.get("mask", None)
+                header = OFPMatchField.cls_to_header(cls, mask != None)
                 f = cls(header, value, mask)
                 self.fields.append(f)
 
@@ -1997,9 +1997,10 @@ class OFPMatchField(StringifyMixin):
         self.length = 0
 
     @classmethod
-    def cls_to_header(cls, cls_):
+    def cls_to_header(cls, cls_, hasmask):
         # XXX efficiency
-        inv = dict((v, k) for k, v in cls._FIELDS_HEADERS.iteritems())
+        inv = dict((v, k) for k, v in cls._FIELDS_HEADERS.iteritems()
+                   if (((k >> 8) & 1) != 0) == hasmask)
         return inv[cls_]
 
     @staticmethod
