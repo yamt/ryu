@@ -1530,7 +1530,12 @@ class OFPMatch(StringifyMixin):
         self._flow = Flow()
         self.fields = []
         if kwargs:
-            # mimic appropriate set_foo calls
+            # we are doing de-stringify.
+            # we have two goals:
+            #   - the resulted object should be serialize()-able.
+            #   - the resulted object should be inspectable by applications.
+            #     ie. fields[] should be filled.
+            # mimic appropriate set_foo calls and the first half of serialize.
             import sys
             this_module = sys.modules[__name__]
             for k, v in kwargs.iteritems():
@@ -1540,7 +1545,6 @@ class OFPMatch(StringifyMixin):
                 header = OFPMatchField.cls_to_header(cls)
                 f = cls(header, value, mask)
                 self.fields.append(f)
-            self.serialize(bytearray(), 0)
 
     def to_jsondict(self):
         d = reduce(lambda a, x: dict(a, **x.to_jsondict()), self.fields, {})
