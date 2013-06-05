@@ -143,6 +143,12 @@ class Test_rpc(unittest.TestCase):
         assert result == obj
         assert isinstance(result, bytes)
 
+    def test_1_shutdown_wr(self):
+        # test if the server shutdown on disconnect 
+        import socket
+        self._client_sock.shutdown(socket.SHUT_WR)
+        hub.joinall([self._server_thread])
+
     def test_1_call_True(self):
         c = rpc.Client(self._client_sock)
         obj = True
