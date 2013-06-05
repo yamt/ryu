@@ -48,6 +48,11 @@ class Test_rpc(unittest.TestCase):
         elif method == "notify1":
             e.send_notification(params[1], params[2])
             e.send_response(msgid, result=params[0])
+        elif method == "shutdown":
+            import socket
+            how = getattr(socket, params[0])
+            self._server_sock.shutdown(how)
+            e.send_response(msgid, result=method)
         else:
             raise Exception("unknown method %s" % method)
 
@@ -72,15 +77,16 @@ class Test_rpc(unittest.TestCase):
     def setUp(self):
         import socket
 
-        server_sock, self._client_sock = socket.socketpair()
+        self._server_sock, self._client_sock = socket.socketpair()
         table = {
             rpc.MessageType.REQUEST: self._handle_request,
             rpc.MessageType.RESPONSE: self._handle_response,
             rpc.MessageType.NOTIFY: self._handle_notification
         }
         self._requests = set()
-        server_sock.setblocking(0)
-        self._server_endpoint = rpc.EndPoint(server_sock, disp_table=table)
+        self._server_sock.setblocking(0)
+        self._server_endpoint = rpc.EndPoint(self._server_sock,
+                                             disp_table=table)
         self._server_thread = hub.spawn(self._server_endpoint.serve)
 
     def tearDown(self):
@@ -144,10 +150,15 @@ class Test_rpc(unittest.TestCase):
         assert isinstance(result, bytes)
 
     def test_1_shutdown_wr(self):
-        # test if the server shutdown on disconnect 
+        # test if the server shutdown on disconnect
         import socket
         self._client_sock.shutdown(socket.SHUT_WR)
         hub.joinall([self._server_thread])
+
+    @raises(EOFError)
+    def test_1_client_shutdown_wr(self):
+        c = rpc.Client(self._client_sock)
+        c.call("shutdown", ["SHUT_WR"])
 
     def test_1_call_True(self):
         c = rpc.Client(self._client_sock)
