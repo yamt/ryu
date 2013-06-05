@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import collections
 import struct
 import itertools
 
@@ -165,7 +164,7 @@ class OFPExperimenter(MsgBase):
         return msg
 
 
-class OFPPort(collections.namedtuple('OFPPort', (
+class OFPPort(ofproto_parser.namedtuple('OFPPort', (
         'port_no', 'hw_addr', 'name', 'config', 'state', 'curr',
         'advertised', 'supported', 'peer', 'curr_speed', 'max_speed'))):
 
@@ -950,7 +949,7 @@ class OFPDescStatsRequest(OFPStatsRequest):
 
 @OFPStatsReply.register_stats_reply_type(ofproto_v1_2.OFPST_DESC,
                                          body_single_struct=True)
-class OFPDescStats(collections.namedtuple('OFPDescStats', (
+class OFPDescStats(ofproto_parser.namedtuple('OFPDescStats', (
         'mfr_desc', 'hw_desc', 'sw_desc', 'serial_num', 'dp_desc'))):
     @classmethod
     def parser(cls, buf, offset):
@@ -1064,7 +1063,7 @@ class OFPAggregateStatsRequest(OFPStatsRequest):
 
 @OFPStatsReply.register_stats_reply_type(ofproto_v1_2.OFPST_AGGREGATE,
                                          body_single_struct=True)
-class OFPAggregateStatsReply(collections.namedtuple('OFPAggregateStats', (
+class OFPAggregateStatsReply(ofproto_parser.namedtuple('OFPAggregateStats', (
         'packet_count', 'byte_count', 'flow_count'))):
     @classmethod
     def parser(cls, buf, offset):
@@ -1085,7 +1084,7 @@ class OFPTableStatsRequest(OFPStatsRequest):
 
 @OFPStatsReply.register_stats_reply_type(ofproto_v1_2.OFPST_TABLE)
 class OFPTableStats(
-    collections.namedtuple('OFPTableStats',
+    ofproto_parser.namedtuple('OFPTableStats',
                            ('table_id', 'name', 'match', 'wildcards',
                             'write_actions', 'apply_actions',
                             'write_setfields', 'apply_setfields',
@@ -1118,7 +1117,7 @@ class OFPPortStatsRequest(OFPStatsRequest):
 
 @OFPStatsReply.register_stats_reply_type(ofproto_v1_2.OFPST_PORT)
 class OFPPortStats(
-    collections.namedtuple('OFPPortStats',
+    ofproto_parser.namedtuple('OFPPortStats',
                            ('port_no', 'rx_packets', 'tx_packets',
                             'rx_bytes', 'tx_bytes',
                             'rx_dropped', 'tx_dropped',
@@ -1150,7 +1149,7 @@ class OFPQueueStatsRequest(OFPStatsRequest):
 
 @OFPStatsReply.register_stats_reply_type(ofproto_v1_2.OFPST_QUEUE)
 class OFPQueueStats(
-    collections.namedtuple('OFPQueueStats',
+    ofproto_parser.namedtuple('OFPQueueStats',
                            ('port_no', 'queue_id', 'tx_bytes',
                             'tx_packets', 'tx_errors'))):
     @classmethod
