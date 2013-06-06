@@ -100,12 +100,11 @@ class StringifyMixin(object):
 
     @staticmethod
     def _encode_value(v):
+        assert not isinstance(v, dict)
         if isinstance(v, (bytes, unicode)):
             json_value = base64.b64encode(v)
         elif isinstance(v, list):
             json_value = map(StringifyMixin._encode_value, v)
-        elif isinstance(v, dict):
-            json_value = _mapdict(StringifyMixin._encode_value, v)
         else:
             try:
                 json_value = v.to_jsondict()
@@ -121,14 +120,17 @@ class StringifyMixin(object):
             dict_[k] = self._encode_value(v)
         return {self.__class__.__name__: dict_}
 
-    @staticmethod
-    def _decode_value(json_value):
+    @classmethod
+    def _decode_value(cls, json_value):
         if isinstance(json_value, (bytes, unicode)):
             v = base64.b64decode(json_value)
         elif isinstance(json_value, list):
-            v = map(StringifyMixin._decode_value, json_value)
+            decode = lambda x: cls._decode_value(x)
+            v = map(decode, json_value)
         elif isinstance(json_value, dict):
-            v = _mapdict(StringifyMixin._decode_value, json_value)
+            import sys
+            parser = sys.modules[cls.__module__]
+            v = ofp_from_jsondict(parser, json_value)
         else:
             v = json_value
         return v

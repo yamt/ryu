@@ -2068,6 +2068,12 @@ class OFPMatchField(StringifyMixin):
         del v['n_bytes']
         return d
 
+    @classmethod
+    def from_jsondict(cls, dict_):
+        # just pass the dict around.
+        # it will be converted by OFPMatch.__init__().
+        return {cls.__name__: dict_}
+
 
 @OFPMatchField.register_field_header([ofproto_v1_2.OXM_OF_IN_PORT])
 class MTInPort(OFPMatchField):
