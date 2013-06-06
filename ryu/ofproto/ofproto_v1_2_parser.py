@@ -1988,11 +1988,7 @@ class OFPMatchField(StringifyMixin):
 
     def __init__(self, header):
         self.header = header
-        hasmask = (header >> 8) & 1
-        if hasmask:
-            self.n_bytes = (header & 0xff) / 2
-        else:
-            self.n_bytes = header & 0xff
+        self.n_bytes = ofproto_v1_2.oxm_tlv_header_extract_length(header)
         self.length = 0
 
     @classmethod
@@ -2020,9 +2016,8 @@ class OFPMatchField(StringifyMixin):
 
     @classmethod
     def field_parser(cls, header, buf, offset):
-        hasmask = (header >> 8) & 1
         mask = None
-        if hasmask:
+        if ofproto_v1_2.oxm_tlv_header_extract_hasmask(header):
             pack_str = '!' + cls.pack_str[1:] * 2
             (value, mask) = struct.unpack_from(pack_str, buf, offset + 4)
         else:
@@ -2030,8 +2025,7 @@ class OFPMatchField(StringifyMixin):
         return cls(header, value, mask)
 
     def serialize(self, buf, offset):
-        hasmask = (self.header >> 8) & 1
-        if hasmask:
+        if ofproto_v1_2.oxm_tlv_header_extract_hasmask(self.header):
             self.put_w(buf, offset, self.value, self.mask)
         else:
             self.put(buf, offset, self.value)
@@ -2344,8 +2338,7 @@ class MTArpTha(OFPMatchField):
 class MTIPv6(object):
     @classmethod
     def field_parser(cls, header, buf, offset):
-        hasmask = (header >> 8) & 1
-        if hasmask:
+        if ofproto_v1_2.oxm_tlv_header_extract_hasmask(header):
             pack_str = '!' + cls.pack_str[1:] * 2
             value = struct.unpack_from(pack_str, buf, offset + 4)
             return cls(header, list(value[:8]), list(value[8:]))
