@@ -143,11 +143,20 @@ class StringifyMixin(object):
         try:
             return cls(**kwargs)
         except TypeError:
-            #debug
-            print "CLS", cls
-            print "ARG", dict_
-            print "KWARG", kwargs
-            raise
+	    # XXXhack for MsgBase derived classes
+	    try:
+		import ryu.ofproto.ofproto_v1_2
+		class D(object):
+		    def __init__(self, ofp):
+			self.ofproto = ofp
+		dp = D(ryu.ofproto.ofproto_v1_2)
+		return cls(datapath=dp, **kwargs)
+	    except TypeError:
+		#debug
+		print "CLS", cls
+		print "ARG", dict_
+		print "KWARG", kwargs
+		raise
 
 
 def ofp_from_jsondict(parser, jsondict):
