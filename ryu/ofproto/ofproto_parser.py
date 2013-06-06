@@ -137,7 +137,15 @@ class StringifyMixin(object):
     def from_jsondict(cls, dict_):
         """create an instance from a result of json.loads()
         """
-        return cls(**(_mapdict(cls._decode_value, dict_)))
+        kwargs = _mapdict(cls._decode_value, dict_)
+        try:
+            return cls(**kwargs)
+        except TypeError:
+            #debug
+            print "CLS", cls
+            print "ARG", dict_
+            print "KWARG", kwargs
+            raise
 
 
 def ofp_from_jsondict(parser, jsondict):
