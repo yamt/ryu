@@ -118,7 +118,6 @@ class StringifyMixin(object):
         """
         dict_ = {}
         for k, v in ofp_attrs(self):
-            # XXX type_ vs type
             dict_[k] = self._encode_value(v)
         return {self.__class__.__name__: dict_}
 
