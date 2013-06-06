@@ -1523,12 +1523,12 @@ class FlowWildcards(object):
 
 
 class OFPMatch(StringifyMixin):
-    def __init__(self, **kwargs):
+    def __init__(self, fields=[]):
         super(OFPMatch, self).__init__()
         self._wc = FlowWildcards()
         self._flow = Flow()
         self.fields = []
-        if kwargs:
+        if fields:
             # we are doing de-stringify.
             # we have two goals:
             #   - the resulted object should be serialize()-able.
@@ -1537,17 +1537,15 @@ class OFPMatch(StringifyMixin):
             # mimic appropriate set_foo calls and the first half of serialize.
             import sys
             this_module = sys.modules[__name__]
-            for k, v in kwargs.iteritems():
-                cls = getattr(this_module, k)
-                value = v["value"]
-                mask = v.get("mask", None)
-                header = OFPMatchField.cls_to_header(cls, mask != None)
-                f = cls(header, value, mask)
-                self.fields.append(f)
-
-    def to_jsondict(self):
-        d = reduce(lambda a, x: dict(a, **x.to_jsondict()), self.fields, {})
-        return { self.__class__.__name__: d }
+            for o in fields:
+                assert len(o) == 1
+                for k, v in o.iteritems():
+                    cls = getattr(this_module, k)
+                    mask = v.get("mask", None)
+                    header = OFPMatchField.cls_to_header(cls, not mask is None)
+                    value = v["value"]
+                    f = cls(header, value, mask)
+                    self.fields.append(f)
 
     def append_field(self, header, value, mask=None):
         self.fields.append(OFPMatchField.make(header, value, mask))
