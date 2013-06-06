@@ -1607,7 +1607,7 @@ class OFPMatch(StringifyMixin):
                               self._flow.ip_proto)
 
         if self._wc.ft_test(ofproto_v1_2.OFPXMT_OFB_IPV4_SRC):
-            if self._wc.ipv4_src_mask == UINT32_MAX:
+            if self._wc.ipv4_src_mask is None:
                 header = ofproto_v1_2.OXM_OF_IPV4_SRC
             else:
                 header = ofproto_v1_2.OXM_OF_IPV4_SRC_W
@@ -1833,7 +1833,7 @@ class OFPMatch(StringifyMixin):
         self._flow.ip_proto = ip_proto
 
     def set_ipv4_src(self, ipv4_src):
-        self.set_ipv4_src_masked(ipv4_src, UINT32_MAX)
+        self.set_ipv4_src_masked(ipv4_src, None)
 
     def set_ipv4_src_masked(self, ipv4_src, mask):
         self._wc.ft_set(ofproto_v1_2.OFPXMT_OFB_IPV4_SRC)
