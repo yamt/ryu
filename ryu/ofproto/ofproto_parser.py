@@ -84,7 +84,7 @@ import __builtin__
 __RESERVED_KEYWORD = dir(__builtin__)
 
 
-_mapdict_key = lambda f, d: dict([(k, f(v)) for k, v in d.items()])
+_mapdict = lambda f, d: dict([(k, f(v)) for k, v in d.items()])
 
 
 class StringifyMixin(object):
@@ -105,7 +105,7 @@ class StringifyMixin(object):
         elif isinstance(v, list):
             json_value = map(StringifyMixin._encode_value, v)
         elif isinstance(v, dict):
-            json_value = _mapdict_key(StringifyMixin._encode_value, v)
+            json_value = _mapdict(StringifyMixin._encode_value, v)
         else:
             try:
                 json_value = v.to_jsondict()
@@ -128,7 +128,7 @@ class StringifyMixin(object):
         elif isinstance(json_value, list):
             v = map(StringifyMixin._decode_value, json_value)
         elif isinstance(json_value, dict):
-            v = _mapdict_key(StringifyMixin._decode_value, json_value)
+            v = _mapdict(StringifyMixin._decode_value, json_value)
         else:
             v = json_value
         return v
@@ -137,10 +137,7 @@ class StringifyMixin(object):
     def from_jsondict(cls, dict_):
         """create an instance from a result of json.loads()
         """
-        dict2 = {}
-        for k, v in dict_.iteritems():
-            dict2[k] = cls._decode_value(v)
-        return cls(**dict2)
+        return cls(**(_mapdict(cls._decode_value, dict_)))
 
 
 def ofp_from_jsondict(parser, jsondict):
