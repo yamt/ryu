@@ -288,6 +288,8 @@ def ofp_python_attrs(msg_):
 def ofp_attrs(msg_):
     for k, v in ofp_python_attrs(msg_):
         if k.endswith('_') and k[:-1] in _RESERVED_KEYWORD:
+            # XXX currently only StringifyMixin has restoring logic
+            assert isinstance(msg_, StringifyMixin)
             k = k[:-1]
         yield (k, v)
 
