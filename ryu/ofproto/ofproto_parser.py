@@ -81,10 +81,11 @@ def create_list_of_base_attributes(f):
 # 'len', 'property', 'set', 'type'
 # A bit more generic way is adopted
 import __builtin__
-__RESERVED_KEYWORD = dir(__builtin__)
+_RESERVED_KEYWORD = dir(__builtin__)
 
 
 _mapdict = lambda f, d: dict([(k, f(v)) for k, v in d.items()])
+_mapdict_key = lambda f, d: dict([(f(k), v) for k, v in d.items()])
 
 
 class StringifyMixin(object):
@@ -135,11 +136,19 @@ class StringifyMixin(object):
             v = json_value
         return v
 
+    @staticmethod
+    def _restore_args(dict_):
+        def restore(k):
+            if k in _RESERVED_KEYWORD:
+                return k + '_'
+            return k
+        return _mapdict_key(restore, dict_)
+
     @classmethod
     def from_jsondict(cls, dict_, **additional_args):
         """create an instance from a result of json.loads()
         """
-        kwargs = _mapdict(cls._decode_value, dict_)
+        kwargs = cls._restore_args(_mapdict(cls._decode_value, dict_))
         try:
             return cls(**dict(kwargs, **additional_args))
         except TypeError:
@@ -278,7 +287,7 @@ def ofp_python_attrs(msg_):
 
 def ofp_attrs(msg_):
     for k, v in ofp_python_attrs(msg_):
-        if k.endswith('_') and k[:-1] in __RESERVED_KEYWORD:
+        if k.endswith('_') and k[:-1] in _RESERVED_KEYWORD:
             k = k[:-1]
         yield (k, v)
 
