@@ -1456,11 +1456,6 @@ class OFPRoleReply(MsgBase):
         return msg
 
 
-UINT64_MAX = (1 << 64) - 1
-UINT32_MAX = (1 << 32) - 1
-UINT16_MAX = (1 << 16) - 1
-
-
 class Flow(object):
     def __init__(self):
         self.in_port = 0
@@ -1503,19 +1498,19 @@ class Flow(object):
 
 class FlowWildcards(object):
     def __init__(self):
-        self.metadata_mask = 0
-        self.dl_dst_mask = 0
-        self.dl_src_mask = 0
-        self.vlan_vid_mask = 0
-        self.ipv4_src_mask = 0
-        self.ipv4_dst_mask = 0
-        self.arp_spa_mask = 0
-        self.arp_tpa_mask = 0
-        self.arp_sha_mask = 0
-        self.arp_tha_mask = 0
-        self.ipv6_src_mask = []
-        self.ipv6_dst_mask = []
-        self.ipv6_flabel_mask = 0
+        self.metadata_mask = None
+        self.dl_dst_mask = None
+        self.dl_src_mask = None
+        self.vlan_vid_mask = None
+        self.ipv4_src_mask = None
+        self.ipv4_dst_mask = None
+        self.arp_spa_mask = None
+        self.arp_tpa_mask = None
+        self.arp_sha_mask = None
+        self.arp_tha_mask = None
+        self.ipv6_src_mask = None
+        self.ipv6_dst_mask = None
+        self.ipv6_flabel_mask = None
         self.wildcards = (1 << 64) - 1
 
     def ft_set(self, shift):
@@ -1545,7 +1540,7 @@ class OFPMatch(object):
                               self._flow.in_phy_port)
 
         if self._wc.ft_test(ofproto_v1_2.OFPXMT_OFB_METADATA):
-            if self._wc.metadata_mask == UINT64_MAX:
+            if self._wc.metadata_mask is None:
                 header = ofproto_v1_2.OXM_OF_METADATA
             else:
                 header = ofproto_v1_2.OXM_OF_METADATA_W
@@ -1553,24 +1548,24 @@ class OFPMatch(object):
                               self._wc.metadata_mask)
 
         if self._wc.ft_test(ofproto_v1_2.OFPXMT_OFB_ETH_DST):
-            if self._wc.dl_dst_mask:
-                header = ofproto_v1_2.OXM_OF_ETH_DST_W
-            else:
+            if self._wc.dl_dst_mask is None:
                 header = ofproto_v1_2.OXM_OF_ETH_DST
+            else:
+                header = ofproto_v1_2.OXM_OF_ETH_DST_W
             self.append_field(header, self._flow.dl_dst, self._wc.dl_dst_mask)
 
         if self._wc.ft_test(ofproto_v1_2.OFPXMT_OFB_ETH_SRC):
-            if self._wc.dl_src_mask:
-                header = ofproto_v1_2.OXM_OF_ETH_SRC_W
-            else:
+            if self._wc.dl_src_mask is None:
                 header = ofproto_v1_2.OXM_OF_ETH_SRC
+            else:
+                header = ofproto_v1_2.OXM_OF_ETH_SRC_W
             self.append_field(header, self._flow.dl_src, self._wc.dl_src_mask)
 
         if self._wc.ft_test(ofproto_v1_2.OFPXMT_OFB_ETH_TYPE):
             self.append_field(ofproto_v1_2.OXM_OF_ETH_TYPE, self._flow.dl_type)
 
         if self._wc.ft_test(ofproto_v1_2.OFPXMT_OFB_VLAN_VID):
-            if self._wc.vlan_vid_mask == UINT16_MAX:
+            if self._wc.vlan_vid_mask is None:
                 header = ofproto_v1_2.OXM_OF_VLAN_VID
             else:
                 header = ofproto_v1_2.OXM_OF_VLAN_VID_W
@@ -1592,7 +1587,7 @@ class OFPMatch(object):
                               self._flow.ip_proto)
 
         if self._wc.ft_test(ofproto_v1_2.OFPXMT_OFB_IPV4_SRC):
-            if self._wc.ipv4_src_mask == UINT32_MAX:
+            if self._wc.ipv4_src_mask is None:
                 header = ofproto_v1_2.OXM_OF_IPV4_SRC
             else:
                 header = ofproto_v1_2.OXM_OF_IPV4_SRC_W
@@ -1600,7 +1595,7 @@ class OFPMatch(object):
                               self._wc.ipv4_src_mask)
 
         if self._wc.ft_test(ofproto_v1_2.OFPXMT_OFB_IPV4_DST):
-            if self._wc.ipv4_dst_mask == UINT32_MAX:
+            if self._wc.ipv4_dst_mask is None:
                 header = ofproto_v1_2.OXM_OF_IPV4_DST
             else:
                 header = ofproto_v1_2.OXM_OF_IPV4_DST_W
@@ -1639,7 +1634,7 @@ class OFPMatch(object):
             self.append_field(ofproto_v1_2.OXM_OF_ARP_OP, self._flow.arp_op)
 
         if self._wc.ft_test(ofproto_v1_2.OFPXMT_OFB_ARP_SPA):
-            if self._wc.arp_spa_mask == UINT32_MAX:
+            if self._wc.arp_spa_mask is None:
                 header = ofproto_v1_2.OXM_OF_ARP_SPA
             else:
                 header = ofproto_v1_2.OXM_OF_ARP_SPA_W
@@ -1647,7 +1642,7 @@ class OFPMatch(object):
                               self._wc.arp_spa_mask)
 
         if self._wc.ft_test(ofproto_v1_2.OFPXMT_OFB_ARP_TPA):
-            if self._wc.arp_tpa_mask == UINT32_MAX:
+            if self._wc.arp_tpa_mask is None:
                 header = ofproto_v1_2.OXM_OF_ARP_TPA
             else:
                 header = ofproto_v1_2.OXM_OF_ARP_TPA_W
@@ -1655,39 +1650,39 @@ class OFPMatch(object):
                               self._wc.arp_tpa_mask)
 
         if self._wc.ft_test(ofproto_v1_2.OFPXMT_OFB_ARP_SHA):
-            if self._wc.arp_sha_mask:
-                header = ofproto_v1_2.OXM_OF_ARP_SHA_W
-            else:
+            if self._wc.arp_sha_mask is None:
                 header = ofproto_v1_2.OXM_OF_ARP_SHA
+            else:
+                header = ofproto_v1_2.OXM_OF_ARP_SHA_W
             self.append_field(header, self._flow.arp_sha,
                               self._wc.arp_sha_mask)
 
         if self._wc.ft_test(ofproto_v1_2.OFPXMT_OFB_ARP_THA):
-            if self._wc.arp_tha_mask:
-                header = ofproto_v1_2.OXM_OF_ARP_THA_W
-            else:
+            if self._wc.arp_tha_mask is None:
                 header = ofproto_v1_2.OXM_OF_ARP_THA
+            else:
+                header = ofproto_v1_2.OXM_OF_ARP_THA_W
             self.append_field(header, self._flow.arp_tha,
                               self._wc.arp_tha_mask)
 
         if self._wc.ft_test(ofproto_v1_2.OFPXMT_OFB_IPV6_SRC):
-            if len(self._wc.ipv6_src_mask):
-                header = ofproto_v1_2.OXM_OF_IPV6_SRC_W
-            else:
+            if self._wc.ipv6_src_mask is None:
                 header = ofproto_v1_2.OXM_OF_IPV6_SRC
+            else:
+                header = ofproto_v1_2.OXM_OF_IPV6_SRC_W
             self.append_field(header, self._flow.ipv6_src,
                               self._wc.ipv6_src_mask)
 
         if self._wc.ft_test(ofproto_v1_2.OFPXMT_OFB_IPV6_DST):
-            if len(self._wc.ipv6_dst_mask):
-                header = ofproto_v1_2.OXM_OF_IPV6_DST_W
-            else:
+            if self._wc.ipv6_dst_mask is None:
                 header = ofproto_v1_2.OXM_OF_IPV6_DST
+            else:
+                header = ofproto_v1_2.OXM_OF_IPV6_DST_W
             self.append_field(header, self._flow.ipv6_dst,
                               self._wc.ipv6_dst_mask)
 
         if self._wc.ft_test(ofproto_v1_2.OFPXMT_OFB_IPV6_FLABEL):
-            if self._wc.ipv6_flabel_mask == UINT32_MAX:
+            if self._wc.ipv6_flabel_mask is None:
                 header = ofproto_v1_2.OXM_OF_IPV6_FLABEL
             else:
                 header = ofproto_v1_2.OXM_OF_IPV6_FLABEL_W
@@ -1763,12 +1758,12 @@ class OFPMatch(object):
         self._flow.in_phy_port = phy_port
 
     def set_metadata(self, metadata):
-        self.set_metadata_masked(metadata, UINT64_MAX)
+        self.set_metadata_masked(metadata, None)
 
     def set_metadata_masked(self, metadata, mask):
         self._wc.ft_set(ofproto_v1_2.OFPXMT_OFB_METADATA)
         self._wc.metadata_mask = mask
-        self._flow.metadata = metadata & mask
+        self._flow.metadata = metadata
 
     def set_dl_dst(self, dl_dst):
         self._wc.ft_set(ofproto_v1_2.OFPXMT_OFB_ETH_DST)
@@ -1777,8 +1772,7 @@ class OFPMatch(object):
     def set_dl_dst_masked(self, dl_dst, mask):
         self._wc.ft_set(ofproto_v1_2.OFPXMT_OFB_ETH_DST)
         self._wc.dl_dst_mask = mask
-        # bit-wise and of the corresponding elements of dl_dst and mask
-        self._flow.dl_dst = mac.haddr_bitand(dl_dst, mask)
+        self._flow.dl_dst = dl_dst
 
     def set_dl_src(self, dl_src):
         self._wc.ft_set(ofproto_v1_2.OFPXMT_OFB_ETH_SRC)
@@ -1787,14 +1781,14 @@ class OFPMatch(object):
     def set_dl_src_masked(self, dl_src, mask):
         self._wc.ft_set(ofproto_v1_2.OFPXMT_OFB_ETH_SRC)
         self._wc.dl_src_mask = mask
-        self._flow.dl_src = mac.haddr_bitand(dl_src, mask)
+        self._flow.dl_src = dl_src
 
     def set_dl_type(self, dl_type):
         self._wc.ft_set(ofproto_v1_2.OFPXMT_OFB_ETH_TYPE)
         self._flow.dl_type = dl_type
 
     def set_vlan_vid(self, vid):
-        self.set_vlan_vid_masked(vid, UINT16_MAX)
+        self.set_vlan_vid_masked(vid, None)
 
     def set_vlan_vid_masked(self, vid, mask):
         self._wc.ft_set(ofproto_v1_2.OFPXMT_OFB_VLAN_VID)
@@ -1818,7 +1812,7 @@ class OFPMatch(object):
         self._flow.ip_proto = ip_proto
 
     def set_ipv4_src(self, ipv4_src):
-        self.set_ipv4_src_masked(ipv4_src, UINT32_MAX)
+        self.set_ipv4_src_masked(ipv4_src, None)
 
     def set_ipv4_src_masked(self, ipv4_src, mask):
         self._wc.ft_set(ofproto_v1_2.OFPXMT_OFB_IPV4_SRC)
@@ -1826,7 +1820,7 @@ class OFPMatch(object):
         self._wc.ipv4_src_mask = mask
 
     def set_ipv4_dst(self, ipv4_dst):
-        self.set_ipv4_dst_masked(ipv4_dst, UINT32_MAX)
+        self.set_ipv4_dst_masked(ipv4_dst, None)
 
     def set_ipv4_dst_masked(self, ipv4_dst, mask):
         self._wc.ft_set(ofproto_v1_2.OFPXMT_OFB_IPV4_DST)
@@ -1870,7 +1864,7 @@ class OFPMatch(object):
         self._flow.arp_op = arp_op
 
     def set_arp_spa(self, arp_spa):
-        self.set_arp_spa_masked(arp_spa, UINT32_MAX)
+        self.set_arp_spa_masked(arp_spa, None)
 
     def set_arp_spa_masked(self, arp_spa, mask):
         self._wc.ft_set(ofproto_v1_2.OFPXMT_OFB_ARP_SPA)
@@ -1878,7 +1872,7 @@ class OFPMatch(object):
         self._flow.arp_spa = arp_spa
 
     def set_arp_tpa(self, arp_tpa):
-        self.set_arp_tpa_masked(arp_tpa, UINT32_MAX)
+        self.set_arp_tpa_masked(arp_tpa, None)
 
     def set_arp_tpa_masked(self, arp_tpa, mask):
         self._wc.ft_set(ofproto_v1_2.OFPXMT_OFB_ARP_TPA)
@@ -1892,7 +1886,7 @@ class OFPMatch(object):
     def set_arp_sha_masked(self, arp_sha, mask):
         self._wc.ft_set(ofproto_v1_2.OFPXMT_OFB_ARP_SHA)
         self._wc.arp_sha_mask = mask
-        self._flow.arp_sha = mac.haddr_bitand(arp_sha, mask)
+        self._flow.arp_sha = arp_sha
 
     def set_arp_tha(self, arp_tha):
         self._wc.ft_set(ofproto_v1_2.OFPXMT_OFB_ARP_THA)
@@ -1901,7 +1895,7 @@ class OFPMatch(object):
     def set_arp_tha_masked(self, arp_tha, mask):
         self._wc.ft_set(ofproto_v1_2.OFPXMT_OFB_ARP_THA)
         self._wc.arp_tha_mask = mask
-        self._flow.arp_tha = mac.haddr_bitand(arp_tha, mask)
+        self._flow.arp_tha = arp_tha
 
     def set_ipv6_src(self, src):
         self._wc.ft_set(ofproto_v1_2.OFPXMT_OFB_IPV6_SRC)
@@ -1910,7 +1904,7 @@ class OFPMatch(object):
     def set_ipv6_src_masked(self, src, mask):
         self._wc.ft_set(ofproto_v1_2.OFPXMT_OFB_IPV6_SRC)
         self._wc.ipv6_src_mask = mask
-        self._flow.ipv6_src = [x & y for (x, y) in itertools.izip(src, mask)]
+        self._flow.ipv6_src = src
 
     def set_ipv6_dst(self, dst):
         self._wc.ft_set(ofproto_v1_2.OFPXMT_OFB_IPV6_DST)
@@ -1919,10 +1913,10 @@ class OFPMatch(object):
     def set_ipv6_dst_masked(self, dst, mask):
         self._wc.ft_set(ofproto_v1_2.OFPXMT_OFB_IPV6_DST)
         self._wc.ipv6_dst_mask = mask
-        self._flow.ipv6_dst = [x & y for (x, y) in itertools.izip(dst, mask)]
+        self._flow.ipv6_dst = dst
 
     def set_ipv6_flabel(self, flabel):
-        self.set_ipv6_flabel_masked(flabel, UINT32_MAX)
+        self.set_ipv6_flabel_masked(flabel, None)
 
     def set_ipv6_flabel_masked(self, flabel, mask):
         self._wc.ft_set(ofproto_v1_2.OFPXMT_OFB_IPV6_FLABEL)
