@@ -393,7 +393,7 @@ class OFPFlowMod(MsgBase):
             offset += inst.len
 
 
-class OFPInstruction(object):
+class OFPInstruction(StringifyMixin):
     _INSTRUCTION_TYPES = {}
 
     @staticmethod
@@ -412,7 +412,9 @@ class OFPInstruction(object):
 
 
 @OFPInstruction.register_instruction_type([ofproto_v1_2.OFPIT_GOTO_TABLE])
-class OFPInstructionGotoTable(object):
+class OFPInstructionGotoTable(StringifyMixin):
+    _base_attributes = ['type', 'len']
+
     def __init__(self, table_id):
         super(OFPInstructionGotoTable, self).__init__()
         self.type = ofproto_v1_2.OFPIT_GOTO_TABLE
@@ -432,7 +434,9 @@ class OFPInstructionGotoTable(object):
 
 
 @OFPInstruction.register_instruction_type([ofproto_v1_2.OFPIT_WRITE_METADATA])
-class OFPInstructionWriteMetadata(object):
+class OFPInstructionWriteMetadata(StringifyMixin):
+    _base_attributes = ['type', 'len']
+
     def __init__(self, metadata, metadata_mask):
         super(OFPInstructionWriteMetadata, self).__init__()
         self.type = ofproto_v1_2.OFPIT_WRITE_METADATA
@@ -456,7 +460,9 @@ class OFPInstructionWriteMetadata(object):
 @OFPInstruction.register_instruction_type([ofproto_v1_2.OFPIT_WRITE_ACTIONS,
                                            ofproto_v1_2.OFPIT_APPLY_ACTIONS,
                                            ofproto_v1_2.OFPIT_CLEAR_ACTIONS])
-class OFPInstructionActions(object):
+class OFPInstructionActions(StringifyMixin):
+    _base_attributes = ['len']
+
     def __init__(self, type_, actions=None):
         super(OFPInstructionActions, self).__init__()
         self.type = type_
@@ -485,6 +491,7 @@ class OFPInstructionActions(object):
         action_offset = offset + ofproto_v1_2.OFP_INSTRUCTION_ACTIONS_SIZE
         if self.actions:
             for a in self.actions:
+		assert isinstance(a, OFPAction)
                 a.serialize(buf, action_offset)
                 action_offset += a.len
 
@@ -497,7 +504,9 @@ class OFPInstructionActions(object):
                       buf, offset, self.type, self.len)
 
 
-class OFPActionHeader(object):
+class OFPActionHeader(StringifyMixin):
+    _base_attributes = ['type', 'len']
+
     def __init__(self, type_, len_):
         self.type = type_
         self.len = len_
@@ -794,7 +803,7 @@ class OFPActionExperimenter(OFPAction):
                       buf, offset, self.type, self.len, self.experimenter)
 
 
-class OFPBucket(object):
+class OFPBucket(StringifyMixin):
     def __init__(self, len_, weight, watch_port, watch_group, actions):
         super(OFPBucket, self).__init__()
         self.len = len_
@@ -987,7 +996,7 @@ class OFPFlowStatsRequest(OFPStatsRequest):
 
 
 @OFPStatsReply.register_stats_reply_type(ofproto_v1_2.OFPST_FLOW)
-class OFPFlowStats(object):
+class OFPFlowStats(StringifyMixin):
     def __init__(self, length, table_id, duration_sec, duration_nsec,
                  priority, idle_timeout, hard_timeout, cookie, packet_count,
                  byte_count, match, instructions=None):
@@ -1161,7 +1170,7 @@ class OFPQueueStats(
         return stats
 
 
-class OFPBucketCounter(object):
+class OFPBucketCounter(StringifyMixin):
     def __init__(self, packet_count, byte_count):
         super(OFPBucketCounter, self).__init__()
         self.packet_count = packet_count
@@ -1189,7 +1198,7 @@ class OFPGroupStatsRequest(OFPStatsRequest):
 
 
 @OFPStatsReply.register_stats_reply_type(ofproto_v1_2.OFPST_GROUP)
-class OFPGroupStats(object):
+class OFPGroupStats(StringifyMixin):
     def __init__(self, length, group_id, ref_count, packet_count,
                  byte_count, bucket_counters):
         super(OFPGroupStats, self).__init__()
@@ -1228,7 +1237,7 @@ class OFPGroupDescStatsRequest(OFPStatsRequest):
 
 
 @OFPStatsReply.register_stats_reply_type(ofproto_v1_2.OFPST_GROUP_DESC)
-class OFPGroupDescStats(object):
+class OFPGroupDescStats(StringifyMixin):
     def __init__(self, length, type_, group_id, buckets):
         self.length = length
         self.type = type_
@@ -1263,7 +1272,7 @@ class OFPGroupFeaturesStatsRequest(OFPStatsRequest):
 
 @OFPStatsReply.register_stats_reply_type(ofproto_v1_2.OFPST_GROUP_FEATURES,
                                          body_single_struct=True)
-class OFPGroupFeaturesStats(object):
+class OFPGroupFeaturesStats(StringifyMixin):
     def __init__(self, types, capabilities, max_groups, actions):
         self.types = types
         self.capabilities = capabilities
@@ -1293,7 +1302,7 @@ class OFPQueueGetConfigRequest(MsgBase):
                       self.buf, ofproto_v1_2.OFP_HEADER_SIZE, self.port)
 
 
-class OFPQueuePropHeader(object):
+class OFPQueuePropHeader(StringifyMixin):
     def __init__(self, property_, len_):
         self.property = property_
         self.len = len_
@@ -1330,7 +1339,7 @@ class OFPQueueProp(OFPQueuePropHeader):
         return cls_.parser(buf, offset)
 
 
-class OFPPacketQueue(object):
+class OFPPacketQueue(StringifyMixin):
     def __init__(self, queue_id, port, len_, properties):
         super(OFPPacketQueue, self).__init__()
         self.queue_id = queue_id
