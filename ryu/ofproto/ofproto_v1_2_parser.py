@@ -1548,7 +1548,10 @@ class OFPMatch(StringifyMixin):
                     mask = v.get("mask", None)
                     header = OFPMatchField.cls_to_header(cls, not mask is None)
                     value = v["value"]
-                    f = cls(header, self._decode_value(value), mask)
+                    value = self._decode_value(value)
+                    if not mask is None:
+                        mask = self._decode_value(mask)
+                    f = cls(header, value, mask)
                     self.fields.append(f)
 
     def append_field(self, header, value, mask=None):
