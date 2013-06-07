@@ -278,9 +278,9 @@ def ofp_python_attrs(msg_):
 
 def ofp_attrs(msg_):
     for k, v in ofp_python_attrs(msg_):
-	if k.endswith('_') and k[:-1] in __RESERVED_KEYWORD:
-	    k = k[:-1]
-	yield (k, v)
+        if k.endswith('_') and k[:-1] in __RESERVED_KEYWORD:
+            k = k[:-1]
+        yield (k, v)
 
 
 def namedtuple(typename, fields, **kwargs):
