@@ -136,33 +136,35 @@ class StringifyMixin(object):
         return v
 
     @classmethod
-    def from_jsondict(cls, dict_):
+    def from_jsondict(cls, dict_, **additional_args):
         """create an instance from a result of json.loads()
         """
         kwargs = _mapdict(cls._decode_value, dict_)
         try:
-            return cls(**kwargs)
+            return cls(**dict(kwargs, **additional_args))
         except TypeError:
-	    # XXXhack for MsgBase derived classes
-	    try:
-		import ryu.ofproto.ofproto_v1_2
-		class D(object):
-		    def __init__(self, ofp):
-			self.ofproto = ofp
-		dp = D(ryu.ofproto.ofproto_v1_2)
-		return cls(datapath=dp, **kwargs)
-	    except TypeError:
-		#debug
-		print "CLS", cls
-		print "ARG", dict_
-		print "KWARG", kwargs
-		raise
+            #debug
+            print "CLS", cls
+            print "ARG", dict_
+            print "KWARG", kwargs
+            raise
 
 
 def ofp_from_jsondict(parser, jsondict):
     assert len(jsondict) == 1
     for k, v in jsondict.iteritems():
-        return getattr(parser, k).from_jsondict(v)
+        cls = getattr(parser, k)
+        assert not MsgBase in inspect.getmro(cls)
+        return cls.from_jsondict(v)
+
+
+def ofp_msg_from_jsondict(dp, jsondict):
+    parser = dp.ofproto_parser
+    assert len(jsondict) == 1
+    for k, v in jsondict.iteritems():
+        cls = getattr(parser, k)
+        assert MsgBase in inspect.getmro(cls)
+        return cls.from_jsondict(v, datapath=dp)
 
 
 class MsgBase(StringifyMixin):
