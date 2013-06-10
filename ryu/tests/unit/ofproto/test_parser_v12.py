@@ -6752,13 +6752,13 @@ class TestOFPMatch(unittest.TestCase):
         self._test_set_metadata(0)
 
     def test_set_metadata_masked_mid(self):
-        self._test_set_metadata(0x1212121212121212, 0xff00ff00ff00ff00)
+        self._test_set_metadata(0x1200120012001200, 0xff00ff00ff00ff00)
 
     def test_set_metadata_masked_max(self):
         self._test_set_metadata(0x1212121212121212, 0xffffffffffffffff)
 
     def test_set_metadata_masked_min(self):
-        self._test_set_metadata(0x1212121212121212, 0)
+        self._test_set_metadata(0, 0)
 
     # set_dl_dst
     def _test_set_dl_dst(self, dl_dst, mask=None):
@@ -6784,13 +6784,13 @@ class TestOFPMatch(unittest.TestCase):
         self._test_set_dl_dst('00:00:00:00:00:00')
 
     def test_set_dl_dst_masked_mid(self):
-        self._test_set_dl_dst('e2:7a:09:79:0b:0f', 'ff:00:ff:00:ff:00')
+        self._test_set_dl_dst('e2:00:09:00:0b:00', 'ff:00:ff:00:ff:00')
 
     def test_set_dl_dst_masked_max(self):
         self._test_set_dl_dst('e2:7a:09:79:0b:0f', 'ff:ff:ff:ff:ff:ff')
 
     def test_set_dl_dst_masked_min(self):
-        self._test_set_dl_dst('e2:7a:09:79:0b:0f', '00:00:00:00:00:00')
+        self._test_set_dl_dst('00:00:00:00:00:00', '00:00:00:00:00:00')
 
     # set_dl_src
     def _test_set_dl_src(self, dl_src, mask=None):
@@ -6816,13 +6816,13 @@ class TestOFPMatch(unittest.TestCase):
         self._test_set_dl_src('00:00:00:00:00:00')
 
     def test_set_dl_src_masked_mid(self):
-        self._test_set_dl_src('d0:98:79:b4:75:b5', 'f0:f0:f0:f0:f0:f0')
+        self._test_set_dl_src('d0:90:70:b0:70:b0', 'f0:f0:f0:f0:f0:f0')
 
     def test_set_dl_src_masked_max(self):
         self._test_set_dl_src('d0:98:79:b4:75:b5', 'ff:ff:ff:ff:ff:ff')
 
     def test_set_dl_src_masked_min(self):
-        self._test_set_dl_src('d0:98:79:b4:75:b5', '00:00:00:00:00:00')
+        self._test_set_dl_src('00:00:00:00:00:00', '00:00:00:00:00:00')
 
     # set_dl_type
     def _test_set_dl_type(self, value):
@@ -7178,13 +7178,13 @@ class TestOFPMatch(unittest.TestCase):
         self._test_set_arp_spa('0.0.0.0')
 
     def test_set_arp_spa_masked_mid(self):
-        self._test_set_arp_spa('192.168.227.57', '255.255.0.0')
+        self._test_set_arp_spa('192.168.0.0', '255.255.0.0')
 
     def test_set_arp_spa_masked_max(self):
         self._test_set_arp_spa('192.168.227.57', '255.255.255.255')
 
     def test_set_arp_spa_masked_min(self):
-        self._test_set_arp_spa('192.168.227.57', '0.0.0.0')
+        self._test_set_arp_spa('0.0.0.0', '0.0.0.0')
 
     # set_arp_tpa
     def _test_set_arp_tpa(self, ip, mask=None):
@@ -7209,13 +7209,13 @@ class TestOFPMatch(unittest.TestCase):
         self._test_set_arp_tpa('0.0.0.0')
 
     def test_set_arp_tpa_masked_mid(self):
-        self._test_set_arp_tpa('192.168.227.57', '255.255.0.0')
+        self._test_set_arp_tpa('192.168.0.0', '255.255.0.0')
 
     def test_set_arp_tpa_masked_max(self):
         self._test_set_arp_tpa('192.168.227.57', '255.255.255.255')
 
     def test_set_arp_tpa_masked_min(self):
-        self._test_set_arp_tpa('192.168.227.57', '0.0.0.0')
+        self._test_set_arp_tpa('0.0.0.0', '0.0.0.0')
 
     # set_arp_sha
     def _test_set_arp_sha(self, arp_sha, mask=None):
@@ -7241,13 +7241,13 @@ class TestOFPMatch(unittest.TestCase):
         self._test_set_arp_sha('00:00:00:00:00:00')
 
     def test_set_arp_sha_masked_mid(self):
-        self._test_set_arp_sha('3e:ec:13:9b:f3:0b', 'ff:ff:ff:00:00:00')
+        self._test_set_arp_sha('3e:ec:13:00:00:00', 'ff:ff:ff:00:00:00')
 
     def test_set_arp_sha_masked_max(self):
         self._test_set_arp_sha('3e:ec:13:9b:f3:0b', 'ff:ff:ff:ff:ff:ff')
 
     def test_set_arp_sha_masked_min(self):
-        self._test_set_arp_sha('3e:ec:13:9b:f3:0b', '00:00:00:00:00:00')
+        self._test_set_arp_sha('00:00:00:00:00:00', '00:00:00:00:00:00')
 
     # set_arp_tha
     def _test_set_arp_tha(self, arp_tha, mask=None):
@@ -7273,13 +7273,13 @@ class TestOFPMatch(unittest.TestCase):
         self._test_set_arp_tha('00:00:00:00:00:00')
 
     def test_set_arp_tha_masked_mid(self):
-        self._test_set_arp_tha('83:6c:21:52:49:68', 'ff:ff:ff:00:00:00')
+        self._test_set_arp_tha('83:6c:21:00:00:00', 'ff:ff:ff:00:00:00')
 
     def test_set_arp_tha_masked_max(self):
         self._test_set_arp_tha('83:6c:21:52:49:68', 'ff:ff:ff:ff:ff:ff')
 
     def test_set_arp_tha_masked_min(self):
-        self._test_set_arp_tha('83:6c:21:52:49:68', '00:00:00:00:00:00')
+        self._test_set_arp_tha('00:00:00:00:00:00', '00:00:00:00:00:00')
 
     # set_ipv6_src
     def _test_set_ipv6_src(self, ipv6, mask=None):
@@ -7308,7 +7308,7 @@ class TestOFPMatch(unittest.TestCase):
         self._test_set_ipv6_src(ipv6)
 
     def test_set_ipv6_src_masked_mid(self):
-        ipv6 = '2001:db8:bd05:1d2:288a:1fc0:1:10ee'
+        ipv6 = '2001:db8:bd05:1d2:0:0:0:0'
         mask = 'ffff:ffff:ffff:ffff:0:0:0:0'
         self._test_set_ipv6_src(ipv6, mask)
 
@@ -7318,7 +7318,7 @@ class TestOFPMatch(unittest.TestCase):
         self._test_set_ipv6_src(ipv6, mask)
 
     def test_set_ipv6_src_masked_min(self):
-        ipv6 = '2001:db8:bd05:1d2:288a:1fc0:1:10ee'
+        ipv6 = '0:0:0:0:0:0:0:0'
         mask = '0:0:0:0:0:0:0:0'
         self._test_set_ipv6_src(ipv6, mask)
 
@@ -7349,7 +7349,7 @@ class TestOFPMatch(unittest.TestCase):
         self._test_set_ipv6_dst(ipv6)
 
     def test_set_ipv6_dst_mask_mid(self):
-        ipv6 = 'e9e8:9ea5:7d67:82cc:ca54:1fc0:2d24:f038'
+        ipv6 = 'e9e8:9ea5:7d67:82cc:0:0:0:0'
         mask = ':'.join(['ffff'] * 4 + ['0'] * 4)
         self._test_set_ipv6_dst(ipv6, mask)
 
@@ -7359,7 +7359,7 @@ class TestOFPMatch(unittest.TestCase):
         self._test_set_ipv6_dst(ipv6, mask)
 
     def test_set_ipv6_dst_mask_min(self):
-        ipv6 = 'e9e8:9ea5:7d67:82cc:ca54:1fc0:2d24:f038'
+        ipv6 = '0:0:0:0:0:0:0:0'
         mask = ':'.join(['0'] * 8)
         self._test_set_ipv6_dst(ipv6, mask)
 
@@ -7384,13 +7384,13 @@ class TestOFPMatch(unittest.TestCase):
         self._test_set_ipv6_flabel(0)
 
     def test_set_ipv6_flabel_masked_mid(self):
-        self._test_set_ipv6_flabel(0xc5384, 0xfff00)
+        self._test_set_ipv6_flabel(0xc5300, 0xfff00)
 
     def test_set_ipv6_flabel_masked_max(self):
         self._test_set_ipv6_flabel(0xc5384, 0xfffff)
 
     def test_set_ipv6_flabel_masked_min(self):
-        self._test_set_ipv6_flabel(0xc5384, 0)
+        self._test_set_ipv6_flabel(0, 0)
 
     # set_icmpv6_type
     def _test_set_icmpv6_type(self, icmpv6_type):
