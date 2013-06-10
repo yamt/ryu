@@ -491,7 +491,7 @@ class OFPInstructionActions(StringifyMixin):
         action_offset = offset + ofproto_v1_2.OFP_INSTRUCTION_ACTIONS_SIZE
         if self.actions:
             for a in self.actions:
-		assert isinstance(a, OFPAction)
+                assert isinstance(a, OFPAction)
                 a.serialize(buf, action_offset)
                 action_offset += a.len
 
