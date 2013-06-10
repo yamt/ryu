@@ -6737,8 +6737,7 @@ class TestOFPMatch(unittest.TestCase):
         if mask is None:
             match.set_metadata(metadata)
         else:
-            if (mask + 1) >> 64 != 1:
-                header = ofproto_v1_2.OXM_OF_METADATA_W
+            header = ofproto_v1_2.OXM_OF_METADATA_W
             match.set_metadata_masked(metadata, mask)
             metadata &= mask
         self._test_serialize_and_parser(match, header, metadata, mask)
@@ -6990,8 +6989,7 @@ class TestOFPMatch(unittest.TestCase):
             match.set_ipv4_dst(ip)
         else:
             mask = unpack('!I', socket.inet_aton(mask))[0]
-            if (mask + 1) >> 32 != 1:
-                header = ofproto_v1_2.OXM_OF_IPV4_DST_W
+            header = ofproto_v1_2.OXM_OF_IPV4_DST_W
             match.set_ipv4_dst_masked(ip, mask)
         self._test_serialize_and_parser(match, header, ip, mask)
 
@@ -7166,8 +7164,7 @@ class TestOFPMatch(unittest.TestCase):
             match.set_arp_spa(ip)
         else:
             mask = unpack('!I', socket.inet_aton(mask))[0]
-            if (mask + 1) >> 32 != 1:
-                header = ofproto_v1_2.OXM_OF_ARP_SPA_W
+            header = ofproto_v1_2.OXM_OF_ARP_SPA_W
             match.set_arp_spa_masked(ip, mask)
         self._test_serialize_and_parser(match, header, ip, mask)
 
@@ -7198,8 +7195,7 @@ class TestOFPMatch(unittest.TestCase):
             match.set_arp_tpa(ip)
         else:
             mask = unpack('!I', socket.inet_aton(mask))[0]
-            if (mask + 1) >> 32 != 1:
-                header = ofproto_v1_2.OXM_OF_ARP_TPA_W
+            header = ofproto_v1_2.OXM_OF_ARP_TPA_W
             match.set_arp_tpa_masked(ip, mask)
         self._test_serialize_and_parser(match, header, ip, mask)
 
