@@ -22,6 +22,7 @@ from ryu.lib.hub import StreamServer
 import traceback
 import random
 import ssl
+import sys
 
 import ryu.base.app_manager
 
@@ -313,10 +314,14 @@ def datapath_connection_factory(socket, address):
         try:
             datapath.serve()
         except:
+            exc_info = sys.exc_info()
             # Something went wrong.
             # Especially malicious switch can send malformed packet,
             # the parser raise exception.
             # Can we do anything more graceful?
-            LOG.error("Error in the datapath %s from %s",
-                      dpid_to_str(datapath.id), address)
-            raise
+            try:
+                dpid_str = dpid_to_str(datapath.id)
+            except:
+                dpid_str = "%s" % datapath.id
+            LOG.error("Error in the datapath %s from %s", dpid_str, address)
+            raise exc_info[0], exc_info[1], exc_info[2]
