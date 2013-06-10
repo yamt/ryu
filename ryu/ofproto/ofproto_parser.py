@@ -100,12 +100,26 @@ class StringifyMixin(object):
     __repr__ = __str__  # note: str(list) uses __repr__ for elements
 
     @staticmethod
+    def _is_ofp_class(dict_):
+        # we distinguish a dict like OFPSwitchFeatures.ports
+        # from OFPxxx classes using heuristics.
+        assert isinstance(dict_, dict)
+        if len(dict_) != 1:
+            return False
+        k = dict_.keys()[0]
+        if not isinstance(k, (bytes, unicode)):
+            return False
+        return k.startswith("OFP")
+
+    @staticmethod
     def _encode_value(v):
-        assert not isinstance(v, dict)
         if isinstance(v, (bytes, unicode)):
             json_value = base64.b64encode(v)
         elif isinstance(v, list):
             json_value = map(StringifyMixin._encode_value, v)
+        elif isinstance(v, dict):
+            assert not StringifyMixin._is_ofp_class(v)
+            json_value = _mapdict(StringifyMixin._encode_value, v)
         else:
             try:
                 json_value = v.to_jsondict()
@@ -129,9 +143,13 @@ class StringifyMixin(object):
             decode = lambda x: cls._decode_value(x)
             v = map(decode, json_value)
         elif isinstance(json_value, dict):
-            import sys
-            parser = sys.modules[cls.__module__]
-            v = ofp_from_jsondict(parser, json_value)
+            if cls._is_ofp_class(json_value):
+                import sys
+                parser = sys.modules[cls.__module__]
+                v = ofp_from_jsondict(parser, json_value)
+            else:
+                decode = lambda x: cls._decode_value(x)
+                v = _mapdict(decode, json_value)
         else:
             v = json_value
         return v
