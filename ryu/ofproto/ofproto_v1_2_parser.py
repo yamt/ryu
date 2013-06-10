@@ -1094,13 +1094,13 @@ class OFPTableStatsRequest(OFPStatsRequest):
 @OFPStatsReply.register_stats_reply_type(ofproto_v1_2.OFPST_TABLE)
 class OFPTableStats(
     ofproto_parser.namedtuple('OFPTableStats',
-                           ('table_id', 'name', 'match', 'wildcards',
-                            'write_actions', 'apply_actions',
-                            'write_setfields', 'apply_setfields',
-                            'metadata_match', 'metadata_write',
-                            'instructions', 'config',
-                            'max_entries', 'active_count',
-                            'lookup_count', 'matched_count'))):
+                              ('table_id', 'name', 'match', 'wildcards',
+                               'write_actions', 'apply_actions',
+                               'write_setfields', 'apply_setfields',
+                               'metadata_match', 'metadata_write',
+                               'instructions', 'config',
+                               'max_entries', 'active_count',
+                               'lookup_count', 'matched_count'))):
     @classmethod
     def parser(cls, buf, offset):
         table = struct.unpack_from(
@@ -1127,12 +1127,12 @@ class OFPPortStatsRequest(OFPStatsRequest):
 @OFPStatsReply.register_stats_reply_type(ofproto_v1_2.OFPST_PORT)
 class OFPPortStats(
     ofproto_parser.namedtuple('OFPPortStats',
-                           ('port_no', 'rx_packets', 'tx_packets',
-                            'rx_bytes', 'tx_bytes',
-                            'rx_dropped', 'tx_dropped',
-                            'rx_errors', 'tx_errors',
-                            'rx_frame_err', 'rx_over_err',
-                            'rx_crc_err', 'collisions'))):
+                              ('port_no', 'rx_packets', 'tx_packets',
+                               'rx_bytes', 'tx_bytes',
+                               'rx_dropped', 'tx_dropped',
+                               'rx_errors', 'tx_errors',
+                               'rx_frame_err', 'rx_over_err',
+                               'rx_crc_err', 'collisions'))):
     @classmethod
     def parser(cls, buf, offset):
         port = struct.unpack_from(ofproto_v1_2.OFP_PORT_STATS_PACK_STR,
@@ -1159,8 +1159,8 @@ class OFPQueueStatsRequest(OFPStatsRequest):
 @OFPStatsReply.register_stats_reply_type(ofproto_v1_2.OFPST_QUEUE)
 class OFPQueueStats(
     ofproto_parser.namedtuple('OFPQueueStats',
-                           ('port_no', 'queue_id', 'tx_bytes',
-                            'tx_packets', 'tx_errors'))):
+                              ('port_no', 'queue_id', 'tx_bytes',
+                               'tx_packets', 'tx_errors'))):
     @classmethod
     def parser(cls, buf, offset):
         queue = struct.unpack_from(ofproto_v1_2.OFP_QUEUE_STATS_PACK_STR,
