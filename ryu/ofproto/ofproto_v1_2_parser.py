@@ -1790,7 +1790,7 @@ class OFPMatch(StringifyMixin):
     def set_metadata_masked(self, metadata, mask):
         self._wc.ft_set(ofproto_v1_2.OFPXMT_OFB_METADATA)
         self._wc.metadata_mask = mask
-        self._flow.metadata = metadata & mask
+        self._flow.metadata = metadata
 
     def set_dl_dst(self, dl_dst):
         self._wc.ft_set(ofproto_v1_2.OFPXMT_OFB_ETH_DST)
@@ -1799,8 +1799,7 @@ class OFPMatch(StringifyMixin):
     def set_dl_dst_masked(self, dl_dst, mask):
         self._wc.ft_set(ofproto_v1_2.OFPXMT_OFB_ETH_DST)
         self._wc.dl_dst_mask = mask
-        # bit-wise and of the corresponding elements of dl_dst and mask
-        self._flow.dl_dst = mac.haddr_bitand(dl_dst, mask)
+        self._flow.dl_dst = dl_dst
 
     def set_dl_src(self, dl_src):
         self._wc.ft_set(ofproto_v1_2.OFPXMT_OFB_ETH_SRC)
@@ -1809,7 +1808,7 @@ class OFPMatch(StringifyMixin):
     def set_dl_src_masked(self, dl_src, mask):
         self._wc.ft_set(ofproto_v1_2.OFPXMT_OFB_ETH_SRC)
         self._wc.dl_src_mask = mask
-        self._flow.dl_src = mac.haddr_bitand(dl_src, mask)
+        self._flow.dl_src = dl_src
 
     def set_dl_type(self, dl_type):
         self._wc.ft_set(ofproto_v1_2.OFPXMT_OFB_ETH_TYPE)
@@ -1914,7 +1913,7 @@ class OFPMatch(StringifyMixin):
     def set_arp_sha_masked(self, arp_sha, mask):
         self._wc.ft_set(ofproto_v1_2.OFPXMT_OFB_ARP_SHA)
         self._wc.arp_sha_mask = mask
-        self._flow.arp_sha = mac.haddr_bitand(arp_sha, mask)
+        self._flow.arp_sha = arp_sha
 
     def set_arp_tha(self, arp_tha):
         self._wc.ft_set(ofproto_v1_2.OFPXMT_OFB_ARP_THA)
@@ -1923,7 +1922,7 @@ class OFPMatch(StringifyMixin):
     def set_arp_tha_masked(self, arp_tha, mask):
         self._wc.ft_set(ofproto_v1_2.OFPXMT_OFB_ARP_THA)
         self._wc.arp_tha_mask = mask
-        self._flow.arp_tha = mac.haddr_bitand(arp_tha, mask)
+        self._flow.arp_tha = arp_tha
 
     def set_ipv6_src(self, src):
         self._wc.ft_set(ofproto_v1_2.OFPXMT_OFB_IPV6_SRC)
@@ -1932,7 +1931,7 @@ class OFPMatch(StringifyMixin):
     def set_ipv6_src_masked(self, src, mask):
         self._wc.ft_set(ofproto_v1_2.OFPXMT_OFB_IPV6_SRC)
         self._wc.ipv6_src_mask = mask
-        self._flow.ipv6_src = [x & y for (x, y) in itertools.izip(src, mask)]
+        self._flow.ipv6_src = src
 
     def set_ipv6_dst(self, dst):
         self._wc.ft_set(ofproto_v1_2.OFPXMT_OFB_IPV6_DST)
@@ -1941,7 +1940,7 @@ class OFPMatch(StringifyMixin):
     def set_ipv6_dst_masked(self, dst, mask):
         self._wc.ft_set(ofproto_v1_2.OFPXMT_OFB_IPV6_DST)
         self._wc.ipv6_dst_mask = mask
-        self._flow.ipv6_dst = [x & y for (x, y) in itertools.izip(dst, mask)]
+        self._flow.ipv6_dst = dst
 
     def set_ipv6_flabel(self, flabel):
         self.set_ipv6_flabel_masked(flabel, None)
