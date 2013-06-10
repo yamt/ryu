@@ -103,13 +103,16 @@ class StringifyMixin(object):
     def _is_ofp_class(dict_):
         # we distinguish a dict like OFPSwitchFeatures.ports
         # from OFPxxx classes using heuristics.
+        # exmples of OFP classes:
+        #   {"OFPMatch": { ... }}
+        #   {"MTIPv6SRC": { ... }}
         assert isinstance(dict_, dict)
         if len(dict_) != 1:
             return False
         k = dict_.keys()[0]
         if not isinstance(k, (bytes, unicode)):
             return False
-        return k.startswith("OFP")
+        return k.startswith("OFP") or k.startswith("MT")
 
     @staticmethod
     def _encode_value(v):
@@ -118,8 +121,8 @@ class StringifyMixin(object):
         elif isinstance(v, list):
             json_value = map(StringifyMixin._encode_value, v)
         elif isinstance(v, dict):
-            assert not StringifyMixin._is_ofp_class(v)
             json_value = _mapdict(StringifyMixin._encode_value, v)
+            assert not StringifyMixin._is_ofp_class(json_value)
         else:
             try:
                 json_value = v.to_jsondict()
