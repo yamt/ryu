@@ -183,8 +183,14 @@ class OFPFeaturesRequest(MsgBase):
 @_register_parser
 @_set_msg_type(ofproto_v1_2.OFPT_FEATURES_REPLY)
 class OFPSwitchFeatures(MsgBase):
-    def __init__(self, datapath):
+    def __init__(self, datapath, datapath_id=None, n_buffers=None,
+                 n_tables=None, capabilities=None, ports=None):
         super(OFPSwitchFeatures, self).__init__(datapath)
+        self.datapath_id = datapath_id
+        self.n_buffers = n_buffers
+        self.n_tables = n_tables
+        self.capabilities = capabilities
+        self.ports = ports
 
     @classmethod
     def parser(cls, datapath, version, msg_type, msg_len, xid, buf):
@@ -194,7 +200,7 @@ class OFPSwitchFeatures(MsgBase):
          msg.n_buffers,
          msg.n_tables,
          msg.capabilities,
-         msg.reserved) = struct.unpack_from(
+         msg._reserved) = struct.unpack_from(
              ofproto_v1_2.OFP_SWITCH_FEATURES_PACK_STR, msg.buf,
              ofproto_v1_2.OFP_HEADER_SIZE)
 
@@ -250,8 +256,15 @@ class OFPSetConfig(MsgBase):
 @_register_parser
 @_set_msg_type(ofproto_v1_2.OFPT_PACKET_IN)
 class OFPPacketIn(MsgBase):
-    def __init__(self, datapath):
+    def __init__(self, datapath, buffer_id=None, total_len=None, reason=None,
+                 table_id=None, match=None, data=None):
         super(OFPPacketIn, self).__init__(datapath)
+        self.buffer_id = buffer_id
+        self.total_len = total_len
+        self.reason = reason
+        self.table_id = table_id
+        self.match = match
+        self.data = data
 
     @classmethod
     def parser(cls, datapath, version, msg_type, msg_len, xid, buf):
@@ -333,17 +346,17 @@ class OFPPacketOut(MsgBase):
         super(OFPPacketOut, self).__init__(datapath)
         self.buffer_id = buffer_id
         self.in_port = in_port
-        self.actions_len = 0
+        self._actions_len = 0
         self.actions = actions
         self.data = data
 
     def _serialize_body(self):
-        self.actions_len = 0
+        self._actions_len = 0
         offset = ofproto_v1_2.OFP_PACKET_OUT_SIZE
         for a in self.actions:
             a.serialize(self.buf, offset)
             offset += a.len
-            self.actions_len += a.len
+            self._actions_len += a.len
 
         if self.data is not None:
             assert self.buffer_id == 0xffffffff
@@ -351,7 +364,7 @@ class OFPPacketOut(MsgBase):
 
         msg_pack_into(ofproto_v1_2.OFP_PACKET_OUT_PACK_STR,
                       self.buf, ofproto_v1_2.OFP_HEADER_SIZE,
-                      self.buffer_id, self.in_port, self.actions_len)
+                      self.buffer_id, self.in_port, self._actions_len)
 
 
 @_set_msg_type(ofproto_v1_2.OFPT_FLOW_MOD)
@@ -1527,11 +1540,16 @@ class FlowWildcards(object):
 
 
 class OFPMatch(StringifyMixin):
-    def __init__(self, fields=[]):
+    def __init__(self, fields=[], type_=None, length=None):
         super(OFPMatch, self).__init__()
         self._wc = FlowWildcards()
         self._flow = Flow()
         self.fields = []
+        # accept type_ and length to be compatible with parser
+        if not type_ is None:
+            self.type = type_
+        if not length is None:
+            self.length = length
         if fields:
             # we are doing de-stringify.
             # we have two goals:
