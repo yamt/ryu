@@ -1839,7 +1839,7 @@ class TestOFPSwitchFeatures(unittest.TestCase):
         eq_(res.n_buffers, n_buffers)
         eq_(res.n_tables, n_tables)
         eq_(res.capabilities, capabilities)
-        eq_(res.reserved, reserved)
+        eq_(res._reserved, reserved)
 
         for i in range(port_cnt):
             eq_(res.ports[i].port_no, i)
@@ -2457,7 +2457,7 @@ class TestOFPPacketOut(unittest.TestCase):
 
         eq_(buffer_id, c.buffer_id)
         eq_(in_port, c.in_port)
-        eq_(0, c.actions_len)
+        eq_(0, c._actions_len)
         eq_(data, c.data)
         eq_(actions, c.actions)
 
