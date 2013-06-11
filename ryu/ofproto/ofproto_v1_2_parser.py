@@ -906,10 +906,17 @@ class OFPTableMod(MsgBase):
 
 
 class OFPStatsRequest(MsgBase):
-    def __init__(self, datapath, type_):
+    def __init__(self, datapath, type_, flags):
         super(OFPStatsRequest, self).__init__(datapath)
         self.type = type_
-        self.flags = 0
+        self.flags = flags
+
+    def to_jsondict(self):
+        # remove some redundant attributes
+        d = super(OFPStatsRequest, self).to_jsondict()
+        v = d[self.__class__.__name__]
+        del v['type']  # implied by subclass
+        return d
 
     def _serialize_stats_body(self):
         pass
@@ -935,8 +942,18 @@ class OFPStatsReply(MsgBase):
             return cls
         return _register_stats_reply_type
 
-    def __init__(self, datapath):
+    def __init__(self, datapath, type_=None, flags=None, body=None):
         super(OFPStatsReply, self).__init__(datapath)
+        self.type = type_
+        self.flags = flags
+        self.body = body
+
+    def to_jsondict(self):
+        # remove some redundant attributes
+        d = super(OFPStatsReply, self).to_jsondict()
+        v = d[self.__class__.__name__]
+        del v['type']  # implied by subclass
+        return d
 
     @classmethod
     def parser(cls, datapath, version, msg_type, msg_len, xid, buf):
@@ -964,9 +981,10 @@ class OFPStatsReply(MsgBase):
 
 @_set_msg_type(ofproto_v1_2.OFPT_STATS_REQUEST)
 class OFPDescStatsRequest(OFPStatsRequest):
-    def __init__(self, datapath):
+    def __init__(self, datapath, flags=0):
         super(OFPDescStatsRequest, self).__init__(datapath,
-                                                  ofproto_v1_2.OFPST_DESC)
+                                                  ofproto_v1_2.OFPST_DESC,
+                                                  flags)
 
 
 @OFPStatsReply.register_stats_reply_type(ofproto_v1_2.OFPST_DESC,
@@ -985,9 +1003,10 @@ class OFPDescStats(ofproto_parser.namedtuple('OFPDescStats', (
 @_set_msg_type(ofproto_v1_2.OFPT_STATS_REQUEST)
 class OFPFlowStatsRequest(OFPStatsRequest):
     def __init__(self, datapath, table_id, out_port, out_group,
-                 cookie, cookie_mask, match):
+                 cookie, cookie_mask, match, flags=0):
         super(OFPFlowStatsRequest, self).__init__(datapath,
-                                                  ofproto_v1_2.OFPST_FLOW)
+                                                  ofproto_v1_2.OFPST_FLOW,
+                                                  flags)
         self.table_id = table_id
         self.out_port = out_port
         self.out_group = out_group
@@ -1058,10 +1077,11 @@ class OFPFlowStats(StringifyMixin):
 @_set_msg_type(ofproto_v1_2.OFPT_STATS_REQUEST)
 class OFPAggregateStatsRequest(OFPStatsRequest):
     def __init__(self, datapath, table_id, out_port, out_group,
-                 cookie, cookie_mask, match):
+                 cookie, cookie_mask, match, flags=0):
         super(OFPAggregateStatsRequest, self).__init__(
             datapath,
-            ofproto_v1_2.OFPST_AGGREGATE)
+            ofproto_v1_2.OFPST_AGGREGATE,
+            flags)
         self.table_id = table_id
         self.out_port = out_port
         self.out_group = out_group
@@ -1099,9 +1119,10 @@ class OFPAggregateStatsReply(ofproto_parser.namedtuple('OFPAggregateStats', (
 
 @_set_msg_type(ofproto_v1_2.OFPT_STATS_REQUEST)
 class OFPTableStatsRequest(OFPStatsRequest):
-    def __init__(self, datapath):
+    def __init__(self, datapath, flags=0):
         super(OFPTableStatsRequest, self).__init__(datapath,
-                                                   ofproto_v1_2.OFPST_TABLE)
+                                                   ofproto_v1_2.OFPST_TABLE,
+                                                   flags)
 
 
 @OFPStatsReply.register_stats_reply_type(ofproto_v1_2.OFPST_TABLE)
@@ -1126,9 +1147,10 @@ class OFPTableStats(
 
 @_set_msg_type(ofproto_v1_2.OFPT_STATS_REQUEST)
 class OFPPortStatsRequest(OFPStatsRequest):
-    def __init__(self, datapath, port_no):
+    def __init__(self, datapath, port_no, flags=0):
         super(OFPPortStatsRequest, self).__init__(datapath,
-                                                  ofproto_v1_2.OFPST_PORT)
+                                                  ofproto_v1_2.OFPST_PORT,
+                                                  flags)
         self.port_no = port_no
 
     def _serialize_stats_body(self):
@@ -1157,9 +1179,10 @@ class OFPPortStats(
 
 @_set_msg_type(ofproto_v1_2.OFPT_STATS_REQUEST)
 class OFPQueueStatsRequest(OFPStatsRequest):
-    def __init__(self, datapath, port_no, queue_id):
+    def __init__(self, datapath, port_no, queue_id, flags=0):
         super(OFPQueueStatsRequest, self).__init__(datapath,
-                                                   ofproto_v1_2.OFPST_QUEUE)
+                                                   ofproto_v1_2.OFPST_QUEUE,
+                                                   flags)
         self.port_no = port_no
         self.queue_id = queue_id
 
@@ -1199,9 +1222,10 @@ class OFPBucketCounter(StringifyMixin):
 
 @_set_msg_type(ofproto_v1_2.OFPT_STATS_REQUEST)
 class OFPGroupStatsRequest(OFPStatsRequest):
-    def __init__(self, datapath, group_id):
+    def __init__(self, datapath, group_id, flags=0):
         super(OFPGroupStatsRequest, self).__init__(datapath,
-                                                   ofproto_v1_2.OFPST_GROUP)
+                                                   ofproto_v1_2.OFPST_GROUP,
+                                                   flags)
         self.group_id = group_id
 
     def _serialize_stats_body(self):
@@ -1243,10 +1267,11 @@ class OFPGroupStats(StringifyMixin):
 
 @_set_msg_type(ofproto_v1_2.OFPT_STATS_REQUEST)
 class OFPGroupDescStatsRequest(OFPStatsRequest):
-    def __init__(self, datapath):
+    def __init__(self, datapath, flags=0):
         super(OFPGroupDescStatsRequest, self).__init__(
             datapath,
-            ofproto_v1_2.OFPST_GROUP_DESC)
+            ofproto_v1_2.OFPST_GROUP_DESC,
+            flags)
 
 
 @OFPStatsReply.register_stats_reply_type(ofproto_v1_2.OFPST_GROUP_DESC)
@@ -1277,10 +1302,11 @@ class OFPGroupDescStats(StringifyMixin):
 
 @_set_msg_type(ofproto_v1_2.OFPT_STATS_REQUEST)
 class OFPGroupFeaturesStatsRequest(OFPStatsRequest):
-    def __init__(self, datapath):
+    def __init__(self, datapath, flags=0):
         super(OFPGroupFeaturesStatsRequest, self).__init__(
             datapath,
-            ofproto_v1_2.OFPST_GROUP_FEATURES)
+            ofproto_v1_2.OFPST_GROUP_FEATURES,
+            flags)
 
 
 @OFPStatsReply.register_stats_reply_type(ofproto_v1_2.OFPST_GROUP_FEATURES,
