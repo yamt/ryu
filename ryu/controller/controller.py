@@ -174,7 +174,8 @@ class Datapath(object):
                 o2.serialize()
                 json_str2 = json.dumps(o2.to_jsondict(), sort_keys=True,
                                        indent=4)
-                LOG.debug('queue msg (json2) %s', json_str2)
+                if json_str != json_str2:
+                    LOG.debug('queue msg (json2) %s', json_str2)
                 assert json_str == json_str2
                 ev = ofp_event.ofp_msg_to_ev(msg)
                 self.ofp_brick.send_event_to_observers(ev, self.state)
@@ -239,7 +240,8 @@ class Datapath(object):
         o2.serialize()
         json_str2 = json.dumps(o2.to_jsondict(), sort_keys=True,
                                indent=4)
-        LOG.debug('send msg (json2) %s', json_str2)
+        if json_str != json_str2:
+            LOG.debug('send msg (json2) %s', json_str2)
         assert json_str == json_str2
         self.send(msg.buf)
 
