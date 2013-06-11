@@ -23,6 +23,7 @@ import traceback
 import random
 import ssl
 import sys
+import json
 
 import ryu.base.app_manager
 
@@ -165,7 +166,17 @@ class Datapath(object):
                 msg = ofproto_parser.msg(self,
                                          version, msg_type, msg_len, xid, buf)
                 LOG.debug('queue msg %s cls %s', msg, msg.__class__)
-                LOG.debug('queue msg (json) %s', msg.to_jsondict())
+                json_str = json.dumps(msg.to_jsondict(), sort_keys=True,
+                                      indent=4)
+                LOG.debug('queue msg (json) %s', json_str)
+                o2 = ofproto_parser.ofp_msg_from_jsondict(msg.datapath,
+                                                          json.loads(json_str))
+                o2.serialize()
+                json_str2 = json.dumps(o2.to_jsondict(), sort_keys=True,
+                                       indent=4)
+                if json_str != json_str2:
+                    LOG.debug('queue msg (json2) %s', json_str2)
+                assert json_str == json_str2
                 ev = ofp_event.ofp_msg_to_ev(msg)
                 self.ofp_brick.send_event_to_observers(ev, self.state)
 
@@ -221,7 +232,17 @@ class Datapath(object):
             self.set_xid(msg)
         msg.serialize()
         LOG.debug('send_msg %s', msg)
-        LOG.debug('send_msg (json) %s', msg.to_jsondict())
+        json_str = json.dumps(msg.to_jsondict(), sort_keys=True,
+                              indent=4)
+        LOG.debug('send msg (json) %s', json_str)
+        o2 = ofproto_parser.ofp_msg_from_jsondict(msg.datapath,
+                                                  json.loads(json_str))
+        o2.serialize()
+        json_str2 = json.dumps(o2.to_jsondict(), sort_keys=True,
+                               indent=4)
+        if json_str != json_str2:
+            LOG.debug('send msg (json2) %s', json_str2)
+        assert json_str == json_str2
         self.send(msg.buf)
 
     def serve(self):
