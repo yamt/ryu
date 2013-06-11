@@ -105,9 +105,9 @@ REST_ACTION_ALLOW = 'ALLOW'
 REST_ACTION_DENY = 'DENY'
 
 
-STATUS_FLOW_PRIORITY = ofproto_v1_2_parser.UINT16_MAX
-ARP_FLOW_PRIORITY = ofproto_v1_2_parser.UINT16_MAX - 1
-ACL_FLOW_PRIORITY_MAX = ofproto_v1_2_parser.UINT16_MAX - 2
+STATUS_FLOW_PRIORITY = 0xffff
+ARP_FLOW_PRIORITY = 0xffff - 1
+ACL_FLOW_PRIORITY_MAX = 0xffff - 2
 
 
 class RestFirewallAPI(app_manager.RyuApp):
@@ -208,7 +208,7 @@ class FirewallOfs(object):
 
     def get_cookie(self):
         self.cookie += 1
-        self.cookie &= ofproto_v1_2_parser.UINT64_MAX
+        self.cookie &= 0xffffffffffffffff
         return self.cookie
 
 
