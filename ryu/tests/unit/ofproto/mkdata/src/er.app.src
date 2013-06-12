@@ -1,0 +1,8 @@
+{application, er,
+ [{description, "generate test data"},
+  {vsn, "1.0"},
+  {applications,
+   [kernel,
+    stdlib,
+    of_protocol]}]}.
+
