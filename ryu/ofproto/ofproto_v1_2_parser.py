@@ -279,7 +279,7 @@ class OFPPacketIn(MsgBase):
         msg.match = OFPMatch.parser(msg.buf, ofproto_v1_2.OFP_PACKET_IN_SIZE -
                                     ofproto_v1_2.OFP_MATCH_SIZE)
 
-        match_len = utils.round_up(msg.match.length, 8)
+        match_len = utils.round_up(msg.match._length, 8)
         msg.data = msg.buf[(ofproto_v1_2.OFP_PACKET_IN_SIZE -
                             ofproto_v1_2.OFP_MATCH_SIZE + match_len + 2):]
 
@@ -907,7 +907,7 @@ class OFPTableMod(MsgBase):
 
 
 class OFPStatsRequest(MsgBase):
-    def __init__(self, datapath, type_, flags):
+    def __init__(self, datapath, type_, flags=0):
         super(OFPStatsRequest, self).__init__(datapath)
         self.type = type_
         self.flags = flags
@@ -1059,7 +1059,7 @@ class OFPFlowStats(StringifyMixin):
                    ofproto_v1_2.OFP_MATCH_SIZE)
         match = OFPMatch.parser(buf, offset)
 
-        match_length = utils.round_up(match.length, 8)
+        match_length = utils.round_up(match._length, 8)
         inst_length = (length - (ofproto_v1_2.OFP_FLOW_STATS_SIZE -
                                  ofproto_v1_2.OFP_MATCH_SIZE + match_length))
         offset += match_length
@@ -1567,7 +1567,7 @@ class FlowWildcards(object):
 
 
 class OFPMatch(StringifyMixin):
-    def __init__(self, fields=[], type_=None, length=None):
+    def __init__(self, fields=[], type_=None):
         super(OFPMatch, self).__init__()
         self._wc = FlowWildcards()
         self._flow = Flow()
@@ -1575,8 +1575,6 @@ class OFPMatch(StringifyMixin):
         # accept type_ and length to be compatible with parser
         if not type_ is None:
             self.type = type_
-        if not length is None:
-            self.length = length
         if fields:
             # we are doing de-stringify.
             # we have two goals:
@@ -1808,7 +1806,7 @@ class OFPMatch(StringifyMixin):
         type_, length = struct.unpack_from('!HH', buf, offset)
 
         match.type = type_
-        match.length = length
+        match._length = length
 
         # ofp_match adjustment
         offset += 4
