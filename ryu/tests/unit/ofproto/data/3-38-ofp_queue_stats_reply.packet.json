@@ -1,0 +1,1 @@
+{"OFPStatsReply": {"body": [{"OFPQueueStats": {"tx_bytes": 0, "tx_errors": 0, "tx_packets": 0, "port_no": 7, "queue_id": 1}}, {"OFPQueueStats": {"tx_bytes": 0, "tx_errors": 0, "tx_packets": 0, "port_no": 6, "queue_id": 1}}, {"OFPQueueStats": {"tx_bytes": 0, "tx_errors": 0, "tx_packets": 0, "port_no": 7, "queue_id": 2}}], "flags": 0}}

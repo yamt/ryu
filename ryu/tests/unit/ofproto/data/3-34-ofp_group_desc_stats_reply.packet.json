@@ -1,0 +1,1 @@
+{"OFPStatsReply": {"body": [{"OFPGroupDescStats": {"buckets": [{"OFPBucket": {"weight": 1, "watch_group": 1, "actions": [{"OFPActionOutput": {"max_len": 65535, "port": 2}}], "watch_port": 1}}], "group_id": 1, "type": 0}}], "flags": 0}}
