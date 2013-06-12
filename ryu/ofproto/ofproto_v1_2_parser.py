@@ -2116,7 +2116,7 @@ class OFPMatchField(StringifyMixin):
         del v['header']
         del v['length']
         del v['n_bytes']
-        if v.has_key('mask') and v['mask'] is None:
+        if 'mask' in v and v['mask'] is None:
             del v['mask']
         return d
 
