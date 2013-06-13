@@ -225,8 +225,10 @@ class OFPGetConfigRequest(MsgBase):
 @_register_parser
 @_set_msg_type(ofproto_v1_2.OFPT_GET_CONFIG_REPLY)
 class OFPGetConfigReply(MsgBase):
-    def __init__(self, datapath):
+    def __init__(self, datapath, flags=None, miss_send_len=None):
         super(OFPGetConfigReply, self).__init__(datapath)
+        self.flags = flags
+        self.miss_send_len = miss_send_len
 
     @classmethod
     def parser(cls, datapath, version, msg_type, msg_len, xid, buf):
