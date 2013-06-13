@@ -83,6 +83,9 @@ class StringifyMixin(object):
             json_value = map(cls._encode_value, v)
         elif isinstance(v, dict):
             json_value = _mapdict(cls._encode_value, v)
+            # while a python dict key can be any hashable object,
+            # a JSON object key should be a string.
+            json_value = _mapdict_key(str, json_value)
             assert not cls._is_class(json_value)
         else:
             try:
@@ -126,6 +129,12 @@ class StringifyMixin(object):
             else:
                 decode = lambda x: cls._decode_value(x)
                 v = _mapdict(decode, json_value)
+                # XXXhack
+                # try to restore integer keys used by OFPSwitchFeatures.ports.
+                try:
+                    v = _mapdict_key(int, v)
+                except ValueError:
+                    pass
         else:
             v = json_value
         return v
