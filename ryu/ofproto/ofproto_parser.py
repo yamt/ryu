@@ -14,15 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import base64
 import collections
 import logging
 import struct
 import sys
 import functools
-import inspect
 
 from ryu import exception
+from ryu.lib import stringify
 
 from . import ofproto_common
 
@@ -64,130 +63,6 @@ def create_list_of_base_attributes(f):
     return wrapper
 
 
-# Some arguments to __init__ is mungled in order to avoid name conflicts
-# with builtin names.
-# The standard mangling is to append '_' in order to avoid name clashes
-# with reserved keywords.
-#
-# PEP8:
-# Function and method arguments
-#   If a function argument's name clashes with a reserved keyword,
-#   it is generally better to append a single trailing underscore
-#   rather than use an abbreviation or spelling corruption. Thus
-#   class_ is better than clss. (Perhaps better is to avoid such
-#   clashes by using a synonym.)
-#
-# grep __init__ *.py | grep '[^_]_\>' showed that
-# 'len', 'property', 'set', 'type'
-# A bit more generic way is adopted
-import __builtin__
-_RESERVED_KEYWORD = dir(__builtin__)
-
-
-_mapdict = lambda f, d: dict([(k, f(v)) for k, v in d.items()])
-_mapdict_key = lambda f, d: dict([(f(k), v) for k, v in d.items()])
-
-
-class StringifyMixin(object):
-    def __str__(self):
-        buf = ''
-        sep = ''
-        for k, v in ofp_python_attrs(self):
-            buf += sep
-            buf += "%s=%s" % (k, repr(v))  # repr() to escape binaries
-            sep = ','
-        return self.__class__.__name__ + '(' + buf + ')'
-    __repr__ = __str__  # note: str(list) uses __repr__ for elements
-
-    @staticmethod
-    def _is_ofp_class(dict_):
-        # we distinguish a dict like OFPSwitchFeatures.ports
-        # from OFPxxx classes using heuristics.
-        # exmples of OFP classes:
-        #   {"OFPMatch": { ... }}
-        #   {"MTIPv6SRC": { ... }}
-        assert isinstance(dict_, dict)
-        if len(dict_) != 1:
-            return False
-        k = dict_.keys()[0]
-        if not isinstance(k, (bytes, unicode)):
-            return False
-        return k.startswith("OFP") or k.startswith("MT")
-
-    @staticmethod
-    def _encode_value(v):
-        if isinstance(v, (bytes, unicode)):
-            json_value = base64.b64encode(v)
-        elif isinstance(v, list):
-            json_value = map(StringifyMixin._encode_value, v)
-        elif isinstance(v, dict):
-            json_value = _mapdict(StringifyMixin._encode_value, v)
-            assert not StringifyMixin._is_ofp_class(json_value)
-        else:
-            try:
-                json_value = v.to_jsondict()
-            except:
-                json_value = v
-        return json_value
-
-    def to_jsondict(self):
-        """returns an object to feed json.dumps()
-        """
-        dict_ = {}
-        for k, v in ofp_attrs(self):
-            dict_[k] = self._encode_value(v)
-        return {self.__class__.__name__: dict_}
-
-    @classmethod
-    def _decode_value(cls, json_value):
-        if isinstance(json_value, (bytes, unicode)):
-            v = base64.b64decode(json_value)
-        elif isinstance(json_value, list):
-            decode = lambda x: cls._decode_value(x)
-            v = map(decode, json_value)
-        elif isinstance(json_value, dict):
-            if cls._is_ofp_class(json_value):
-                import sys
-                parser = sys.modules[cls.__module__]
-                v = ofp_from_jsondict(parser, json_value)
-            else:
-                decode = lambda x: cls._decode_value(x)
-                v = _mapdict(decode, json_value)
-        else:
-            v = json_value
-        return v
-
-    @staticmethod
-    def _restore_args(dict_):
-        def restore(k):
-            if k in _RESERVED_KEYWORD:
-                return k + '_'
-            return k
-        return _mapdict_key(restore, dict_)
-
-    @classmethod
-    def from_jsondict(cls, dict_, **additional_args):
-        """create an instance from a result of json.loads()
-        """
-        kwargs = cls._restore_args(_mapdict(cls._decode_value, dict_))
-        try:
-            return cls(**dict(kwargs, **additional_args))
-        except TypeError:
-            #debug
-            print "CLS", cls
-            print "ARG", dict_
-            print "KWARG", kwargs
-            raise
-
-
-def ofp_from_jsondict(parser, jsondict):
-    assert len(jsondict) == 1
-    for k, v in jsondict.iteritems():
-        cls = getattr(parser, k)
-        assert not issubclass(cls, MsgBase)
-        return cls.from_jsondict(v)
-
-
 def ofp_msg_from_jsondict(dp, jsondict):
     parser = dp.ofproto_parser
     assert len(jsondict) == 1
@@ -195,6 +70,16 @@ def ofp_msg_from_jsondict(dp, jsondict):
         cls = getattr(parser, k)
         assert issubclass(cls, MsgBase)
         return cls.from_jsondict(v, datapath=dp)
+
+
+class StringifyMixin(stringify.StringifyMixin):
+    _class_prefixes = ["OFP", "MT"]
+
+    @classmethod
+    def cls_from_jsondict_key(cls, k):
+        obj_cls = super(StringifyMixin, cls).cls_from_jsondict_key(k)
+        assert not issubclass(obj_cls, MsgBase)
+        return obj_cls
 
 
 class MsgBase(StringifyMixin):
@@ -285,36 +170,6 @@ def msg_pack_into(fmt, buf, offset, *args):
     struct.pack_into(fmt, buf, offset, *args)
 
 
-def ofp_python_attrs(msg_):
-    import collections
-    # a special case for namedtuple which seems widely used in
-    # ofp parser implementations.
-    if hasattr(msg_, '_fields'):
-        for k in msg_._fields:
-            yield(k, getattr(msg_, k))
-        return
-    base = getattr(msg_, '_base_attributes', [])
-    for k, v in inspect.getmembers(msg_):
-        if k.startswith('_'):
-            continue
-        if callable(v):
-            continue
-        if k in base:
-            continue
-        if hasattr(msg_.__class__, k):
-            continue
-        yield (k, v)
-
-
-def ofp_attrs(msg_):
-    for k, v in ofp_python_attrs(msg_):
-        if k.endswith('_') and k[:-1] in _RESERVED_KEYWORD:
-            # XXX currently only StringifyMixin has restoring logic
-            assert isinstance(msg_, StringifyMixin)
-            k = k[:-1]
-        yield (k, v)
-
-
 def namedtuple(typename, fields, **kwargs):
     class _namedtuple(StringifyMixin,
                       collections.namedtuple(typename, fields, **kwargs)):
@@ -324,7 +179,7 @@ def namedtuple(typename, fields, **kwargs):
 
 def msg_str_attr(msg_, buf, attr_list=None):
     if attr_list is None:
-        attr_list = ofp_attrs(msg_)
+        attr_list = stringify.obj_attrs(msg_)
     for attr in attr_list:
         val = getattr(msg_, attr, None)
         if val is not None:
