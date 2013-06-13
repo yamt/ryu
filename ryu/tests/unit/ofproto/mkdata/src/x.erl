@@ -72,5 +72,56 @@ x() ->
                              value = <<"\362\v\244}\370\352">>,
                              mask = undefined}]},
             instructions =
-                [#ofp_instruction_goto_table{seq = 5,table_id = 1}]}
+                [#ofp_instruction_goto_table{seq = 5,table_id = 1}]},
+        #ofp_packet_in{
+            buffer_id = 2,reason = action,table_id = 1,
+            match =
+                #ofp_match{
+                    fields =
+                        [#ofp_field{
+                             class = openflow_basic,name = in_port,
+                             has_mask = false,
+                             value = <<0,0,0,6>>,
+                             mask = undefined},
+                         #ofp_field{
+                             class = openflow_basic,name = eth_type,
+                             has_mask = false,
+                             value = <<8,6>>,
+                             mask = undefined},
+                         #ofp_field{
+                             class = openflow_basic,name = eth_dst,
+                             has_mask = false,value = <<"\377\377\377\377\377\377">>,
+                             mask = undefined},
+                         #ofp_field{
+                             class = openflow_basic,name = eth_src,
+                             has_mask = false,value = <<"\362\v\244}\370\352">>,
+                             mask = undefined},
+                         #ofp_field{
+                             class = openflow_basic,name = arp_op,
+                             has_mask = false,
+                             value = <<0,1>>,
+                             mask = undefined},
+                         #ofp_field{
+                             class = openflow_basic,name = arp_spa,
+                             has_mask = false,
+                             value = <<10,0,0,1>>,
+                             mask = undefined},
+                         #ofp_field{
+                             class = openflow_basic,name = arp_tpa,
+                             has_mask = false,
+                             value = <<10,0,0,3>>,
+                             mask = undefined},
+                         #ofp_field{
+                             class = openflow_basic,name = arp_sha,
+                             has_mask = false,value = <<"\362\v\244}\370\352">>,
+                             mask = undefined},
+                         #ofp_field{
+                             class = openflow_basic,name = arp_tha,
+                             has_mask = false,
+                             value = <<0,0,0,0,0,0>>,
+                             mask = undefined}]},
+            data =
+                <<255,255,255,255,255,255,242,11,164,125,248,234,8,6,0,
+                  1,8,0,6,4,0,1,242,11,164,125,248,234,10,0,0,1,0,0,0,0,
+                  0,0,10,0,0,3>>}
     ]).
