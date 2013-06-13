@@ -184,7 +184,7 @@ def ofp_from_jsondict(parser, jsondict):
     assert len(jsondict) == 1
     for k, v in jsondict.iteritems():
         cls = getattr(parser, k)
-        assert not MsgBase in inspect.getmro(cls)
+        assert not issubclass(cls, MsgBase)
         return cls.from_jsondict(v)
 
 
@@ -193,7 +193,7 @@ def ofp_msg_from_jsondict(dp, jsondict):
     assert len(jsondict) == 1
     for k, v in jsondict.iteritems():
         cls = getattr(parser, k)
-        assert MsgBase in inspect.getmro(cls)
+        assert issubclass(cls, MsgBase)
         return cls.from_jsondict(v, datapath=dp)
 
 
