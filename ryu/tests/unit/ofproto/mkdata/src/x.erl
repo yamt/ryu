@@ -236,5 +236,10 @@ x() ->
             type = bad_action,
             code = unsupported_order,
             data = <<"fugafuga">>
+        },
+        #ofp_experimenter{
+            experimenter = 98765432,
+            exp_type = 123456789,
+            data = <<"nazo">>
         }
     ]).
