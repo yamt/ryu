@@ -150,8 +150,11 @@ class OFPEchoReply(MsgBase):
 @_register_parser
 @_set_msg_type(ofproto_v1_2.OFPT_EXPERIMENTER)
 class OFPExperimenter(MsgBase):
-    def __init__(self, datapath):
+    def __init__(self, datapath, experimenter=None, exp_type=None, data=None):
         super(OFPExperimenter, self).__init__(datapath)
+        self.experimenter = experimenter
+        self.exp_type = exp_type
+        self.data = data
 
     @classmethod
     def parser(cls, datapath, version, msg_type, msg_len, xid, buf):
