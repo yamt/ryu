@@ -154,5 +154,76 @@ x() ->
         #ofp_set_config{flags = [],miss_send_len = 128},
         #ofp_get_config_request{},
         #ofp_get_config_reply{flags = [],miss_send_len = 128},
-        #ofp_hello{}
+        #ofp_hello{},
+        #ofp_flow_stats_request{
+            flags = [],table_id = 0,out_port = any,out_group = any,
+            cookie = <<0,0,0,0,0,0,0,0>>,
+            cookie_mask = <<0,0,0,0,0,0,0,0>>,
+            match = #ofp_match{fields = []}},
+        #ofp_flow_stats_reply{
+            flags = [],
+            stats =
+                [#ofp_flow_stats{
+                     table_id = 0,duration_sec = 358,
+                     duration_nsec = 358115277000,priority = 65535,
+                     idle_timeout = 0,hard_timeout = 0,
+                     cookie = <<0,0,0,0,0,0,0,0>>,
+                     packet_count = 0,byte_count = 0,
+                     match = #ofp_match{fields = []},
+                     instructions = []},
+                 #ofp_flow_stats{
+                     table_id = 0,duration_sec = 358,
+                     duration_nsec = 358115055000,priority = 65534,
+                     idle_timeout = 0,hard_timeout = 0,
+                     cookie = <<0,0,0,0,0,0,0,0>>,
+                     packet_count = 0,byte_count = 0,
+                     match =
+                         #ofp_match{
+                             fields =
+                                 [#ofp_field{
+                                      class = openflow_basic,name = eth_type,
+                                      has_mask = false,
+                                      value = <<8,6>>,
+                                      mask = undefined}]},
+                     instructions =
+                         [#ofp_instruction_apply_actions{
+                              seq = 1,
+                              actions =
+                                  [#ofp_action_output{
+                                       seq = 14,port = normal,max_len = 0}]}]},
+                 #ofp_flow_stats{
+                     table_id = 0,duration_sec = 316220,
+                     duration_nsec = 316220511582000,priority = 123,
+                     idle_timeout = 0,hard_timeout = 0,
+                     cookie = <<0,0,0,0,0,0,0,0>>,
+                     packet_count = 3,byte_count = 238,
+                     match =
+                         #ofp_match{
+                             fields =
+                                 [#ofp_field{
+                                      class = openflow_basic,name = in_port,
+                                      has_mask = false,
+                                      value = <<0,0,0,6>>,
+                                      mask = undefined},
+                                  #ofp_field{
+                                      class = openflow_basic,name = eth_src,
+                                      has_mask = false,
+                                      value = <<"\362\v\244}\370\352">>,
+                                      mask = undefined}]},
+                     instructions =
+                         [#ofp_instruction_goto_table{seq = 5,table_id = 1}]},
+                 #ofp_flow_stats{
+                     table_id = 0,duration_sec = 313499,
+                     duration_nsec = 313499980901000,priority = 0,
+                     idle_timeout = 0,hard_timeout = 0,
+                     cookie = <<0,0,0,0,0,0,0,0>>,
+                     packet_count = 1,byte_count = 98,
+                     match = #ofp_match{fields = []},
+                     instructions =
+                         [#ofp_instruction_write_actions{
+                              seq = 3,
+                              actions =
+                                  [#ofp_action_output{
+                                       seq = 14,port = controller,
+                                       max_len = 65535}]}]}]}
     ]).
