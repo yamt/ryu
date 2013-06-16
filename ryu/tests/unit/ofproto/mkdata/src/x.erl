@@ -153,5 +153,6 @@ x() ->
                      curr_speed = 5000,max_speed = 5000}]},
         #ofp_set_config{flags = [],miss_send_len = 128},
         #ofp_get_config_request{},
-        #ofp_get_config_reply{flags = [],miss_send_len = 128}
+        #ofp_get_config_reply{flags = [],miss_send_len = 128},
+        #ofp_hello{}
     ]).
