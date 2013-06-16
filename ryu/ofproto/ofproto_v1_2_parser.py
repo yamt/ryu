@@ -60,11 +60,11 @@ class OFPHello(MsgBase):
 @_register_parser
 @_set_msg_type(ofproto_v1_2.OFPT_ERROR)
 class OFPErrorMsg(MsgBase):
-    def __init__(self, datapath):
+    def __init__(self, datapath, type_=None, code=None, data=None):
         super(OFPErrorMsg, self).__init__(datapath)
-        self.type = None
-        self.code = None
-        self.data = None
+        self.type = type_
+        self.code = code
+        self.data = data
 
     @classmethod
     def parser(cls, datapath, version, msg_type, msg_len, xid, buf):
@@ -112,9 +112,9 @@ class OFPErrorExperimenterMsg(MsgBase):
 @_register_parser
 @_set_msg_type(ofproto_v1_2.OFPT_ECHO_REQUEST)
 class OFPEchoRequest(MsgBase):
-    def __init__(self, datapath):
+    def __init__(self, datapath, data=None):
         super(OFPEchoRequest, self).__init__(datapath)
-        self.data = None
+        self.data = data
 
     @classmethod
     def parser(cls, datapath, version, msg_type, msg_len, xid, buf):
@@ -131,9 +131,9 @@ class OFPEchoRequest(MsgBase):
 @_register_parser
 @_set_msg_type(ofproto_v1_2.OFPT_ECHO_REPLY)
 class OFPEchoReply(MsgBase):
-    def __init__(self, datapath):
+    def __init__(self, datapath, data=None):
         super(OFPEchoReply, self).__init__(datapath)
-        self.data = None
+        self.data = data
 
     @classmethod
     def parser(cls, datapath, version, msg_type, msg_len, xid, buf):
