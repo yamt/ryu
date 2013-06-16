@@ -225,5 +225,16 @@ x() ->
                               actions =
                                   [#ofp_action_output{
                                        seq = 14,port = controller,
-                                       max_len = 65535}]}]}]}
+                                       max_len = 65535}]}]}]},
+        #ofp_echo_request{
+            data = <<"hoge">>
+        },
+        #ofp_echo_reply{
+            data = <<"hoge">>
+        },
+        #ofp_error_msg{
+            type = bad_action,
+            code = unsupported_order,
+            data = <<"fugafuga">>
+        }
     ]).
