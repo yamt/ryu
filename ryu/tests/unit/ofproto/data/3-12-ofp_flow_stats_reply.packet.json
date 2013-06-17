@@ -5,7 +5,7 @@
                 "OFPFlowStats": {
                     "byte_count": 0,
                     "cookie": 0,
-                    "duration_nsec": 1632991432,
+                    "duration_nsec": 115277000,
                     "duration_sec": 358,
                     "hard_timeout": 0,
                     "idle_timeout": 0,
@@ -26,7 +26,7 @@
                 "OFPFlowStats": {
                     "byte_count": 0,
                     "cookie": 0,
-                    "duration_nsec": 1632769432,
+                    "duration_nsec": 115055000,
                     "duration_sec": 358,
                     "hard_timeout": 0,
                     "idle_timeout": 0,
@@ -67,7 +67,7 @@
                 "OFPFlowStats": {
                     "byte_count": 238,
                     "cookie": 0,
-                    "duration_nsec": 3544414000,
+                    "duration_nsec": 511582000,
                     "duration_sec": 316220,
                     "hard_timeout": 0,
                     "idle_timeout": 0,
@@ -105,7 +105,7 @@
                 "OFPFlowStats": {
                     "byte_count": 98,
                     "cookie": 0,
-                    "duration_nsec": 1728031368,
+                    "duration_nsec": 980901000,
                     "duration_sec": 313499,
                     "hard_timeout": 0,
                     "idle_timeout": 0,
