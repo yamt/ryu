@@ -823,9 +823,8 @@ class OFPActionExperimenter(OFPAction):
 
 
 class OFPBucket(StringifyMixin):
-    def __init__(self, len_, weight, watch_port, watch_group, actions):
+    def __init__(self, weight, watch_port, watch_group, actions):
         super(OFPBucket, self).__init__()
-        self.len = len_
         self.weight = weight
         self.watch_port = watch_port
         self.watch_group = watch_group
@@ -845,7 +844,9 @@ class OFPBucket(StringifyMixin):
             offset += action.len
             length += action.len
 
-        return cls(len_, weigth, watch_port, watch_group, actions)
+        m = cls(weigth, watch_port, watch_group, actions)
+        m._len = len_
+        return m
 
     def serialize(self, buf, offset):
         action_offset = offset + ofproto_v1_2.OFP_BUCKET_SIZE
@@ -855,10 +856,11 @@ class OFPBucket(StringifyMixin):
             action_offset += a.len
             action_len += a.len
 
-        self.len = utils.round_up(ofproto_v1_2.OFP_BUCKET_SIZE + action_len,
-                                  8)
+        self._len = utils.round_up(ofproto_v1_2.OFP_BUCKET_SIZE + action_len,
+                                   8)
         msg_pack_into(ofproto_v1_2.OFP_BUCKET_PACK_STR, buf, offset,
-                      self.len, self.weight, self.watch_port, self.watch_group)
+                      self._len, self.weight, self.watch_port,
+                      self.watch_group)
 
 
 @_set_msg_type(ofproto_v1_2.OFPT_GROUP_MOD)
@@ -878,7 +880,7 @@ class OFPGroupMod(MsgBase):
         offset = ofproto_v1_2.OFP_GROUP_MOD_SIZE
         for b in self.buckets:
             b.serialize(self.buf, offset)
-            offset += b.len
+            offset += b._len
 
 
 @_set_msg_type(ofproto_v1_2.OFPT_PORT_MOD)
