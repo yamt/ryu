@@ -165,7 +165,7 @@ x() ->
             stats =
                 [#ofp_flow_stats{
                      table_id = 0,duration_sec = 358,
-                     duration_nsec = 358115277000,priority = 65535,
+                     duration_nsec = 115277000,priority = 65535,
                      idle_timeout = 0,hard_timeout = 0,
                      cookie = <<0,0,0,0,0,0,0,0>>,
                      packet_count = 0,byte_count = 0,
@@ -173,7 +173,7 @@ x() ->
                      instructions = []},
                  #ofp_flow_stats{
                      table_id = 0,duration_sec = 358,
-                     duration_nsec = 358115055000,priority = 65534,
+                     duration_nsec = 115055000,priority = 65534,
                      idle_timeout = 0,hard_timeout = 0,
                      cookie = <<0,0,0,0,0,0,0,0>>,
                      packet_count = 0,byte_count = 0,
@@ -193,7 +193,7 @@ x() ->
                                        seq = 14,port = normal,max_len = 0}]}]},
                  #ofp_flow_stats{
                      table_id = 0,duration_sec = 316220,
-                     duration_nsec = 316220511582000,priority = 123,
+                     duration_nsec = 511582000,priority = 123,
                      idle_timeout = 0,hard_timeout = 0,
                      cookie = <<0,0,0,0,0,0,0,0>>,
                      packet_count = 3,byte_count = 238,
@@ -214,7 +214,7 @@ x() ->
                          [#ofp_instruction_goto_table{seq = 5,table_id = 1}]},
                  #ofp_flow_stats{
                      table_id = 0,duration_sec = 313499,
-                     duration_nsec = 313499980901000,priority = 0,
+                     duration_nsec = 980901000,priority = 0,
                      idle_timeout = 0,hard_timeout = 0,
                      cookie = <<0,0,0,0,0,0,0,0>>,
                      packet_count = 1,byte_count = 98,
