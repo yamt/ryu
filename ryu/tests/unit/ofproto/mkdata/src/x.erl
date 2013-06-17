@@ -8445,6 +8445,34 @@ x() ->
                  [goto_table,write_metadata,write_actions,apply_actions,
                   clear_actions],
              config = controller,max_entries = 16777216,active_count = 0,
-             lookup_count = 0,matched_count = 0}]}
+             lookup_count = 0,matched_count = 0}]},
+
+        #ofp_port_stats_request{flags = [],port_no = any},
+        #ofp_port_stats_reply{
+            flags = [],
+            stats = 
+                [#ofp_port_stats{
+                     port_no = 7,rx_packets = 0,tx_packets = 4,rx_bytes = 0,
+                     tx_bytes = 336,rx_dropped = 0,tx_dropped = 0,
+                     rx_errors = 0,
+                     tx_errors = 0,rx_frame_err = 0,rx_over_err = 0,
+                     rx_crc_err = 0,collisions = 0},
+                 #ofp_port_stats{
+                     port_no = 6,rx_packets = 4,tx_packets = 4,rx_bytes = 336,
+                     tx_bytes = 336,rx_dropped = 0,tx_dropped = 0,
+                     rx_errors = 0,
+                     tx_errors = 0,rx_frame_err = 0,rx_over_err = 0,
+                     rx_crc_err = 0,collisions = 0}]},
+        #ofp_group_features_stats_request{flags = []},
+        #ofp_group_features_stats_reply{
+            flags = [],
+            types = [all,select,indirect,ff],
+            capabilities = [select_weight,chaining],
+            max_groups = {16777216,16777216,16777216,16777216},
+            actions =
+                {[output,copy_ttl_out,copy_ttl_in,set_mpls_ttl,dec_mpls_ttl,push_vlan,pop_vlan,push_mpls,pop_mpls,set_queue,group,set_nw_ttl,dec_nw_ttl,set_field],
+                 [output,copy_ttl_out,copy_ttl_in,set_mpls_ttl,dec_mpls_ttl,push_vlan,pop_vlan,push_mpls,pop_mpls,set_queue,group,set_nw_ttl,dec_nw_ttl,set_field],
+                 [output,copy_ttl_out,copy_ttl_in,set_mpls_ttl,dec_mpls_ttl,push_vlan,pop_vlan,push_mpls,pop_mpls,set_queue,group,set_nw_ttl,dec_nw_ttl,set_field],
+                 [output,copy_ttl_out,copy_ttl_in,set_mpls_ttl,dec_mpls_ttl,push_vlan,pop_vlan,push_mpls,pop_mpls,set_queue,group,set_nw_ttl,dec_nw_ttl,set_field]}}
 
     ]).
