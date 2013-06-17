@@ -10,7 +10,6 @@
                     "hard_timeout": 0,
                     "idle_timeout": 0,
                     "instructions": [],
-                    "length": 56,
                     "match": {
                         "OFPMatch": {
                             "fields": [],
@@ -45,7 +44,6 @@
                             }
                         }
                     ],
-                    "length": 88,
                     "match": {
                         "OFPMatch": {
                             "fields": [
@@ -78,7 +76,6 @@
                             }
                         }
                     ],
-                    "length": 80,
                     "match": {
                         "OFPMatch": {
                             "fields": [
@@ -124,7 +121,6 @@
                             }
                         }
                     ],
-                    "length": 80,
                     "match": {
                         "OFPMatch": {
                             "fields": [],
