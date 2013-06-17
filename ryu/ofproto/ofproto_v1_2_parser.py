@@ -1303,10 +1303,10 @@ class OFPGroupDescStats(StringifyMixin):
         while bucket_len > 0:
             bucket = OFPBucket.parser(buf, offset)
             buckets.append(bucket)
-            offset += bucket.len
-            bucket_len -= bucket.len
+            offset += bucket._len
+            bucket_len -= bucket._len
 
-        o = cls(length, type_, group_id, buckets)
+        o = cls(type_, group_id, buckets)
         o._length = length
         return o
 
