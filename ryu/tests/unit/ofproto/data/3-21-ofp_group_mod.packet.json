@@ -1,0 +1,1 @@
+{"OFPGroupMod": {"command": 0, "type": 0, "group_id": 1, "buckets": [{"OFPBucket":{"weight": 1, "watch_port": 1, "watch_group": 1, "actions": [{"OFPActionOutput": {"port": 2, "max_len": 65535}}]}}]}}
