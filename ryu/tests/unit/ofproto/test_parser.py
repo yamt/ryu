@@ -68,7 +68,6 @@ class Test_Parser(unittest.TestCase):
         json_dict = json.loads(json_str)
         # on-wire -> OFPxxx -> json
         has_parser = False
-        print ("processing %s ... " % file)
         (version, msg_type, msg_len, xid) = ofproto_parser.header(wire_msg)
         try:
             dp = DummyDatapath(*self._ofp_versions[version])
@@ -100,6 +99,7 @@ class Test_Parser(unittest.TestCase):
         directory = './ofproto/data'
         for file in os.listdir(directory):
             if fnmatch.fnmatch(file, '*.packet'):
+                print ("processing %s ... " % file)
                 wire_msg = open(directory + '/' + file, 'rb').read()
                 json_str = open(directory + '/' + file + '.json', 'rb').read()
                 self._test_msg(file, wire_msg, json_str)
