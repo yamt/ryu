@@ -249,5 +249,26 @@ x() ->
             generation_id = 16#f000f000f000f000},
         #ofp_role_reply{
             role = slave,
-            generation_id = 16#f000f000f000f000}
+            generation_id = 16#f000f000f000f000},
+
+        #ofp_group_mod{
+            command = add,type = all,group_id = 1,
+            buckets = 
+                [#ofp_bucket{
+                     weight = 1,watch_port = 1,watch_group = 1,
+                     actions = 
+                         [#ofp_action_output{
+                              seq = 14,port = 2,max_len = 65535}]}]},
+        #ofp_port_mod{port_no = 1, hw_addr = <<0,17,0,0,17,17>>,
+            config = [],mask = [], advertise = [fiber]},
+        #ofp_table_mod{table_id = all,config = controller},
+        #ofp_desc_stats_request{},
+        #ofp_aggregate_stats_request{
+            flags = [],table_id = all,out_port = any,out_group = any,
+            cookie = <<0,0,0,0,0,0,0,0>>,
+            cookie_mask = <<0,0,0,0,0,0,0,0>>,
+            match = #ofp_match{fields = []}},
+        #ofp_aggregate_stats_reply{flags = [],packet_count = 7,
+                                   byte_count = 574,flow_count = 6},
+        #ofp_table_stats_request{}
     ]).
