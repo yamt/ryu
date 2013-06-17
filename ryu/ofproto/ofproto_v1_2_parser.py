@@ -1493,8 +1493,10 @@ class OFPRoleRequest(MsgBase):
 @_register_parser
 @_set_msg_type(ofproto_v1_2.OFPT_ROLE_REPLY)
 class OFPRoleReply(MsgBase):
-    def __init__(self, datapath):
+    def __init__(self, datapath, role=None, generation_id=None):
         super(OFPRoleReply, self).__init__(datapath)
+        self.role = role
+        self.generation_id = generation_id
 
     @classmethod
     def parser(cls, datapath, version, msg_type, msg_len, xid, buf):
