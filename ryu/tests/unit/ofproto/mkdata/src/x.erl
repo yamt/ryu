@@ -241,5 +241,13 @@ x() ->
             experimenter = 98765432,
             exp_type = 123456789,
             data = <<"nazo">>
-        }
+        },
+        #ofp_barrier_request{},
+        #ofp_barrier_reply{},
+        #ofp_role_request{
+            role = master,
+            generation_id = 16#f000f000f000f000},
+        #ofp_role_reply{
+            role = slave,
+            generation_id = 16#f000f000f000f000}
     ]).
