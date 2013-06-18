@@ -1,0 +1,26 @@
+{
+   "OFPFlowRemoved" : {
+      "priority" : 65535,
+      "hard_timeout" : 0,
+      "table_id" : 0,
+      "duration_nsec" : 48825000,
+      "idle_timeout" : 3,
+      "cookie" : 0,
+      "reason" : 0,
+      "match" : {
+         "OFPMatch" : {
+            "fields" : [
+               {
+                  "MTEthDst" : {
+                     "value" : "8gukffjq"
+                  }
+               }
+            ],
+            "type" : 1
+         }
+      },
+      "byte_count" : 86,
+      "duration_sec" : 3,
+      "packet_count" : 1
+   }
+}

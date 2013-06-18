@@ -1,0 +1,15 @@
+{
+   "OFPFlowStatsRequest" : {
+      "table_id" : 0,
+      "flags" : 0,
+      "out_group" : 4294967295,
+      "cookie" : 0,
+      "match" : {
+         "OFPMatch" : {
+            "fields" : []
+         }
+      },
+      "out_port" : 4294967295,
+      "cookie_mask" : 0
+   }
+}
