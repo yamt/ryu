@@ -8541,5 +8541,10 @@ x() ->
                              class = openflow_basic,name = eth_dst,
                              has_mask = false,
                              value = <<"\362\v\244}\370\352">>,
-                             mask = undefined}]}}
+                             mask = undefined}]}},
+        #ofp_error_msg_experimenter{
+            exp_type = 60000,
+            experimenter = 999999,
+            data = <<"jikken data">>
+        }
     ]).
