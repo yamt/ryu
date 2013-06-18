@@ -1356,12 +1356,12 @@ class OFPQueueGetConfigRequest(MsgBase):
 
 class OFPQueuePropHeader(StringifyMixin):
     def __init__(self, property_, len_):
-        self.property = property_
-        self.len = len_
+        self._property = property_
+        self._len = len_
 
     def serialize(self, buf, offset):
         msg_pack_into(ofproto_v1_2.OFP_QUEUE_PROP_HEADER_PACK_STR,
-                      buf, offset, self.property, self.len)
+                      buf, offset, self._property, self._len)
 
 
 class OFPQueueProp(OFPQueuePropHeader):
@@ -1392,11 +1392,10 @@ class OFPQueueProp(OFPQueuePropHeader):
 
 
 class OFPPacketQueue(StringifyMixin):
-    def __init__(self, queue_id, port, len_, properties):
+    def __init__(self, queue_id, port, properties):
         super(OFPPacketQueue, self).__init__()
         self.queue_id = queue_id
         self.port = port
-        self.len = len_
         self.properties = properties
 
     @classmethod
@@ -1409,9 +1408,11 @@ class OFPPacketQueue(StringifyMixin):
         while length < len_:
             queue_prop = OFPQueueProp.parser(buf, offset)
             properties.append(queue_prop)
-            offset += queue_prop.len
-            length += queue_prop.len
-        return cls(queue_id, port, len_, properties)
+            offset += queue_prop._len
+            length += queue_prop._len
+        o = cls(queue_id, port, properties)
+        o._len = len_
+        return o
 
 
 @OFPQueueProp.register_property(ofproto_v1_2.OFPQT_MIN_RATE,
@@ -1466,8 +1467,8 @@ class OFPQueueGetConfigReply(MsgBase):
             queue = OFPPacketQueue.parser(msg.buf, offset)
             msg.queues.append(queue)
 
-            offset += queue.len
-            length += queue.len
+            offset += queue._len
+            length += queue._len
 
         return msg
 
