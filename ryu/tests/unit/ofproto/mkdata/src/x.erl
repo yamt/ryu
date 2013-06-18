@@ -8473,6 +8473,20 @@ x() ->
                 {[output,copy_ttl_out,copy_ttl_in,set_mpls_ttl,dec_mpls_ttl,push_vlan,pop_vlan,push_mpls,pop_mpls,set_queue,group,set_nw_ttl,dec_nw_ttl,set_field],
                  [output,copy_ttl_out,copy_ttl_in,set_mpls_ttl,dec_mpls_ttl,push_vlan,pop_vlan,push_mpls,pop_mpls,set_queue,group,set_nw_ttl,dec_nw_ttl,set_field],
                  [output,copy_ttl_out,copy_ttl_in,set_mpls_ttl,dec_mpls_ttl,push_vlan,pop_vlan,push_mpls,pop_mpls,set_queue,group,set_nw_ttl,dec_nw_ttl,set_field],
-                 [output,copy_ttl_out,copy_ttl_in,set_mpls_ttl,dec_mpls_ttl,push_vlan,pop_vlan,push_mpls,pop_mpls,set_queue,group,set_nw_ttl,dec_nw_ttl,set_field]}}
-
+                 [output,copy_ttl_out,copy_ttl_in,set_mpls_ttl,dec_mpls_ttl,push_vlan,pop_vlan,push_mpls,pop_mpls,set_queue,group,set_nw_ttl,dec_nw_ttl,set_field]}},
+        #ofp_group_desc_stats_request{},
+        #ofp_group_desc_stats_reply{
+            flags = [],
+            stats = 
+                [#ofp_group_desc_stats{
+                     type = all,group_id = 1,
+                     buckets = 
+                         [#ofp_bucket{
+                              weight = 1,watch_port = 1,watch_group = 1,
+                              actions = 
+                                  [#ofp_action_output{
+                                       seq = 14,port = 2,
+                                       max_len = 65535}]}]}]},
+        #ofp_queue_get_config_request{port = any},
+        #ofp_queue_get_config_reply{port = any,queues = []}
     ]).
