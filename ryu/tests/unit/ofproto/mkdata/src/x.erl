@@ -8488,5 +8488,19 @@ x() ->
                                        seq = 14,port = 2,
                                        max_len = 65535}]}]}]},
         #ofp_queue_get_config_request{port = any},
-        #ofp_queue_get_config_reply{port = any,queues = []}
+        #ofp_queue_get_config_reply{port = any,queues = []},
+        #ofp_queue_stats_request{flags = [],port_no = any,
+                                 queue_id = all},
+        #ofp_queue_stats_reply{
+            flags = [],
+            stats = 
+                [#ofp_queue_stats{
+                     port_no = 7,queue_id = 1,tx_bytes = 0,tx_packets = 0,
+                     tx_errors = 0},
+                 #ofp_queue_stats{
+                     port_no = 6,queue_id = 1,tx_bytes = 0,tx_packets = 0,
+                     tx_errors = 0},
+                 #ofp_queue_stats{
+                     port_no = 7,queue_id = 2,tx_bytes = 0,tx_packets = 0,
+                     tx_errors = 0}]}
     ]).
