@@ -1445,8 +1445,10 @@ class OFPQueuePropMaxRate(OFPQueueProp):
 @_register_parser
 @_set_msg_type(ofproto_v1_2.OFPT_QUEUE_GET_CONFIG_REPLY)
 class OFPQueueGetConfigReply(MsgBase):
-    def __init__(self, datapath):
+    def __init__(self, datapath, port=None, queues=None):
         super(OFPQueueGetConfigReply, self).__init__(datapath)
+        self.port = port
+        self.queues = queues
 
     @classmethod
     def parser(cls, datapath, version, msg_type, msg_len, xid, buf):
