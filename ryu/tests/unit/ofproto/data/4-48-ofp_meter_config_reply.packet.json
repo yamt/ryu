@@ -1,0 +1,23 @@
+{
+   "OFPMeterConfigStatsReply" : {
+      "body" : [
+         {
+            "OFPMeterConfigStats" : {
+               "meter_id" : 100,
+               "flags" : 14,
+               "bands" : [
+                  {
+                     "OFPMeterBandHeader" : {
+                        "len" : 16,
+                        "rate" : 1000,
+                        "type" : 0,
+                        "burst_size" : 10
+                     }
+                  }
+               ]
+            }
+         }
+      ],
+      "flags" : 0
+   }
+}
