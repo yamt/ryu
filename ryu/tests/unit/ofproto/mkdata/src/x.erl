@@ -8528,5 +8528,18 @@ x() ->
                      supported = ['100mb_fd',copper,autoneg],
                      peer = ['100mb_fd',copper,autoneg],
                      curr_speed = 5000,max_speed = 5000}
-        }
+        },
+        #ofp_flow_removed{
+            cookie = <<0,0,0,0,0,0,0,0>>,
+            priority = 65535,reason = idle_timeout,table_id = 0,
+            duration_sec = 3,duration_nsec = 48825000,idle_timeout = 3,
+            hard_timeout = 0,packet_count = 1,byte_count = 86,
+            match = 
+                #ofp_match{
+                    fields = 
+                        [#ofp_field{
+                             class = openflow_basic,name = eth_dst,
+                             has_mask = false,
+                             value = <<"\362\v\244}\370\352">>,
+                             mask = undefined}]}}
     ]).
