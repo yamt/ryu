@@ -1,0 +1,1 @@
+{"OFPPortStatus": {"reason": 0, "desc": {"OFPPort": {"hw_addr": "8guk0D9w", "curr_speed": 5000, "curr": 10248, "name": "UG9ydAcAAAAAAAAAAAAAAA==", "supported": 10248, "state": 4, "max_speed": 5000, "advertised": 10240, "peer": 10248, "config": 0, "port_no": 7}}}}
