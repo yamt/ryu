@@ -1,0 +1,9 @@
+{
+   "OFPSwitchFeatures" : {
+      "n_tables" : 255,
+      "capabilities" : 79,
+      "n_buffers" : 0,
+      "datapath_id" : 603603843768844288,
+      "auxiliary_id" : 99
+   }
+}

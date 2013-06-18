@@ -1,0 +1,41 @@
+{
+   "OFPFlowMod" : {
+      "buffer_id" : 65535,
+      "hard_timeout" : 0,
+      "priority" : 123,
+      "table_id" : 1,
+      "flags" : 0,
+      "instructions" : [
+         {
+            "OFPInstructionActions" : {
+               "actions" : [
+                  {
+                     "OFPActionOutput" : {
+                        "max_len" : 65535,
+                        "port" : 6
+                     }
+                  }
+               ],
+               "type" : 3
+            }
+         }
+      ],
+      "out_group" : 4294967295,
+      "cookie" : 0,
+      "idle_timeout" : 0,
+      "match" : {
+         "OFPMatch" : {
+            "fields" : [
+               {
+                  "MTEthDst" : {
+                     "value" : "8gukffjq"
+                  }
+               }
+            ]
+         }
+      },
+      "cookie_mask" : 0,
+      "out_port" : 4294967295,
+      "command" : 0
+   }
+}
