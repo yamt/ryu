@@ -298,8 +298,22 @@ class OFPPacketIn(MsgBase):
 @_register_parser
 @_set_msg_type(ofproto_v1_2.OFPT_FLOW_REMOVED)
 class OFPFlowRemoved(MsgBase):
-    def __init__(self, datapath):
+    def __init__(self, datapath, cookie=None, priority=None, reason=None,
+                 table_id=None, duration_sec=None, duration_nsec=None,
+                 idle_timeout=None, hard_timeout=None, packet_count=None,
+                 byte_count=None, match=None):
         super(OFPFlowRemoved, self).__init__(datapath)
+        self.cookie = cookie
+        self.priority = priority
+        self.reason = reason
+        self.table_id = table_id
+        self.duration_sec = duration_sec
+        self.duration_nsec = duration_nsec
+        self.idle_timeout = idle_timeout
+        self.hard_timeout = hard_timeout
+        self.packet_count = packet_count
+        self.byte_count = byte_count
+        self.match = match
 
     @classmethod
     def parser(cls, datapath, version, msg_type, msg_len, xid, buf):
@@ -325,8 +339,10 @@ class OFPFlowRemoved(MsgBase):
 @_register_parser
 @_set_msg_type(ofproto_v1_2.OFPT_PORT_STATUS)
 class OFPPortStatus(MsgBase):
-    def __init__(self, datapath):
+    def __init__(self, datapath, reason=None, desc=None):
         super(OFPPortStatus, self).__init__(datapath)
+        self.reason = reason
+        self.desc = desc
 
     @classmethod
     def parser(cls, datapath, version, msg_type, msg_len, xid, buf):
