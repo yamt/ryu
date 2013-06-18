@@ -8515,5 +8515,18 @@ x() ->
                      tx_errors = 0},
                  #ofp_queue_stats{
                      port_no = 7,queue_id = 2,tx_bytes = 0,tx_packets = 0,
-                     tx_errors = 0}]}
+                     tx_errors = 0}]},
+        #ofp_port_status{
+            reason = add,
+            desc = #ofp_port{
+                     port_no = 7,hw_addr = <<"\362\v\244\320?p">>,
+                     name = <<80,111,114,116,7>>,
+                     config = [],
+                     state = [live],
+                     curr = ['100mb_fd',copper,autoneg],
+                     advertised = [copper,autoneg],
+                     supported = ['100mb_fd',copper,autoneg],
+                     peer = ['100mb_fd',copper,autoneg],
+                     curr_speed = 5000,max_speed = 5000}
+        }
     ]).
