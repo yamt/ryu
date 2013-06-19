@@ -117,11 +117,11 @@ class OFPHelloElemVersionBitmap(StringifyMixin):
 @_register_parser
 @_set_msg_type(ofproto_v1_3.OFPT_ERROR)
 class OFPErrorMsg(MsgBase):
-    def __init__(self, datapath):
+    def __init__(self, datapath, type_=None, code=None, data=None):
         super(OFPErrorMsg, self).__init__(datapath)
-        self.type = None
-        self.code = None
-        self.data = None
+        self.type = type_
+        self.code = code
+        self.data = data
 
     @classmethod
     def parser(cls, datapath, version, msg_type, msg_len, xid, buf):
@@ -162,9 +162,9 @@ class OFPEchoRequest(MsgBase):
 @_register_parser
 @_set_msg_type(ofproto_v1_3.OFPT_ECHO_REPLY)
 class OFPEchoReply(MsgBase):
-    def __init__(self, datapath):
+    def __init__(self, datapath, data=None):
         super(OFPEchoReply, self).__init__(datapath)
-        self.data = None
+        self.data = data
 
     @classmethod
     def parser(cls, datapath, version, msg_type, msg_len, xid, buf):
@@ -2447,8 +2447,8 @@ class OFPGroupDescStats(StringifyMixin):
             bucket = OFPBucket.parser(buf, offset)
             stats.buckets.append(bucket)
 
-            offset += bucket.len
-            length += bucket.len
+            offset += bucket._len
+            length += bucket._len
 
         return stats
 
@@ -2464,8 +2464,8 @@ class OFPGroupDescStatsRequest(OFPMultipartRequest):
 @_set_stats_type(ofproto_v1_3.OFPMP_GROUP_DESC, OFPGroupDescStats)
 @_set_msg_type(ofproto_v1_3.OFPT_MULTIPART_REPLY)
 class OFPGroupDescStatsReply(OFPMultipartReply):
-    def __init__(self, datapath):
-        super(OFPGroupDescStatsReply, self).__init__(datapath)
+    def __init__(self, datapath, **kwargs):
+        super(OFPGroupDescStatsReply, self).__init__(datapath, **kwargs)
 
 
 class OFPGroupFeaturesStats(ofproto_parser.namedtuple('OFPGroupFeaturesStats',
