@@ -62,6 +62,7 @@ x() ->
                 [#ofp_instruction_goto_table{table_id = 1}]},
         #ofp_packet_in{
             buffer_id = 2,reason = action,table_id = 1,
+            cookie = <<0,1,2,3,0,0,0,0>>,
             match =
                 #ofp_match{
                     fields =
