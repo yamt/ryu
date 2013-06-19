@@ -122,7 +122,7 @@ x() ->
         #ofp_set_config{flags = [],miss_send_len = 128},
         #ofp_get_config_request{},
         #ofp_get_config_reply{flags = [],miss_send_len = 128},
-        #ofp_hello{},
+        #ofp_hello{elements = [{versionbitmap, [30, 10, 9, 3, 2, 1]}]},
         #ofp_flow_stats_request{
             flags = [],table_id = 0,out_port = any,out_group = any,
             cookie = <<0,0,0,0,0,0,0,0>>,
