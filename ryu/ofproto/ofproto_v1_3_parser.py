@@ -1995,7 +1995,7 @@ class OFPBucket(StringifyMixin):
             action_len += a.len
 
         self._len = utils.round_up(ofproto_v1_3.OFP_BUCKET_SIZE + action_len,
-                                  8)
+                                   8)
         msg_pack_into(ofproto_v1_3.OFP_BUCKET_PACK_STR, buf, offset,
                       self._len, self.weight, self.watch_port,
                       self.watch_group)
