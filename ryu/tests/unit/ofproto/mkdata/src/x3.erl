@@ -13,7 +13,7 @@ x() ->
         #ofp_packet_out{
             buffer_id = no_buffer,in_port = controller,
             actions = 
-                [#ofp_action_output{seq = 14,port = all,max_len = 65535}],
+                [#ofp_action_output{port = all,max_len = 65535}],
             data = 
                 <<242,11,164,208,63,112,242,11,164,125,248,234,8,0,69,0,
                   0,84,248,26,0,0,255,1,175,139,10,0,0,1,10,0,0,2,8,0,2,
@@ -37,10 +37,8 @@ x() ->
                              mask = undefined}]},
             instructions =
                 [#ofp_instruction_write_actions{
-                     seq = 3,
                      actions =
-                         [#ofp_action_output{
-                              seq = 14,port = 6,max_len = 65535}]}]},
+                         [#ofp_action_output{port = 6,max_len = 65535}]}]},
         #ofp_flow_mod{
             cookie = <<0,0,0,0,0,0,0,0>>,
             cookie_mask = <<0,0,0,0,0,0,0,0>>,
@@ -61,7 +59,7 @@ x() ->
                              value = <<"\362\v\244}\370\352">>,
                              mask = undefined}]},
             instructions =
-                [#ofp_instruction_goto_table{seq = 5,table_id = 1}]},
+                [#ofp_instruction_goto_table{table_id = 1}]},
         #ofp_packet_in{
             buffer_id = 2,reason = action,table_id = 1,
             match =
@@ -176,10 +174,9 @@ x() ->
                                       mask = undefined}]},
                      instructions =
                          [#ofp_instruction_apply_actions{
-                              seq = 1,
                               actions =
                                   [#ofp_action_output{
-                                       seq = 14,port = normal,max_len = 0}]}]},
+                                       port = normal,max_len = 0}]}]},
                  #ofp_flow_stats{
                      table_id = 0,duration_sec = 316220,
                      duration_nsec = 511582000,priority = 123,
@@ -200,7 +197,7 @@ x() ->
                                       value = <<"\362\v\244}\370\352">>,
                                       mask = undefined}]},
                      instructions =
-                         [#ofp_instruction_goto_table{seq = 5,table_id = 1}]},
+                         [#ofp_instruction_goto_table{table_id = 1}]},
                  #ofp_flow_stats{
                      table_id = 0,duration_sec = 313499,
                      duration_nsec = 980901000,priority = 0,
@@ -210,10 +207,9 @@ x() ->
                      match = #ofp_match{fields = []},
                      instructions =
                          [#ofp_instruction_write_actions{
-                              seq = 3,
                               actions =
                                   [#ofp_action_output{
-                                       seq = 14,port = controller,
+                                       port = controller,
                                        max_len = 65535}]}]}]},
         #ofp_echo_request{
             data = <<"hoge">>
@@ -246,8 +242,7 @@ x() ->
                 [#ofp_bucket{
                      weight = 1,watch_port = 1,watch_group = 1,
                      actions = 
-                         [#ofp_action_output{
-                              seq = 14,port = 2,max_len = 65535}]}]},
+                         [#ofp_action_output{port = 2,max_len = 65535}]}]},
         #ofp_port_mod{port_no = 1, hw_addr = <<0,17,0,0,17,17>>,
             config = [],mask = [], advertise = [fiber]},
         #ofp_table_mod{table_id = all,config = controller},
@@ -8463,8 +8458,7 @@ x() ->
                               weight = 1,watch_port = 1,watch_group = 1,
                               actions = 
                                   [#ofp_action_output{
-                                       seq = 14,port = 2,
-                                       max_len = 65535}]}]}]},
+                                       port = 2, max_len = 65535}]}]}]},
         #ofp_queue_get_config_request{port = any},
         #ofp_queue_get_config_reply{port = any,queues = [
             #ofp_packet_queue{queue_id = 99, port_no = 77,
