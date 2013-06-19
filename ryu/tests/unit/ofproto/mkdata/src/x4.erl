@@ -115,6 +115,7 @@ x() ->
         #ofp_features_reply{
             datapath_mac = <<8,96,110,127,116,231>>,
             datapath_id = 0,n_buffers = 0,n_tables = 255,
+            auxiliary_id = 99,
             capabilities = 
                 [flow_stats,table_stats,port_stats,group_stats,queue_stats]},
         #ofp_set_config{flags = [],miss_send_len = 128},
