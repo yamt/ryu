@@ -2429,8 +2429,9 @@ class OFPGroupDescStatsReply(OFPMultipartReply):
         super(OFPGroupDescStatsReply, self).__init__(datapath)
 
 
-class OFPGroupFeaturesStats(ofproto_parser.namedtuple('OFPGroupFeaturesStats', (
-        'types', 'capabilities', 'max_groups', 'actions'))):
+class OFPGroupFeaturesStats(ofproto_parser.namedtuple('OFPGroupFeaturesStats',
+                            ('types', 'capabilities', 'max_groups',
+                            'actions'))):
     @classmethod
     def parser(cls, buf, offset):
         group_features = struct.unpack_from(
@@ -2592,9 +2593,9 @@ class OFPMeterConfigStatsReply(OFPMultipartReply):
         super(OFPMeterConfigStatsReply, self).__init__(datapath)
 
 
-class OFPMeterFeaturesStats(ofproto_parser.namedtuple('OFPMeterFeaturesStats', (
-        'max_meter', 'band_types', 'capabilities', 'max_band',
-        'max_color'))):
+class OFPMeterFeaturesStats(ofproto_parser.namedtuple('OFPMeterFeaturesStats',
+                            ('max_meter', 'band_types', 'capabilities',
+                            'max_band', 'max_color'))):
     @classmethod
     def parser(cls, buf, offset):
         meter_features = struct.unpack_from(
