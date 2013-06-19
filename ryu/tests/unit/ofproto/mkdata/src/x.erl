@@ -3,6 +3,8 @@
 
 -include_lib("of_protocol/include/of_protocol.hrl").
 
+do(skip, {OFPVersion, N}) ->
+    {OFPVersion, N + 1};
 do(Body, {OFPVersion, N}) ->
     Name = atom_to_list(element(1, Body)),
     io:format("processing ~B ~B ~s~n", [OFPVersion, N, Name]),
@@ -25,4 +27,4 @@ do(Body, {OFPVersion, N}) ->
     {OFPVersion, N + 1}.
 
 x() ->
-    x3:x().
+    lists:map(fun(Mod) -> Mod:x() end, [x3]).
