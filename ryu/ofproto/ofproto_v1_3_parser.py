@@ -340,27 +340,35 @@ class FlowWildcards(object):
 
 
 class OFPMatch(StringifyMixin):
-    def __init__(self, **kwargs):
+    def __init__(self, fields=[], type_=None):
         super(OFPMatch, self).__init__()
         self._wc = FlowWildcards()
         self._flow = Flow()
         self.fields = []
-        if kwargs:
-            # mimic appropriate set_foo calls
+        # accept type_ and length to be compatible with parser
+        if not type_ is None:
+            self.type = type_
+        if fields:
+            # we are doing de-stringify.
+            # we have two goals:
+            #   - the resulted object should be serialize()-able.
+            #   - the resulted object should be inspectable by applications.
+            #     ie. fields[] should be filled.
+            # mimic appropriate set_foo calls and the first half of serialize.
             import sys
             this_module = sys.modules[__name__]
-            for k, v in kwargs.iteritems():
-                cls = getattr(this_module, k)
-                value = v["value"]
-                mask = getattr(v, "mask", None)
-                header = OFPMatchField.cls_to_header(cls)
-                f = cls(header, value, mask)
-                self.fields.append(f)
-            self.serialize(bytearray(), 0)
-
-    def to_jsondict(self):
-        d = reduce(lambda a, x: dict(a, **x.to_jsondict()), self.fields, {})
-        return { self.__class__.__name__: d }
+            for o in fields:
+                assert len(o) == 1
+                for k, v in o.iteritems():
+                    cls = getattr(this_module, k)
+                    mask = v.get("mask", None)
+                    header = OFPMatchField.cls_to_header(cls, not mask is None)
+                    value = v["value"]
+                    value = self._decode_value(value)
+                    if not mask is None:
+                        mask = self._decode_value(mask)
+                    f = cls(header, value, mask)
+                    self.fields.append(f)
 
     def append_field(self, header, value, mask=None):
         self.fields.append(OFPMatchField.make(header, value, mask))
@@ -860,17 +868,14 @@ class OFPMatchField(StringifyMixin):
 
     def __init__(self, header):
         self.header = header
-        hasmask = (header >> 8) & 1
-        if hasmask:
-            self.n_bytes = (header & 0xff) / 2
-        else:
-            self.n_bytes = header & 0xff
+        self.n_bytes = ofproto_v1_3.oxm_tlv_header_extract_length(header)
         self.length = 0
 
     @classmethod
-    def cls_to_header(cls, cls_):
+    def cls_to_header(cls, cls_, hasmask):
         # XXX efficiency
-	inv = dict((v, k) for k, v in cls._FIELDS_HEADERS.iteritems())
+        inv = dict((v, k) for k, v in cls._FIELDS_HEADERS.iteritems()
+                   if (((k >> 8) & 1) != 0) == hasmask)
         return inv[cls_]
 
     @staticmethod
@@ -893,7 +898,7 @@ class OFPMatchField(StringifyMixin):
     def field_parser(cls, header, buf, offset):
         hasmask = (header >> 8) & 1
         mask = None
-        if hasmask:
+        if ofproto_v1_3.oxm_tlv_header_extract_hasmask(header):
             pack_str = '!' + cls.pack_str[1:] * 2
             (value, mask) = struct.unpack_from(pack_str, buf, offset + 4)
         else:
@@ -901,8 +906,7 @@ class OFPMatchField(StringifyMixin):
         return cls(header, value, mask)
 
     def serialize(self, buf, offset):
-        hasmask = (self.header >> 8) & 1
-        if hasmask:
+        if ofproto_v1_3.oxm_tlv_header_extract_hasmask(self.header):
             self.put_w(buf, offset, self.value, self.mask)
         else:
             self.put(buf, offset, self.value)
@@ -945,7 +949,15 @@ class OFPMatchField(StringifyMixin):
         del v['header']
         del v['length']
         del v['n_bytes']
+        if 'mask' in v and v['mask'] is None:
+            del v['mask']
         return d
+
+    @classmethod
+    def from_jsondict(cls, dict_):
+        # just pass the dict around.
+        # it will be converted by OFPMatch.__init__().
+        return {cls.__name__: dict_}
 
 
 @OFPMatchField.register_field_header([ofproto_v1_3.OXM_OF_IN_PORT])
@@ -1215,8 +1227,7 @@ class MTArpTha(OFPMatchField):
 class MTIPv6(object):
     @classmethod
     def field_parser(cls, header, buf, offset):
-        hasmask = (header >> 8) & 1
-        if hasmask:
+        if ofproto_v1_3.oxm_tlv_header_extract_hasmask(header):
             pack_str = '!' + cls.pack_str[1:] * 2
             value = struct.unpack_from(pack_str, buf, offset + 4)
             return cls(header, list(value[:8]), list(value[8:]))
