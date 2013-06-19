@@ -18,6 +18,7 @@
 
 import sys
 import unittest
+import traceback
 from nose.tools import eq_
 
 from ryu.ofproto import ofproto_parser
@@ -80,6 +81,8 @@ class Test_Parser(unittest.TestCase):
             has_parser = True
         except TypeError:
             # not all msg_type has a proper parser
+            print "%s parse failed" % file
+            print traceback.format_exc()
             pass
 
         # XXX either of parser or serializer should work at least
