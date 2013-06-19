@@ -340,10 +340,13 @@ x() ->
                              has_mask = false,
                              value = <<"\362\v\244}\370\352">>,
                              mask = undefined}]}},
-        #ofp_error_msg_experimenter{
-            exp_type = 60000,
-            experimenter = 999999,
-            data = <<"jikken data">>
-        }
+
+% ryu doesn't have the implementation
+%       #ofp_error_msg_experimenter{
+%           exp_type = 60000,
+%           experimenter = 999999,
+%           data = <<"jikken data">>
+%       }
+        skip
     ],
     lists:foldl(fun x:do/2, {4, 0}, List).
