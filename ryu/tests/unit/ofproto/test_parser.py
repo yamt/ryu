@@ -76,7 +76,8 @@ class Test_Parser(unittest.TestCase):
                                      wire_msg)
             json_dict2 = self._msg_to_jsondict(msg)
             # XXXdebug code
-            #open('/tmp/ofproto.json', 'wb').write(json.dumps(json_dict))
+            open('/tmp/ofproto.json', 'wb').write(json.dumps(json_dict, sort_keys=True, indent=4))
+            open('/tmp/ofproto2.json', 'wb').write(json.dumps(json_dict2, sort_keys=True, indent=4))
             eq_(json_dict, json_dict2)
             has_parser = True
         except TypeError:
@@ -91,7 +92,11 @@ class Test_Parser(unittest.TestCase):
         # json -> OFPxxx -> json
         msg2 = self._jsondict_to_msg(dp, json_dict)
         msg2.serialize()
-        eq_(self._msg_to_jsondict(msg2), json_dict)
+        json_dict3 = self._msg_to_jsondict(msg2)
+        # XXXdebug code
+        open('/tmp/ofproto.json', 'wb').write(json.dumps(json_dict, sort_keys=True, indent=4))
+        open('/tmp/ofproto2.json', 'wb').write(json.dumps(json_dict3, sort_keys=True, indent=4))
+        eq_(json_dict3, json_dict)
 
         if has_serializer:
             eq_(wire_msg, msg2.buf)
