@@ -1546,6 +1546,8 @@ class OFPInstruction(object):
 
 @OFPInstruction.register_instruction_type([ofproto_v1_3.OFPIT_GOTO_TABLE])
 class OFPInstructionGotoTable(object):
+    _base_attributes = ['type', 'len']
+
     def __init__(self, table_id):
         super(OFPInstructionGotoTable, self).__init__()
         self.type = ofproto_v1_3.OFPIT_GOTO_TABLE
@@ -1566,6 +1568,8 @@ class OFPInstructionGotoTable(object):
 
 @OFPInstruction.register_instruction_type([ofproto_v1_3.OFPIT_WRITE_METADATA])
 class OFPInstructionWriteMetadata(object):
+    _base_attributes = ['type', 'len']
+
     def __init__(self, metadata, metadata_mask):
         super(OFPInstructionWriteMetadata, self).__init__()
         self.type = ofproto_v1_3.OFPIT_WRITE_METADATA
@@ -1590,6 +1594,8 @@ class OFPInstructionWriteMetadata(object):
                                            ofproto_v1_3.OFPIT_APPLY_ACTIONS,
                                            ofproto_v1_3.OFPIT_CLEAR_ACTIONS])
 class OFPInstructionActions(object):
+    _base_attributes = ['len']
+
     def __init__(self, type_, actions=None):
         super(OFPInstructionActions, self).__init__()
         self.type = type_
@@ -1631,6 +1637,8 @@ class OFPInstructionActions(object):
 
 
 class OFPActionHeader(object):
+    _base_attributes = ['type', 'len']
+
     def __init__(self, type_, len_):
         self.type = type_
         self.len = len_
