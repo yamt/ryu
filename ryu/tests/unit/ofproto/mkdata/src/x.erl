@@ -4,8 +4,7 @@
 -include_lib("of_protocol/include/of_protocol.hrl").
 -include_lib("of_protocol/include/ofp_v3.hrl").
 
-do(Body, N) ->
-    OFPVersion = 3,
+do(Body, {OFPVersion, N}) ->
     Name = atom_to_list(element(1, Body)),
     io:format("processing ~B ~B ~s~n", [OFPVersion, N, Name]),
     M = #ofp_message{version=OFPVersion, xid=0, body=Body},
@@ -16,7 +15,7 @@ do(Body, N) ->
     % sanity check
     % this is fragile because of order of flags.
     % ofp flags are unorderd but of_protocol keeps them in a list.
-    {ok, M2, <<>>} = ofp_v3_decode:do(Msg),
+    {ok, M2, <<>>} = of_protocol:decode(Msg),
     #ofp_message{version=OFPVersion, type=_, xid=0, body=Body2} = M2,
     % io:format("~p~n", [Body]),
     % io:format("~p~n", [Body2]),
@@ -24,10 +23,10 @@ do(Body, N) ->
 
     ok = file:write(F, Msg),
     ok = file:close(F),
-    N + 1.
+    {OFPVersion, N + 1}.
 
 x() ->
-    lists:foldl(fun do/2, 0, [
+    List = [
         #ofp_desc_stats_reply{flags = [], mfr_desc = <<"mfr">>,
                               hw_desc = <<"hw">>, sw_desc = <<"sw">>,
                               serial_num = <<"serial">>,
@@ -8547,4 +8546,5 @@ x() ->
             experimenter = 999999,
             data = <<"jikken data">>
         }
-    ]).
+    ],
+    lists:foldl(fun do/2, {3, 0}, List).
