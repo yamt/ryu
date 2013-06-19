@@ -607,7 +607,7 @@ class OFPMatch(StringifyMixin):
         type_, length = struct.unpack_from('!HH', buf, offset)
 
         match.type = type_
-        match.length = length
+        match._length = length
 
         # ofp_match adjustment
         offset += 4
@@ -1224,7 +1224,7 @@ class MTArpTha(OFPMatchField):
         self.mask = mask
 
 
-class MTIPv6(object):
+class MTIPv6(StringifyMixin):
     @classmethod
     def field_parser(cls, header, buf, offset):
         if ofproto_v1_3.oxm_tlv_header_extract_hasmask(header):
@@ -1553,7 +1553,7 @@ class OFPInstruction(object):
 
 
 @OFPInstruction.register_instruction_type([ofproto_v1_3.OFPIT_GOTO_TABLE])
-class OFPInstructionGotoTable(object):
+class OFPInstructionGotoTable(StringifyMixin):
     _base_attributes = ['type', 'len']
 
     def __init__(self, table_id):
@@ -1575,7 +1575,7 @@ class OFPInstructionGotoTable(object):
 
 
 @OFPInstruction.register_instruction_type([ofproto_v1_3.OFPIT_WRITE_METADATA])
-class OFPInstructionWriteMetadata(object):
+class OFPInstructionWriteMetadata(StringifyMixin):
     _base_attributes = ['type', 'len']
 
     def __init__(self, metadata, metadata_mask):
@@ -1601,7 +1601,7 @@ class OFPInstructionWriteMetadata(object):
 @OFPInstruction.register_instruction_type([ofproto_v1_3.OFPIT_WRITE_ACTIONS,
                                            ofproto_v1_3.OFPIT_APPLY_ACTIONS,
                                            ofproto_v1_3.OFPIT_CLEAR_ACTIONS])
-class OFPInstructionActions(object):
+class OFPInstructionActions(StringifyMixin):
     _base_attributes = ['len']
 
     def __init__(self, type_, actions=None):
@@ -1644,7 +1644,7 @@ class OFPInstructionActions(object):
                       buf, offset, self.type, self.len)
 
 
-class OFPActionHeader(object):
+class OFPActionHeader(StringifyMixin):
     _base_attributes = ['type', 'len']
 
     def __init__(self, type_, len_):
@@ -1928,7 +1928,7 @@ class OFPActionExperimenter(OFPAction):
                       buf, offset, self.type, self.len, self.experimenter)
 
 
-class OFPBucket(object):
+class OFPBucket(StringifyMixin):
     def __init__(self, len_, weight, watch_port, watch_group, actions):
         super(OFPBucket, self).__init__()
         self.len = len_
@@ -2031,7 +2031,7 @@ class OFPMultipartRequest(MsgBase):
         assert flags == 0      # none yet defined
 
         super(OFPMultipartRequest, self).__init__(datapath)
-        self.type = self.__class__.cls_stats_type
+        self._type = self.__class__.cls_stats_type
         self.flags = flags
 
     def _serialize_stats_body(self):
@@ -2040,7 +2040,7 @@ class OFPMultipartRequest(MsgBase):
     def _serialize_body(self):
         msg_pack_into(ofproto_v1_3.OFP_MULTIPART_REQUEST_PACK_STR,
                       self.buf, ofproto_v1_3.OFP_HEADER_SIZE,
-                      self.type, self.flags)
+                      self._type, self.flags)
         self._serialize_stats_body()
 
 
@@ -2060,8 +2060,10 @@ class OFPMultipartReply(MsgBase):
             return cls
         return _register_stats_type
 
-    def __init__(self, datapath):
+    def __init__(self, datapath, body=None, flags=None):
         super(OFPMultipartReply, self).__init__(datapath)
+        self.body = body
+        self.flags = flags
 
     @classmethod
     def parser_stats_body(cls, buf, msg_len, offset):
@@ -2100,7 +2102,7 @@ class OFPMultipartReply(MsgBase):
         while offset < msg_len:
             b = stats_type_cls.cls_stats_body_cls.parser(msg.buf, offset)
             body.append(b)
-            offset += b.length
+            offset += b._length
 
         if stats_type_cls.cls_body_single_struct:
             msg.body = body[0]
@@ -2116,7 +2118,7 @@ class OFPDescStats(ofproto_parser.namedtuple('OFPDescStats', (
         desc = struct.unpack_from(ofproto_v1_3.OFP_DESC_PACK_STR,
                                   buf, offset)
         stats = cls(*desc)
-        stats.length = ofproto_v1_3.OFP_DESC_SIZE
+        stats._length = ofproto_v1_3.OFP_DESC_SIZE
         return stats
 
 
@@ -2135,27 +2137,31 @@ class OFPDescStatsReply(OFPMultipartReply):
         super(OFPDescStatsReply, self).__init__(datapath)
 
 
-class OFPFlowStats(object):
-    def __init__(self):
+class OFPFlowStats(StringifyMixin):
+    def __init__(self, table_id=None, duration_sec=None, duration_nsec=None,
+                 priority=None, idle_timeout=None, hard_timeout=None,
+                 flags=None, cookie=None, packet_count=None,
+                 byte_count=None, match=None, instructions=None):
         super(OFPFlowStats, self).__init__()
-        self.length = None
-        self.table_id = None
-        self.duration_sec = None
-        self.duration_nsec = None
-        self.priority = None
-        self.idle_timeout = None
-        self.hard_timeout = None
-        self.flags = None
-        self.cookie = None
-        self.packet_count = None
-        self.byte_count = None
-        self.match = None
+        self._length = 0
+        self.table_id = table_id
+        self.duration_sec = duration_sec
+        self.duration_nsec = duration_nsec
+        self.priority = priority
+        self.idle_timeout = idle_timeout
+        self.hard_timeout = hard_timeout
+        self.flags = flags
+        self.cookie = cookie
+        self.packet_count = packet_count
+        self.byte_count = byte_count
+        self.match = match
+        self.instructions = instructions
 
     @classmethod
     def parser(cls, buf, offset):
         flow_stats = cls()
 
-        (flow_stats.length, flow_stats.table_id,
+        (flow_stats._length, flow_stats.table_id,
          flow_stats.duration_sec, flow_stats.duration_nsec,
          flow_stats.priority, flow_stats.idle_timeout,
          flow_stats.hard_timeout, flow_stats.flags,
@@ -2165,10 +2171,10 @@ class OFPFlowStats(object):
         offset += ofproto_v1_3.OFP_FLOW_STATS_0_SIZE
 
         flow_stats.match = OFPMatch.parser(buf, offset)
-        match_length = utils.round_up(flow_stats.match.length, 8)
-        inst_length = (flow_stats.length - (ofproto_v1_3.OFP_FLOW_STATS_SIZE -
-                                            ofproto_v1_3.OFP_MATCH_SIZE +
-                                            match_length))
+        match_length = utils.round_up(flow_stats.match._length, 8)
+        inst_length = (flow_stats._length - (ofproto_v1_3.OFP_FLOW_STATS_SIZE -
+                                             ofproto_v1_3.OFP_MATCH_SIZE +
+                                             match_length))
         offset += match_length
         instructions = []
         while inst_length > 0:
@@ -2216,8 +2222,8 @@ class OFPFlowStatsRequest(OFPFlowStatsRequestBase):
 @_set_stats_type(ofproto_v1_3.OFPMP_FLOW, OFPFlowStats)
 @_set_msg_type(ofproto_v1_3.OFPT_MULTIPART_REPLY)
 class OFPFlowStatsReply(OFPMultipartReply):
-    def __init__(self, datapath):
-        super(OFPFlowStatsReply, self).__init__(datapath)
+    def __init__(self, datapath, **kwargs):
+        super(OFPFlowStatsReply, self).__init__(datapath, **kwargs)
 
 
 class OFPAggregateStats(ofproto_parser.namedtuple('OFPAggregateStats', (
@@ -2227,7 +2233,7 @@ class OFPAggregateStats(ofproto_parser.namedtuple('OFPAggregateStats', (
         agg = struct.unpack_from(
             ofproto_v1_3.OFP_AGGREGATE_STATS_REPLY_PACK_STR, buf, offset)
         stats = cls(*agg)
-        stats.length = ofproto_v1_3.OFP_AGGREGATE_STATS_REPLY_SIZE
+        stats._length = ofproto_v1_3.OFP_AGGREGATE_STATS_REPLY_SIZE
         return stats
 
 
@@ -2246,12 +2252,12 @@ class OFPAggregateStatsRequest(OFPFlowStatsRequestBase):
                                                        match)
 
 
-@OFPMultipartReply.register_stats_type()
+@OFPMultipartReply.register_stats_type(body_single_struct=True)
 @_set_stats_type(ofproto_v1_3.OFPMP_AGGREGATE, OFPAggregateStats)
 @_set_msg_type(ofproto_v1_3.OFPT_MULTIPART_REPLY)
 class OFPAggregateStatsReply(OFPMultipartReply):
-    def __init__(self, datapath):
-        super(OFPAggregateStatsReply, self).__init__(datapath)
+    def __init__(self, datapath, **kwargs):
+        super(OFPAggregateStatsReply, self).__init__(datapath, **kwargs)
 
 
 class OFPTableStats(ofproto_parser.namedtuple('OFPTableStats', (
@@ -2262,7 +2268,7 @@ class OFPTableStats(ofproto_parser.namedtuple('OFPTableStats', (
         tbl = struct.unpack_from(ofproto_v1_3.OFP_TABLE_STATS_PACK_STR,
                                  buf, offset)
         stats = cls(*tbl)
-        stats.length = ofproto_v1_3.OFP_TABLE_STATS_SIZE
+        stats._length = ofproto_v1_3.OFP_TABLE_STATS_SIZE
         return stats
 
 
@@ -2277,8 +2283,8 @@ class OFPTableStatsRequest(OFPMultipartRequest):
 @_set_stats_type(ofproto_v1_3.OFPMP_TABLE, OFPTableStats)
 @_set_msg_type(ofproto_v1_3.OFPT_MULTIPART_REPLY)
 class OFPTableStatsReply(OFPMultipartReply):
-    def __init__(self, datapath):
-        super(OFPTableStatsReply, self).__init__(datapath)
+    def __init__(self, datapath, **kwargs):
+        super(OFPTableStatsReply, self).__init__(datapath, **kwargs)
 
 
 class OFPPortStats(ofproto_parser.namedtuple('OFPPortStats', (
@@ -2291,7 +2297,7 @@ class OFPPortStats(ofproto_parser.namedtuple('OFPPortStats', (
         port = struct.unpack_from(ofproto_v1_3.OFP_PORT_STATS_PACK_STR,
                                   buf, offset)
         stats = cls(*port)
-        stats.length = ofproto_v1_3.OFP_PORT_STATS_SIZE
+        stats._length = ofproto_v1_3.OFP_PORT_STATS_SIZE
         return stats
 
 
@@ -2325,7 +2331,7 @@ class OFPQueueStats(ofproto_parser.namedtuple('OFPQueueStats', (
         queue = struct.unpack_from(ofproto_v1_3.OFP_QUEUE_STATS_PACK_STR,
                                    buf, offset)
         stats = cls(*queue)
-        stats.length = ofproto_v1_3.OFP_QUEUE_STATS_SIZE
+        stats._length = ofproto_v1_3.OFP_QUEUE_STATS_SIZE
         return stats
 
 
@@ -2348,8 +2354,8 @@ class OFPQueueStatsRequest(OFPMultipartRequest):
 @_set_stats_type(ofproto_v1_3.OFPMP_QUEUE, OFPQueueStats)
 @_set_msg_type(ofproto_v1_3.OFPT_MULTIPART_REPLY)
 class OFPQueueStatsReply(OFPMultipartReply):
-    def __init__(self, datapath):
-        super(OFPQueueStatsReply, self).__init__(datapath)
+    def __init__(self, datapath, **kwargs):
+        super(OFPQueueStatsReply, self).__init__(datapath, **kwargs)
 
 
 class OFPGroupStats(ofproto_parser.namedtuple('OFPGroupStats', (
@@ -2360,7 +2366,7 @@ class OFPGroupStats(ofproto_parser.namedtuple('OFPGroupStats', (
         group = struct.unpack_from(ofproto_v1_3.OFP_GROUP_STATS_PACK_STR,
                                    buf, offset)
         stats = cls(*group)
-        stats.length = ofproto_v1_3.OFP_GROUP_STATS_SIZE
+        stats._length = ofproto_v1_3.OFP_GROUP_STATS_SIZE
         return stats
 
 
@@ -2386,7 +2392,7 @@ class OFPGroupStatsReply(OFPMultipartReply):
         super(OFPGroupStatsReply, self).__init__(datapath)
 
 
-class OFPGroupDescStats(object):
+class OFPGroupDescStats(StringifyMixin):
     def __init__(self):
         super(OFPGroupDescStats, self).__init__()
         self.length = None
@@ -2398,13 +2404,13 @@ class OFPGroupDescStats(object):
     def parser(cls, buf, offset):
         stats = cls()
 
-        (stats.length, stats.type, stats.group_id) = struct.unpack_from(
+        (stats._length, stats.type, stats.group_id) = struct.unpack_from(
             ofproto_v1_3.OFP_GROUP_DESC_STATS_PACK_STR, buf, offset)
         offset += ofproto_v1_3.OFP_GROUP_DESC_STATS_SIZE
 
         stats.buckets = []
         length = ofproto_v1_3.OFP_GROUP_DESC_STATS_SIZE
-        while length < stats.length:
+        while length < stats._length:
             bucket = OFPBucket.parser(buf, offset)
             stats.buckets.append(bucket)
 
@@ -2441,7 +2447,7 @@ class OFPGroupFeaturesStats(ofproto_parser.namedtuple('OFPGroupFeaturesStats',
         max_groups = list(group_features[2:6])
         actions = list(group_features[6:10])
         stats = cls(types, capabilities, max_groups, actions)
-        stats.length = ofproto_v1_3.OFP_GROUP_FEATURES_SIZE
+        stats._length = ofproto_v1_3.OFP_GROUP_FEATURES_SIZE
         return stats
 
 
@@ -2452,15 +2458,15 @@ class OFPGroupFeaturesStatsRequest(OFPMultipartRequest):
         super(OFPGroupFeaturesStatsRequest, self).__init__(datapath, flags)
 
 
-@OFPMultipartReply.register_stats_type()
+@OFPMultipartReply.register_stats_type(body_single_struct=True)
 @_set_stats_type(ofproto_v1_3.OFPMP_GROUP_FEATURES, OFPGroupFeaturesStats)
 @_set_msg_type(ofproto_v1_3.OFPT_MULTIPART_REPLY)
 class OFPGroupFeaturesStatsReply(OFPMultipartReply):
-    def __init__(self, datapath):
-        super(OFPGroupFeaturesStatsReply, self).__init__(datapath)
+    def __init__(self, datapath, **kwargs):
+        super(OFPGroupFeaturesStatsReply, self).__init__(datapath, **kwargs)
 
 
-class OFPMeterBandStats(object):
+class OFPMeterBandStats(StringifyMixin):
     def __init__(self, packet_band_count, byte_band_count):
         super(OFPMeterBandStats, self).__init__()
         self.packet_band_count = packet_band_count
@@ -2473,7 +2479,7 @@ class OFPMeterBandStats(object):
         return cls(*band_stats)
 
 
-class OFPMeterStats(object):
+class OFPMeterStats(StringifyMixin):
     def __init__(self):
         super(OFPMeterStats, self).__init__()
         self.meter_id = None
@@ -2529,7 +2535,7 @@ class OFPMeterStatsReply(OFPMultipartReply):
         super(OFPMeterStatsReply, self).__init__(datapath)
 
 
-class OFPMeterBandHeader(object):
+class OFPMeterBandHeader(StringifyMixin):
     def __init__(self, type_, len_, rate, burst_size):
         self.type = type_
         self.len = len_
@@ -2543,7 +2549,7 @@ class OFPMeterBandHeader(object):
         return cls(*band_header)
 
 
-class OFPMeterConfigStats(object):
+class OFPMeterConfigStats(StringifyMixin):
     def __init__(self):
         super(OFPMeterConfigStats, self).__init__()
         self.length = None
@@ -2601,7 +2607,7 @@ class OFPMeterFeaturesStats(ofproto_parser.namedtuple('OFPMeterFeaturesStats',
         meter_features = struct.unpack_from(
             ofproto_v1_3.OFP_METER_FEATURES_PACK_STR, buf, offset)
         stats = cls(*meter_features)
-        stats.length = ofproto_v1_3.OFP_METER_FEATURES_SIZE
+        stats._length = ofproto_v1_3.OFP_METER_FEATURES_SIZE
         return stats
 
 
@@ -2620,7 +2626,7 @@ class OFPMeterFeaturesStatsReply(OFPMultipartReply):
         super(OFPMeterFeaturesStatsReply, self).__init__(datapath)
 
 
-class OFPTableFeaturesStats(object):
+class OFPTableFeaturesStats(StringifyMixin):
     def __init__(self):
         super(OFPTableFeaturesStats, self).__init__()
         self.length = None
@@ -2718,14 +2724,14 @@ class OFPQueueGetConfigRequest(MsgBase):
                       self.buf, ofproto_v1_3.OFP_HEADER_SIZE, self.port)
 
 
-class OFPQueuePropHeader(object):
+class OFPQueuePropHeader(StringifyMixin):
     def __init__(self, property_, len_):
-        self.property = property_
-        self.len = len_
+        self._property = property_
+        self._len = len_
 
     def serialize(self, buf, offset):
         msg_pack_into(ofproto_v1_3.OFP_QUEUE_PROP_HEADER_PACK_STR,
-                      buf, offset, self.property, self.len)
+                      buf, offset, self._property, self._len)
 
 
 class OFPQueueProp(OFPQueuePropHeader):
@@ -2788,12 +2794,11 @@ class OFPQueuePropMaxRate(OFPQueueProp):
 # TODO: add ofp_queue_prop_experimenter
 
 
-class OFPPacketQueue(object):
-    def __init__(self, queue_id, port, len_, properties):
+class OFPPacketQueue(StringifyMixin):
+    def __init__(self, queue_id, port, properties):
         super(OFPPacketQueue, self).__init__()
         self.queue_id = queue_id
         self.port = port
-        self.len = len_
         self.properties = properties
 
     @classmethod
@@ -2806,16 +2811,20 @@ class OFPPacketQueue(object):
         while length < len_:
             queue_prop = OFPQueueProp.parser(buf, offset)
             properties.append(queue_prop)
-            offset += queue_prop.len
-            length += queue_prop.len
-        return cls(queue_id, port, len_, properties)
+            offset += queue_prop._len
+            length += queue_prop._len
+        o = cls(queue_id, port, properties)
+        o._len = len_
+        return o
 
 
 @_register_parser
 @_set_msg_type(ofproto_v1_3.OFPT_QUEUE_GET_CONFIG_REPLY)
 class OFPQueueGetConfigReply(MsgBase):
-    def __init__(self, datapath):
+    def __init__(self, datapath, queues=None, port=None):
         super(OFPQueueGetConfigReply, self).__init__(datapath)
+        self.queues = queues
+        self.port = port
 
     @classmethod
     def parser(cls, datapath, version, msg_type, msg_len, xid, buf):
@@ -2831,7 +2840,7 @@ class OFPQueueGetConfigReply(MsgBase):
         while offset < msg_len:
             queue = OFPPacketQueue.parser(msg.buf, offset)
             msg.queues.append(queue)
-            offset += queue.len
+            offset += queue._len
 
         return msg
 
