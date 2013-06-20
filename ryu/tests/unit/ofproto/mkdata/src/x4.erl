@@ -377,7 +377,26 @@ x() ->
 %               #ofp_meter_band_drop{rate = 1000, burst_size = 10}
 %           ]
 %       }
-	skip
+	skip,
+        #ofp_flow_mod{
+            cookie = <<0,0,0,0,0,0,0,0>>,
+            cookie_mask = <<0,0,0,0,0,0,0,0>>,
+            table_id = 1,command = add,idle_timeout = 0,
+            hard_timeout = 0,priority = 123,buffer_id = 65535,
+            out_port = any,out_group = any,flags = [],
+            match =
+                #ofp_match{
+                    fields =
+                        [#ofp_field{
+                             class = openflow_basic,name = eth_dst,
+                             has_mask = false,
+                             value = <<"\362\v\244}\370\352">>,
+                             mask = undefined}]},
+            instructions =
+                [#ofp_instruction_meter{meter_id = 1},
+		 #ofp_instruction_write_actions{
+                     actions =
+                         [#ofp_action_output{port = 6,max_len = 65535}]}]}
 
 % todo: meter related stats
 
