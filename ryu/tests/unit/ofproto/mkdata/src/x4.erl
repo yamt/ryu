@@ -367,14 +367,17 @@ x() ->
                 [idle_timeout, hard_timeout]
             }
         },
-        #ofp_meter_mod{
-            command = add,
-            flags = [pktps, burst, stats],
-            meter_id = 100,
-            bands = [
-                #ofp_meter_band_drop{rate = 1000, burst_size = 10}
-            ]
-        }
+
+% ryu doesn't have the implementation
+%       #ofp_meter_mod{
+%           command = add,
+%           flags = [pktps, burst, stats],
+%           meter_id = 100,
+%           bands = [
+%               #ofp_meter_band_drop{rate = 1000, burst_size = 10}
+%           ]
+%       }
+	skip
 
 % todo: meter related stats
 
