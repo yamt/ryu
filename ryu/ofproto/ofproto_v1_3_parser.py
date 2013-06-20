@@ -1678,7 +1678,9 @@ class OFPInstructionActions(StringifyMixin):
 
 
 @OFPInstruction.register_instruction_type([ofproto_v1_3.OFPIT_METER])
-class OFPInstructionMeter(object):
+class OFPInstructionMeter(StringifyMixin):
+    _base_attributes = ['type', 'len']
+
     def __init__(self, meter_id):
         super(OFPInstructionMeter, self).__init__()
         self.type = ofproto_v1_3.OFPIT_METER
