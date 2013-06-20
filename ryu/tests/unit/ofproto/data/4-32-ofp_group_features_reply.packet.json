@@ -2,19 +2,19 @@
    "OFPGroupFeaturesStatsReply" : {
       "body" : {
          "OFPGroupFeaturesStats" : {
-            "types" : 15,
-            "max_groups" : [
-               16777216,
-               16777216,
-               16777216,
-               16777216
-            ],
             "actions" : [
                67082241,
                67082241,
                67082241,
                67082241
             ],
+            "max_groups" : [
+               16777216,
+               16777216,
+               16777216,
+               16777216
+            ],
+            "types" : 15,
             "capabilities" : 5
          }
       },

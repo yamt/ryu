@@ -1,7 +1,7 @@
 {
    "OFPErrorExperimenterMsg" : {
       "experimenter" : 999999,
-      "exp_type" : 60000,
-      "data" : "amlra2VuIGRhdGE="
+      "data" : "amlra2VuIGRhdGE=",
+      "exp_type" : 60000
    }
 }
