@@ -1,16 +1,16 @@
 {
-    "OFPMeterFeaturesStatsReply": {
-        "body": [
-            {
-                "OFPMeterFeaturesStats": {
-                    "band_types": 2147483651, 
-                    "capabilities": 15, 
-                    "max_band": 255, 
-                    "max_color": 0, 
-                    "max_meter": 16777216
-                }
+   "OFPMeterFeaturesStatsReply" : {
+      "body" : [
+         {
+            "OFPMeterFeaturesStats" : {
+               "band_types" : 2147483651,
+               "max_meter" : 16777216,
+               "capabilities" : 15,
+               "max_color" : 0,
+               "max_band" : 255
             }
-        ], 
-        "flags": 0
-    }
+         }
+      ],
+      "flags" : 0
+   }
 }

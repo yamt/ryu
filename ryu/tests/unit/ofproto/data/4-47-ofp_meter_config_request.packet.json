@@ -1,1 +1,6 @@
-{"OFPMeterConfigStatsRequest":{"flags":0, "meter_id": 4294967295}}
+{
+   "OFPMeterConfigStatsRequest" : {
+      "meter_id" : 4294967295,
+      "flags" : 0
+   }
+}
