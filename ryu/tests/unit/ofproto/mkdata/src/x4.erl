@@ -377,7 +377,7 @@ x() ->
 %               #ofp_meter_band_drop{rate = 1000, burst_size = 10}
 %           ]
 %       }
-	skip,
+        skip,
         #ofp_flow_mod{
             cookie = <<0,0,0,0,0,0,0,0>>,
             cookie_mask = <<0,0,0,0,0,0,0,0>>,
@@ -394,11 +394,37 @@ x() ->
                              mask = undefined}]},
             instructions =
                 [#ofp_instruction_meter{meter_id = 1},
-		 #ofp_instruction_write_actions{
+                 #ofp_instruction_write_actions{
                      actions =
-                         [#ofp_action_output{port = 6,max_len = 65535}]}]}
+                         [#ofp_action_output{port = 6,max_len = 65535}]}]},
 
 % todo: meter related stats
+
+        #ofp_meter_config_request{meter_id = all},
+        #ofp_meter_config_reply{
+            body = 
+                [#ofp_meter_config{
+                     flags = [pktps,burst,stats],
+                     meter_id = 100,
+                     bands = 
+                         [#ofp_meter_band_drop{
+                              type = drop,rate = 1000,burst_size = 10}]}]},
+
+        #ofp_meter_stats_request{meter_id = all},
+        #ofp_meter_stats_reply{
+            body = 
+                [#ofp_meter_stats{
+                     meter_id = 100,flow_count = 0,packet_in_count = 0,
+                     byte_in_count = 0,duration_sec = 0,duration_nsec = 480000,
+                     band_stats = 
+                         [#ofp_meter_band_stats{
+                              packet_band_count = 0,byte_band_count = 0}]}]},
+
+        #ofp_meter_features_request{},
+        #ofp_meter_features_reply{max_meter = 16777216,
+                                  band_types = [drop,dscp_remark,experimenter],
+                                  capabilities = [kbps,pktps,burst,stats],
+                                  max_bands = 255,max_color = 0}
 
     ],
     lists:foldl(fun x:do/2, {4, 0}, List).
