@@ -2535,22 +2535,23 @@ class OFPMeterBandStats(StringifyMixin):
 
 
 class OFPMeterStats(StringifyMixin):
-    def __init__(self):
+    def __init__(self, meter_id=None, flow_count=None, packet_in_count=None,
+                 byte_in_count=None, duration_sec=None, duration_nsec=None,
+                 band_stats=None):
         super(OFPMeterStats, self).__init__()
-        self.meter_id = None
-        self.length = None
-        self.flow_count = None
-        self.packet_in_count = None
-        self.byte_in_count = None
-        self.duration_sec = None
-        self.duration_nsec = None
-        self.band_stats = None
+        self.meter_id = meter_id
+        self.flow_count = flow_count
+        self.packet_in_count = packet_in_count
+        self.byte_in_count = byte_in_count
+        self.duration_sec = duration_sec
+        self.duration_nsec = duration_nsec
+        self.band_stats = band_stats
 
     @classmethod
     def parser(cls, buf, offset):
         meter_stats = cls()
 
-        (meter_stats.meter_id, meter_stats.length,
+        (meter_stats.meter_id, meter_stats._length,
          meter_stats.flow_count, meter_stats.packet_in_count,
          meter_stats.byte_in_count, meter_stats.duration_sec,
          meter_stats.duration_nsec) = struct.unpack_from(
@@ -2559,7 +2560,7 @@ class OFPMeterStats(StringifyMixin):
 
         meter_stats.band_stats = []
         length = ofproto_v1_3.OFP_METER_STATS_SIZE
-        while length < meter_stats.length:
+        while length < meter_stats._length:
             band_stats = OFPMeterBandStats.parser(buf, offset)
             meter_stats.band_stats.append(band_stats)
             offset += ofproto_v1_3.OFP_METER_BAND_STATS_SIZE
@@ -2586,8 +2587,8 @@ class OFPMeterStatsRequest(OFPMultipartRequest):
 @_set_stats_type(ofproto_v1_3.OFPMP_METER, OFPMeterStats)
 @_set_msg_type(ofproto_v1_3.OFPT_MULTIPART_REPLY)
 class OFPMeterStatsReply(OFPMultipartReply):
-    def __init__(self, datapath):
-        super(OFPMeterStatsReply, self).__init__(datapath)
+    def __init__(self, datapath, **kwargs):
+        super(OFPMeterStatsReply, self).__init__(datapath, **kwargs)
 
 
 class OFPMeterBandHeader(StringifyMixin):
@@ -2605,25 +2606,25 @@ class OFPMeterBandHeader(StringifyMixin):
 
 
 class OFPMeterConfigStats(StringifyMixin):
-    def __init__(self):
+    def __init__(self, flags=None, meter_id=None, bands=None):
         super(OFPMeterConfigStats, self).__init__()
-        self.length = None
-        self.flags = None
-        self.meter_id = None
-        self.bands = None
+        self._length = None
+        self.flags = flags
+        self.meter_id = meter_id
+        self.bands = bands
 
     @classmethod
     def parser(cls, buf, offset):
         meter_config = cls()
 
-        (meter_config.length, meter_config.flags,
+        (meter_config._length, meter_config.flags,
          meter_config.meter_id) = struct.unpack_from(
              ofproto_v1_3.OFP_METER_CONFIG_PACK_STR, buf, offset)
         offset += ofproto_v1_3.OFP_METER_CONFIG_SIZE
 
         meter_config.bands = []
         length = ofproto_v1_3.OFP_METER_CONFIG_SIZE
-        while length < meter_config.length:
+        while length < meter_config._length:
             band_header = OFPMeterBandHeader.parser(buf, offset)
             meter_config.bands.append(band_header)
             offset += band_header.len
@@ -2650,8 +2651,8 @@ class OFPMeterConfigStatsRequest(OFPMultipartRequest):
 @_set_stats_type(ofproto_v1_3.OFPMP_METER_CONFIG, OFPMeterConfigStats)
 @_set_msg_type(ofproto_v1_3.OFPT_MULTIPART_REPLY)
 class OFPMeterConfigStatsReply(OFPMultipartReply):
-    def __init__(self, datapath):
-        super(OFPMeterConfigStatsReply, self).__init__(datapath)
+    def __init__(self, datapath, **kwargs):
+        super(OFPMeterConfigStatsReply, self).__init__(datapath, **kwargs)
 
 
 class OFPMeterFeaturesStats(ofproto_parser.namedtuple('OFPMeterFeaturesStats',
@@ -2677,8 +2678,8 @@ class OFPMeterFeaturesStatsRequest(OFPMultipartRequest):
 @_set_stats_type(ofproto_v1_3.OFPMP_METER_FEATURES, OFPMeterFeaturesStats)
 @_set_msg_type(ofproto_v1_3.OFPT_MULTIPART_REPLY)
 class OFPMeterFeaturesStatsReply(OFPMultipartReply):
-    def __init__(self, datapath):
-        super(OFPMeterFeaturesStatsReply, self).__init__(datapath)
+    def __init__(self, datapath, **kwargs):
+        super(OFPMeterFeaturesStatsReply, self).__init__(datapath, **kwargs)
 
 
 class OFPTableFeaturesStats(StringifyMixin):
