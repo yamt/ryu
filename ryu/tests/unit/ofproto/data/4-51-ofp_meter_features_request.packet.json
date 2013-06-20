@@ -1,1 +1,5 @@
-{"OFPMeterFeaturesStatsRequest": {"flags": 0}}
+{
+   "OFPMeterFeaturesStatsRequest" : {
+      "flags" : 0
+   }
+}
