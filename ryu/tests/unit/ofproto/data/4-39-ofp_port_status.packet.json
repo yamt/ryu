@@ -5,13 +5,13 @@
             "curr" : 10248,
             "name" : "UG9ydAcAAAAAAAAAAAAAAA==",
             "max_speed" : 5000,
-            "state" : 4,
             "supported" : 10248,
+            "state" : 4,
             "curr_speed" : 5000,
             "port_no" : 7,
             "advertised" : 10240,
-            "config" : 0,
             "peer" : 10248,
+            "config" : 0,
             "hw_addr" : "8guk0D9w"
          }
       },

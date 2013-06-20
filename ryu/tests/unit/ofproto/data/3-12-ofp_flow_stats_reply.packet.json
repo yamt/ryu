@@ -3,19 +3,19 @@
       "body" : [
          {
             "OFPFlowStats" : {
-               "table_id" : 0,
-               "priority" : 65535,
                "hard_timeout" : 0,
-               "instructions" : [],
+               "priority" : 65535,
+               "table_id" : 0,
                "duration_nsec" : 115277000,
+               "instructions" : [],
+               "cookie" : 0,
+               "idle_timeout" : 0,
                "match" : {
                   "OFPMatch" : {
                      "fields" : [],
                      "type" : 1
                   }
                },
-               "idle_timeout" : 0,
-               "cookie" : 0,
                "byte_count" : 0,
                "duration_sec" : 358,
                "packet_count" : 0
@@ -23,9 +23,10 @@
          },
          {
             "OFPFlowStats" : {
-               "table_id" : 0,
-               "priority" : 65534,
                "hard_timeout" : 0,
+               "priority" : 65534,
+               "table_id" : 0,
+               "duration_nsec" : 115055000,
                "instructions" : [
                   {
                      "OFPInstructionActions" : {
@@ -41,7 +42,8 @@
                      }
                   }
                ],
-               "duration_nsec" : 115055000,
+               "cookie" : 0,
+               "idle_timeout" : 0,
                "match" : {
                   "OFPMatch" : {
                      "fields" : [
@@ -54,8 +56,6 @@
                      "type" : 1
                   }
                },
-               "idle_timeout" : 0,
-               "cookie" : 0,
                "byte_count" : 0,
                "duration_sec" : 358,
                "packet_count" : 0
@@ -63,9 +63,10 @@
          },
          {
             "OFPFlowStats" : {
-               "table_id" : 0,
-               "priority" : 123,
                "hard_timeout" : 0,
+               "priority" : 123,
+               "table_id" : 0,
+               "duration_nsec" : 511582000,
                "instructions" : [
                   {
                      "OFPInstructionGotoTable" : {
@@ -73,7 +74,8 @@
                      }
                   }
                ],
-               "duration_nsec" : 511582000,
+               "cookie" : 0,
+               "idle_timeout" : 0,
                "match" : {
                   "OFPMatch" : {
                      "fields" : [
@@ -91,8 +93,6 @@
                      "type" : 1
                   }
                },
-               "idle_timeout" : 0,
-               "cookie" : 0,
                "byte_count" : 238,
                "duration_sec" : 316220,
                "packet_count" : 3
@@ -100,9 +100,10 @@
          },
          {
             "OFPFlowStats" : {
-               "table_id" : 0,
-               "priority" : 0,
                "hard_timeout" : 0,
+               "priority" : 0,
+               "table_id" : 0,
+               "duration_nsec" : 980901000,
                "instructions" : [
                   {
                      "OFPInstructionActions" : {
@@ -118,15 +119,14 @@
                      }
                   }
                ],
-               "duration_nsec" : 980901000,
+               "cookie" : 0,
+               "idle_timeout" : 0,
                "match" : {
                   "OFPMatch" : {
                      "fields" : [],
                      "type" : 1
                   }
                },
-               "idle_timeout" : 0,
-               "cookie" : 0,
                "byte_count" : 98,
                "duration_sec" : 313499,
                "packet_count" : 1
