@@ -2941,11 +2941,12 @@ class OFPGetAsyncRequest(MsgBase):
 @_register_parser
 @_set_msg_type(ofproto_v1_3.OFPT_GET_ASYNC_REPLY)
 class OFPGetAsyncReply(MsgBase):
-    def __init__(self, datapath):
+    def __init__(self, datapath, packet_in_mask=None, port_status_mask=None,
+                 flow_removed_mask=None):
         super(OFPGetAsyncReply, self).__init__(datapath)
-        self.packet_in_mask = None
-        self.port_status_mask = None
-        self.flow_removed_mask = None
+        self.packet_in_mask = packet_in_mask
+        self.port_status_mask = port_status_mask
+        self.flow_removed_mask = flow_removed_mask
 
     @classmethod
     def parser(cls, datapath, version, msg_type, msg_len, xid, buf):
