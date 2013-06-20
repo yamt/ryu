@@ -4,7 +4,6 @@
       "buckets" : [
          {
             "OFPBucket" : {
-               "watch_port" : 1,
                "actions" : [
                   {
                      "OFPActionOutput" : {
@@ -13,6 +12,7 @@
                      }
                   }
                ],
+               "watch_port" : 1,
                "watch_group" : 1,
                "weight" : 1
             }

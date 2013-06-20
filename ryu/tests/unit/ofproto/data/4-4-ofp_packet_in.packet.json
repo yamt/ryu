@@ -1,9 +1,9 @@
 {
    "OFPPacketIn" : {
-      "table_id" : 1,
       "buffer_id" : 2,
+      "table_id" : 1,
       "total_len" : 42,
-      "reason" : 1,
+      "cookie" : 283686884868096,
       "match" : {
          "OFPMatch" : {
             "fields" : [
@@ -56,7 +56,7 @@
             "type" : 1
          }
       },
-      "cookie" : 283686884868096,
+      "reason" : 1,
       "data" : "////////8gukffjqCAYAAQgABgQAAfILpH346goAAAEAAAAAAAAKAAAD"
    }
 }

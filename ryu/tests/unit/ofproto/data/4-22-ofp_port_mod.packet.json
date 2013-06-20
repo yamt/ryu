@@ -1,7 +1,7 @@
 {
    "OFPPortMod" : {
-      "port_no" : 1,
       "advertise" : 4096,
+      "port_no" : 1,
       "config" : 0,
       "hw_addr" : "ABEAABER",
       "mask" : 0

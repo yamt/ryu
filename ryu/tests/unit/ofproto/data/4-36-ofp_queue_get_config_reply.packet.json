@@ -1,5 +1,6 @@
 {
    "OFPQueueGetConfigReply" : {
+      "port" : 4294967295,
       "queues" : [
          {
             "OFPPacketQueue" : {
@@ -37,7 +38,6 @@
                ]
             }
          }
-      ],
-      "port" : 4294967295
+      ]
    }
 }
