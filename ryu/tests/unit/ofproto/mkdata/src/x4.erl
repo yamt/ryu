@@ -348,6 +348,35 @@ x() ->
 %           experimenter = 999999,
 %           data = <<"jikken data">>
 %       }
-        skip
+        skip,
+
+        #ofp_get_async_request{},
+        #ofp_get_async_reply{
+            packet_in_mask = {[no_match, invalid_ttl], [no_match]},
+            port_status_mask = {[add, delete, modify], [add, delete]},
+            flow_removed_mask = {
+                [idle_timeout, hard_timeout, delete, group_delete],
+                [idle_timeout, hard_timeout]
+            }
+        },
+        #ofp_set_async{
+            packet_in_mask = {[no_match, invalid_ttl], [no_match]},
+            port_status_mask = {[add, delete, modify], [add, delete]},
+            flow_removed_mask = {
+                [idle_timeout, hard_timeout, delete, group_delete],
+                [idle_timeout, hard_timeout]
+            }
+        },
+        #ofp_meter_mod{
+            command = add,
+            flags = [pktps, burst, stats],
+            meter_id = 100,
+            bands = [
+                #ofp_meter_band_drop{rate = 1000, burst_size = 10}
+            ]
+        }
+
+% todo: meter related stats
+
     ],
     lists:foldl(fun x:do/2, {4, 0}, List).
