@@ -1404,10 +1404,10 @@ class NiciraHeaderForSend(NiciraHeader):
 
 
 class NXTSetFlowFormat(NiciraHeaderForSend):
-    def __init__(self, datapath, flow_format):
+    def __init__(self, datapath, format_):
         super(NXTSetFlowFormat, self).__init__(
             datapath, ofproto_v1_0.NXT_SET_FLOW_FORMAT)
-        self.format = flow_format
+        self.format = format_
 
     def _serialize_body(self):
         self.serialize_header()
