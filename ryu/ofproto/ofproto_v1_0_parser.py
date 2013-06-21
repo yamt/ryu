@@ -2031,22 +2031,22 @@ class OFPPacketOut(MsgBase):
         super(OFPPacketOut, self).__init__(datapath)
         self.buffer_id = buffer_id
         self.in_port = in_port
-        self.actions_len = None
+        self._actions_len = None
         self.actions = actions
         self.data = data
 
     def _serialize_body(self):
         assert self.buffer_id is not None
         assert self.in_port is not None
-        assert self.actions_len is None
+        assert self._actions_len is None
         assert self.actions is not None
 
-        self.actions_len = 0
+        self._actions_len = 0
         offset = ofproto_v1_0.OFP_PACKET_OUT_SIZE
         for a in self.actions:
             a.serialize(self.buf, offset)
             offset += a.len
-            self.actions_len += a.len
+            self._actions_len += a.len
 
         if self.data is not None:
             assert self.buffer_id == 0xffffffff
@@ -2054,7 +2054,7 @@ class OFPPacketOut(MsgBase):
 
         msg_pack_into(ofproto_v1_0.OFP_PACKET_OUT_PACK_STR,
                       self.buf, ofproto_v1_0.OFP_HEADER_SIZE,
-                      self.buffer_id, self.in_port, self.actions_len)
+                      self.buffer_id, self.in_port, self._actions_len)
 
 
 @_set_msg_type(ofproto_v1_0.OFPT_FLOW_MOD)
