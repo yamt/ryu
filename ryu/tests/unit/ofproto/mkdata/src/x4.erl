@@ -398,8 +398,6 @@ x() ->
                      actions =
                          [#ofp_action_output{port = 6,max_len = 65535}]}]},
 
-% todo: meter related stats
-
         #ofp_meter_config_request{meter_id = all},
         #ofp_meter_config_reply{
             body = 
