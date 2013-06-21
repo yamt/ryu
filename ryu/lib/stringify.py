@@ -47,10 +47,13 @@ _mapdict_key = lambda f, d: dict([(f(k), v) for k, v in d.items()])
 class StringifyMixin(object):
     _class_prefixes = []
 
+    def stringify_attrs(self):
+        return obj_python_attrs(self)
+
     def __str__(self):
         buf = ''
         sep = ''
-        for k, v in obj_python_attrs(self):
+        for k, v in self.stringify_attrs():
             buf += sep
             buf += "%s=%s" % (k, repr(v))  # repr() to escape binaries
             sep = ','
@@ -184,7 +187,12 @@ def obj_python_attrs(msg_):
 
 
 def obj_attrs(msg_):
-    for k, v in obj_python_attrs(msg_):
+    if isinstance(msg_, StringifyMixin):
+        iter = msg_.stringify_attrs()
+    else:
+        # probably called by msg_str_attr
+        obj_python_attrs(msg_)
+    for k, v in iter:
         if k.endswith('_') and k[:-1] in _RESERVED_KEYWORD:
             # XXX currently only StringifyMixin has restoring logic
             assert isinstance(msg_, StringifyMixin)
