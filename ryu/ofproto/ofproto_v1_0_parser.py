@@ -1608,8 +1608,15 @@ class NXTSetControllerId(NiciraHeader):
 @_register_parser
 @_set_msg_type(ofproto_v1_0.OFPT_FEATURES_REPLY)
 class OFPSwitchFeatures(MsgBase):
-    def __init__(self, datapath):
+    def __init__(self, datapath, datapath_id=None, n_buffers=None,
+                 n_tables=None, capabilities=None, actions=None, ports=None):
         super(OFPSwitchFeatures, self).__init__(datapath)
+        self.datapath_id = datapath_id
+        self.n_buffers = n_buffers
+        self.n_tables = n_tables
+        self.capabilities = capabilities
+        self.actions = actions
+        self.ports = ports
 
     @classmethod
     def parser(cls, datapath, version, msg_type, msg_len, xid, buf):
@@ -1639,8 +1646,10 @@ class OFPSwitchFeatures(MsgBase):
 @_register_parser
 @_set_msg_type(ofproto_v1_0.OFPT_PORT_STATUS)
 class OFPPortStatus(MsgBase):
-    def __init__(self, datapath):
+    def __init__(self, datapath, reason=None, desc=None):
         super(OFPPortStatus, self).__init__(datapath)
+        self.reason = reason
+        self.desc = desc
 
     @classmethod
     def parser(cls, datapath, version, msg_type, msg_len, xid, buf):
@@ -1657,8 +1666,14 @@ class OFPPortStatus(MsgBase):
 @_register_parser
 @_set_msg_type(ofproto_v1_0.OFPT_PACKET_IN)
 class OFPPacketIn(MsgBase):
-    def __init__(self, datapath):
+    def __init__(self, datapath, buffer_id=None, total_len=None, in_port=None,
+                 reason=None, data=None):
         super(OFPPacketIn, self).__init__(datapath)
+        self.buffer_id = buffer_id
+        self.total_len = total_len
+        self.in_port = in_port
+        self.reason = reason
+        self.data = data
 
     @classmethod
     def parser(cls, datapath, version, msg_type, msg_len, xid, buf):
