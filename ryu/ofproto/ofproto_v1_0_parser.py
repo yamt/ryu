@@ -195,6 +195,8 @@ class OFPMatch(StringifyMixin):
 
 
 class OFPActionHeader(StringifyMixin):
+    _base_attributes = ['type', 'len']
+
     def __init__(self, type_, len_):
         self.type = type_
         self.len = len_
