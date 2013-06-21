@@ -1,17 +1,19 @@
 -module(x).
 -export([do/2, x/0]).
 
--include_lib("of_protocol/include/of_protocol.hrl").
-
 do(skip, {OFPVersion, N}) ->
     {OFPVersion, N + 1};
 do(Body, {OFPVersion, N}) ->
+    Mod = case OFPVersion of
+        1 -> x_flower_packet;
+        _ -> x_of_protocol
+    end,
     Name = atom_to_list(element(1, Body)),
     io:format("processing ~B ~B ~s~n", [OFPVersion, N, Name]),
-    Msg = #ofp_message{version=OFPVersion, xid=0, body=Body},
-    case of_protocol:encode(Msg) of
-	{ok, BinMsg} -> ok;
-	{error, Error} -> io:format("~p ~p~n", [Error, Msg]), BinMsg = hoge
+    Msg = Mod:message(OFPVersion, 0, Body),
+    case Mod:encode(Msg) of
+        {ok, BinMsg} -> ok;
+        {error, Error} -> io:format("~p ~p~n", [Error, Msg]), BinMsg = hoge
     end,
     {ok, F} = file:open(["../data/", integer_to_list(OFPVersion), "-",
         integer_to_list(N), "-", Name, ".packet"], [write, binary]),
@@ -19,8 +21,8 @@ do(Body, {OFPVersion, N}) ->
     % sanity check
     % this is fragile because of order of flags.
     % ofp flags are unorderd but of_protocol keeps them in a list.
-    {ok, Msg2, <<>>} = of_protocol:decode(BinMsg),
-    #ofp_message{version=OFPVersion, type=_, xid=0, body=Body2} = Msg2,
+    {ok, Msg2, <<>>} = Mod:decode(BinMsg),
+    {OFPVersion, 0, Body2} = Mod:message_extract(Msg2),
     case Body == Body2 of
         false -> io:format("~p~n", [Body]), io:format("~p~n", [Body2]);
         _ -> hoge
@@ -32,4 +34,4 @@ do(Body, {OFPVersion, N}) ->
     {OFPVersion, N + 1}.
 
 x() ->
-    lists:map(fun(Mod) -> Mod:x() end, [x3, x4]).
+    lists:map(fun(Mod) -> Mod:x() end, [x1, x3, x4]).
