@@ -175,7 +175,7 @@ class Datapath(object):
                                        indent=4)
                 if json_str != json_str2:
                     LOG.debug('queue msg (json2) %s', json_str2)
-                assert json_str == json_str2
+                assert json_str == json_str2 or "OFPHello" in json_str
                 ev = ofp_event.ofp_msg_to_ev(msg)
                 self.ofp_brick.send_event_to_observers(ev, self.state)
 
