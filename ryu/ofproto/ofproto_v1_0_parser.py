@@ -1386,7 +1386,24 @@ class NiciraHeader(OFPVendor):
                            offset + ofproto_v1_0.NICIRA_HEADER_SIZE)
 
 
-class NXTSetFlowFormat(NiciraHeader):
+class NiciraHeaderForSend(NiciraHeader):
+    # suppress some OFPVendor internal members for sending.
+    # this is a hack to workaround the fact that OFPVendor is used for
+    # send and receive differently.
+    # eg.
+    # when receiving, OFPVendor.data is a part of user API and references
+    # the subclass instance for the message.
+    # on the other hand, when sending, subclasses are used directly
+    # and OFPVendor.data (and OFPVendor itself) is merely an internal state.
+    def stringify_attrs(self):
+        def g():
+            for k, v in super(NiciraHeaderForSend, self).stringify_attrs():
+                if not k in ('vendor', 'subtype', 'data'):
+                    yield (k, v)
+        return g()
+
+
+class NXTSetFlowFormat(NiciraHeaderForSend):
     def __init__(self, datapath, flow_format):
         super(NXTSetFlowFormat, self).__init__(
             datapath, ofproto_v1_0.NXT_SET_FLOW_FORMAT)
@@ -1398,7 +1415,7 @@ class NXTSetFlowFormat(NiciraHeader):
                       self.buf, ofproto_v1_0.NICIRA_HEADER_SIZE, self.format)
 
 
-class NXTFlowMod(NiciraHeader):
+class NXTFlowMod(NiciraHeaderForSend):
     def __init__(self, datapath, cookie, command,
                  idle_timeout=0, hard_timeout=0,
                  priority=ofproto_v1_0.OFP_DEFAULT_PRIORITY,
