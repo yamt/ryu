@@ -8,8 +8,8 @@
                "bands" : [
                   {
                      "OFPMeterBandHeader" : {
-                        "rate" : 1000,
                         "len" : 16,
+                        "rate" : 1000,
                         "type" : 0,
                         "burst_size" : 10
                      }
