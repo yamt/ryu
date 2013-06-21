@@ -35,87 +35,41 @@ x() ->
                     in_port = 0,
                     dl_src = <<(-1):6/unit:8>>
                 },
-            actions = [#ofp_action_output{port = 6,max_len = 65535}]}
+            actions = [#ofp_action_output{port = 6,max_len = 65535}]},
+        skip,
+        #ofp_packet_in{
+            buffer_id = 2,total_len=42,reason = action,in_port = 99,
+            data =
+                <<255,255,255,255,255,255,242,11,164,125,248,234,8,6,0,
+                  1,8,0,6,4,0,1,242,11,164,125,248,234,10,0,0,1,0,0,0,0,
+                  0,0,10,0,0,3>>},
 
-%         skip,
-%         #ofp_packet_in{
-%             buffer_id = 2,reason = action,table_id = 1,
-%             match =
-%                 #ofp_match{
-%                     fields =
-%                         [#ofp_field{
-%                              class = openflow_basic,name = in_port,
-%                              has_mask = false,
-%                              value = <<0,0,0,6>>,
-%                              mask = undefined},
-%                          #ofp_field{
-%                              class = openflow_basic,name = eth_type,
-%                              has_mask = false,
-%                              value = <<8,6>>,
-%                              mask = undefined},
-%                          #ofp_field{
-%                              class = openflow_basic,name = eth_dst,
-%                              has_mask = false,value = <<"\377\377\377\377\377\377">>,
-%                              mask = undefined},
-%                          #ofp_field{
-%                              class = openflow_basic,name = eth_src,
-%                              has_mask = false,value = <<"\362\v\244}\370\352">>,
-%                              mask = undefined},
-%                          #ofp_field{
-%                              class = openflow_basic,name = arp_op,
-%                              has_mask = false,
-%                              value = <<0,1>>,
-%                              mask = undefined},
-%                          #ofp_field{
-%                              class = openflow_basic,name = arp_spa,
-%                              has_mask = false,
-%                              value = <<10,0,0,1>>,
-%                              mask = undefined},
-%                          #ofp_field{
-%                              class = openflow_basic,name = arp_tpa,
-%                              has_mask = false,
-%                              value = <<10,0,0,3>>,
-%                              mask = undefined},
-%                          #ofp_field{
-%                              class = openflow_basic,name = arp_sha,
-%                              has_mask = false,value = <<"\362\v\244}\370\352">>,
-%                              mask = undefined},
-%                          #ofp_field{
-%                              class = openflow_basic,name = arp_tha,
-%                              has_mask = false,
-%                              value = <<0,0,0,0,0,0>>,
-%                              mask = undefined}]},
-%             data =
-%                 <<255,255,255,255,255,255,242,11,164,125,248,234,8,6,0,
-%                   1,8,0,6,4,0,1,242,11,164,125,248,234,10,0,0,1,0,0,0,0,
-%                   0,0,10,0,0,3>>},
-%         #ofp_features_request{},
-%         #ofp_features_reply{
-%             datapath_mac = <<8,96,110,127,116,231>>,
-%             datapath_id = 0,n_buffers = 0,n_tables = 255,
-%             capabilities = 
-%                 [flow_stats,table_stats,port_stats,group_stats,queue_stats],
-%             ports = 
-%                 [#ofp_port{
-%                      port_no = 7,hw_addr = <<"\362\v\244\320?p">>,
-%                      name = <<80,111,114,116,7>>,
-%                      config = [],
-%                      state = [live],
-%                      curr = ['100mb_fd',copper,autoneg],
-%                      advertised = [copper,autoneg],
-%                      supported = ['100mb_fd',copper,autoneg],
-%                      peer = ['100mb_fd',copper,autoneg],
-%                      curr_speed = 5000,max_speed = 5000},
-%                  #ofp_port{
-%                      port_no = 6,hw_addr = <<"\362\v\244}\370\352">>,
-%                      name = <<80,111,114,116,6>>,
-%                      config = [],
-%                      state = [live],
-%                      curr = ['100mb_fd',copper,autoneg],
-%                      advertised = [copper,autoneg],
-%                      supported = ['100mb_fd',copper,autoneg],
-%                      peer = ['100mb_fd',copper,autoneg],
-%                      curr_speed = 5000,max_speed = 5000}]},
+        features_request,
+        #ofp_switch_features{  % features_reply
+            datapath_id = 16#ff12345678,n_buffers = 0,n_tables = 255,
+            capabilities = 
+                [arp_match_ip,ip_reasm,stp,flow_stats],
+            actions =
+                [enqueue,set_nw_src,set_vlan_vid,output],
+            ports = 
+                [#ofp_phy_port{
+                     port_no = 7,hw_addr = <<"\362\v\244\320?p">>,
+                     name = <<80,111,114,116,7>>,
+                     config = [],
+                     state = [stp_block],
+                     curr = [autoneg,copper,'100mb_fd'],
+                     advertised = [autoneg,copper],
+                     supported = [autoneg,copper,'100mb_fd'],
+                     peer = [autoneg,copper,'100mb_fd']},
+                 #ofp_phy_port{
+                     port_no = 6,hw_addr = <<"\362\v\244}\370\352">>,
+                     name = <<80,111,114,116,6>>,
+                     config = [],
+                     state = [stp_listen],
+                     curr = [autoneg,copper,'100mb_fd'],
+                     advertised = [autoneg,copper],
+                     supported = [autoneg,copper,'100mb_fd'],
+                     peer = [autoneg,copper,'100mb_fd']}]}
 %         #ofp_set_config{flags = [],miss_send_len = 128},
 %         #ofp_get_config_request{},
 %         #ofp_get_config_reply{flags = [],miss_send_len = 128},

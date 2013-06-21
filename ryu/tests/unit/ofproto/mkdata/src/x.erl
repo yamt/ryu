@@ -8,7 +8,12 @@ do(Body, {OFPVersion, N}) ->
         1 -> x_flower_packet;
         _ -> x_of_protocol
     end,
-    Name = atom_to_list(element(1, Body)),
+    Name = case Body of
+        B when is_tuple(B) ->
+            atom_to_list(element(1, B));
+        _ ->
+            atom_to_list(Body)
+    end,
     io:format("processing ~B ~B ~s~n", [OFPVersion, N, Name]),
     Msg = Mod:message(OFPVersion, 0, Body),
     case Mod:encode(Msg) of
