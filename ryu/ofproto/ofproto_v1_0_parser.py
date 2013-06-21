@@ -1386,11 +1386,28 @@ class NiciraHeader(OFPVendor):
                            offset + ofproto_v1_0.NICIRA_HEADER_SIZE)
 
 
-class NXTSetFlowFormat(NiciraHeader):
-    def __init__(self, datapath, flow_format):
+class NiciraHeaderForSend(NiciraHeader):
+    # suppress some OFPVendor internal members for sending.
+    # this is a hack to workaround the fact that OFPVendor is used for
+    # send and receive differently.
+    # eg.
+    # when receiving, OFPVendor.data is a part of user API and references
+    # the subclass instance for the message.
+    # on the other hand, when sending, subclasses are used directly
+    # and OFPVendor.data (and OFPVendor itself) is merely an internal state.
+    def stringify_attrs(self):
+        def g():
+            for k, v in super(NiciraHeaderForSend, self).stringify_attrs():
+                if not k in ('vendor', 'subtype', 'data'):
+                    yield (k, v)
+        return g()
+
+
+class NXTSetFlowFormat(NiciraHeaderForSend):
+    def __init__(self, datapath, format_):
         super(NXTSetFlowFormat, self).__init__(
             datapath, ofproto_v1_0.NXT_SET_FLOW_FORMAT)
-        self.format = flow_format
+        self.format = format_
 
     def _serialize_body(self):
         self.serialize_header()
@@ -1398,7 +1415,7 @@ class NXTSetFlowFormat(NiciraHeader):
                       self.buf, ofproto_v1_0.NICIRA_HEADER_SIZE, self.format)
 
 
-class NXTFlowMod(NiciraHeader):
+class NXTFlowMod(NiciraHeaderForSend):
     def __init__(self, datapath, cookie, command,
                  idle_timeout=0, hard_timeout=0,
                  priority=ofproto_v1_0.OFP_DEFAULT_PRIORITY,
@@ -1444,7 +1461,7 @@ class NXTFlowMod(NiciraHeader):
                 offset += a.len
 
 
-class NXTRoleRequest(NiciraHeader):
+class NXTRoleRequest(NiciraHeaderForSend):
     def __init__(self, datapath, role):
         super(NXTRoleRequest, self).__init__(
             datapath, ofproto_v1_0.NXT_ROLE_REQUEST)
@@ -1470,7 +1487,7 @@ class NXTRoleReply(NiciraHeader):
         return cls(datapath, role)
 
 
-class NXTFlowModTableId(NiciraHeader):
+class NXTFlowModTableId(NiciraHeaderForSend):
     def __init__(self, datapath, set_):
         super(NXTFlowModTableId, self).__init__(
             datapath, ofproto_v1_0.NXT_FLOW_MOD_TABLE_ID)
@@ -1515,7 +1532,7 @@ class NXTFlowRemoved(NiciraHeader):
                    byte_count, match)
 
 
-class NXTSetPacketInFormat(NiciraHeader):
+class NXTSetPacketInFormat(NiciraHeaderForSend):
     def __init__(self, datapath, packet_in_format):
         super(NXTSetPacketInFormat, self).__init__(
             datapath, ofproto_v1_0.NXT_SET_PACKET_IN_FORMAT)
@@ -1561,7 +1578,7 @@ class NXTPacketIn(NiciraHeader):
                    cookie, match_len, match, frame)
 
 
-class NXTFlowAge(NiciraHeader):
+class NXTFlowAge(NiciraHeaderForSend):
     def __init__(self, datapath):
         super(NXTFlowAge, self).__init__(
             datapath, ofproto_v1_0.NXT_FLOW_AGE)
@@ -1570,7 +1587,7 @@ class NXTFlowAge(NiciraHeader):
         self.serialize_header()
 
 
-class NXTSetAsyncConfig(NiciraHeader):
+class NXTSetAsyncConfig(NiciraHeaderForSend):
     def __init__(self, datapath, packet_in_mask, port_status_mask,
                  flow_removed_mask):
         super(NXTSetAsyncConfig, self).__init__(
