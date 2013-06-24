@@ -116,6 +116,11 @@ class Cmd(cmd.Cmd):
         except EOFError:
             print "disconnected"
 
+    def complete_call(self, text, line, begidx, endidx):
+        if len((line + 'x').split()) >= 3:
+            return []
+        return [name for name in peers if name.startswith(text)]
+
     def do_EOF(self, line):
         sys.exit(0)
 
