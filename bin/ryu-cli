@@ -21,9 +21,9 @@
 # a usage example:
 #     % PYTHONPATH=. ./bin/ryu-cli \
 #      --peers=echo-server=localhost:9999,hoge=localhost:9998
-#     (Cmd) call echo-server echo ["hoge"]
+#     (Cmd) request echo-server echo ["hoge"]
 #     RESULT hoge
-#     (Cmd) call echo-server notify ["notify-method", ["param1","param2"]]
+#     (Cmd) request echo-server notify ["notify-method", ["param1","param2"]]
 #     RESULT notify-method
 #     (Cmd)
 #     NOTIFICATION from echo-server ['notify-method', ['param1', 'param2']]
@@ -94,7 +94,7 @@ def add_peer(name, host, port):
 
 
 class Cmd(cmd.Cmd):
-    def do_call(self, line):
+    def do_request(self, line):
         args = line.split(None, 2)
         try:
             peer = args[0]
@@ -116,7 +116,7 @@ class Cmd(cmd.Cmd):
         except EOFError:
             print "disconnected"
 
-    def complete_call(self, text, line, begidx, endidx):
+    def complete_request(self, text, line, begidx, endidx):
         if len((line + 'x').split()) >= 3:
             return []
         return [name for name in peers if name.startswith(text)]
