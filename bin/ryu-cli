@@ -37,6 +37,7 @@ import cmd
 import signal
 import socket
 import sys
+import termios
 
 from ryu.lib import rpc
 
@@ -175,6 +176,19 @@ class Cmd(cmd.Cmd):
                 except EOFError:
                     p.client = None
 
+    @staticmethod
+    def _save_termios():
+        return termios.tcgetattr(sys.stdin.fileno())
+
+    @staticmethod
+    def _restore_termios(t):
+        termios.tcsetattr(sys.stdin.fileno(), termios.TCSADRAIN, t)
+
+    def preloop(self):
+        self._saved_termios = self._save_termios()
+        signal.signal(signal.SIGALRM, self._timeout)
+        signal.alarm(1)
+
     def onecmd(self, str):
         self._in_onecmd = True
         try:
@@ -184,7 +198,14 @@ class Cmd(cmd.Cmd):
 
     def _timeout(self, sig, frame):
         if not self._in_onecmd:
+            # restore terminal settings. (cooked/raw, ...)
+            # required for pypy at least.
+            # this doesn't seem to be needed for cpython readline
+            # module but i'm not sure if it's by spec or luck.
+            o = self._save_termios()
+            self._restore_termios(self._saved_termios)
             self._peek_notification()
+            self._restore_termios(o)
         signal.alarm(1)
 
 def main():
@@ -195,10 +216,7 @@ def main():
         host, port = addr.rsplit(':', 1)
         add_peer(name, host, port)
 
-    c = Cmd()
-    signal.signal(signal.SIGALRM, c._timeout)
-    signal.alarm(1)
-    c.cmdloop()
+    Cmd().cmdloop()
 
 
 if __name__ == "__main__":
