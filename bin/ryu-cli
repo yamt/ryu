@@ -175,6 +175,7 @@ class Cmd(cmd.Cmd):
                     p.client.peek_notification()
                 except EOFError:
                     p.client = None
+                    print "disconnected", p._name
 
     @staticmethod
     def _save_termios():
