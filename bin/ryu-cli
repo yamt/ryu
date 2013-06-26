@@ -76,22 +76,28 @@ class Peer(object):
     def notification(self, n):
         print "NOTIFICATION from", self._name, n
 
-    def _call(self, method, params):
-        try:
-            return self.client.call(method, params)
-        except EOFError:
-            self.client = None
-            raise
-
     def call(self, method, params):
+        return self._do(lambda: self.client.call(method, params))
+
+    def send_notification(self, method, params):
+        self._do(lambda: self.client.send_notification(method, params))
+
+    def _do(self, f):
+        def g():
+            try:
+                return f()
+            except EOFError:
+                self.client = None
+                raise
+
         self.try_to_connect(verbose=True)
         try:
-            return self._call(method, params)
+            return g()
         except EOFError:
             print "disconnected.  trying to connect..."
             self.try_to_connect(verbose=True)
             print "connected.  retrying the request..."
-            return self._call(method, params)
+            return g()
 
 
 peers = {}
@@ -102,7 +108,7 @@ def add_peer(name, host, port):
 
 
 class Cmd(cmd.Cmd):
-    def do_request(self, line):
+    def _request(self, line, f):
         args = line.split(None, 2)
         try:
             peer = args[0]
@@ -117,17 +123,35 @@ class Cmd(cmd.Cmd):
             print "unknown peer", peer
             return
         try:
-            result = p.call(method, params)
-            print "RESULT", result
+            f(p, method, params)
         except rpc.RPCError, e:
             print "RPC ERROR", e
         except EOFError:
             print "disconnected"
 
-    def complete_request(self, text, line, begidx, endidx):
+    def _complete_peer(self, text, line, begidx, endidx):
         if len((line + 'x').split()) >= 3:
             return []
         return [name for name in peers if name.startswith(text)]
+
+    def do_request(self, line):
+        def f(p, method, params):
+            result = p.call(method, params)
+            print "RESULT", result
+
+        self._request(line, f)
+
+    def do_notify(self, line):
+        def f(p, method, params):
+            p.send_notification(method, params)
+
+        self._request(line, f)
+
+    def complete_request(self, text, line, begidx, endidx):
+        return self._complete_peer(text, line, begidx, endidx)
+
+    def complete_notify(self, text, line, begidx, endidx):
+        return self._complete_peer(text, line, begidx, endidx)
 
     def do_EOF(self, line):
         sys.exit(0)
