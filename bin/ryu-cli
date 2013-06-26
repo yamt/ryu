@@ -34,6 +34,7 @@ import ryu.contrib
 from oslo.config import cfg
 
 import cmd
+import signal
 import socket
 import sys
 
@@ -108,6 +109,10 @@ def add_peer(name, host, port):
 
 
 class Cmd(cmd.Cmd):
+    def __init__(self, *args, **kwargs):
+        self._in_onecmd = False
+        cmd.Cmd.__init__(self, *args, **kwargs)
+
     def _request(self, line, f):
         args = line.split(None, 2)
         try:
@@ -170,6 +175,17 @@ class Cmd(cmd.Cmd):
                 except EOFError:
                     p.client = None
 
+    def onecmd(self, str):
+        self._in_onecmd = True
+        try:
+            return cmd.Cmd.onecmd(self, str)
+        finally:
+            self._in_onecmd = False
+
+    def _timeout(self, sig, frame):
+        if not self._in_onecmd:
+            self._peek_notification()
+        signal.alarm(1)
 
 def main():
     CONF(project='ryu-cli', version='ryu-cli')
@@ -179,7 +195,10 @@ def main():
         host, port = addr.rsplit(':', 1)
         add_peer(name, host, port)
 
-    Cmd().cmdloop()
+    c = Cmd()
+    signal.signal(signal.SIGALRM, c._timeout)
+    signal.alarm(1)
+    c.cmdloop()
 
 
 if __name__ == "__main__":
