@@ -19,7 +19,7 @@
 # a simple command line msgpack-rpc client
 #
 # a usage example:
-#     % PYTHONPATH=. ./bin/ryu-cli \
+#     % PYTHONPATH=. ./bin/rpc-cli \
 #      --peers=echo-server=localhost:9999,hoge=localhost:9998
 #     (Cmd) request echo-server echo ["hoge"]
 #     RESULT hoge
@@ -44,7 +44,7 @@ from ryu.lib import rpc
 
 CONF = cfg.CONF
 CONF.register_cli_opts([
-    # eg. ryu-cli --peers=hoge=localhost:9998,fuga=localhost:9999
+    # eg. rpc-cli --peers=hoge=localhost:9998,fuga=localhost:9999
     cfg.ListOpt('peers', default=[], help='list of peers')
 ])
 
@@ -210,7 +210,7 @@ class Cmd(cmd.Cmd):
         signal.alarm(1)
 
 def main():
-    CONF(project='ryu-cli', version='ryu-cli')
+    CONF(project='rpc-cli', version='rpc-cli')
 
     for p_str in CONF.peers:
         name, addr = p_str.split('=')
