@@ -112,6 +112,7 @@ def add_peer(name, host, port):
 class Cmd(cmd.Cmd):
     def __init__(self, *args, **kwargs):
         self._in_onecmd = False
+        self._notification_check_interval = 1  # worth to be configurable?
         cmd.Cmd.__init__(self, *args, **kwargs)
 
     def _request(self, line, f):
@@ -207,7 +208,7 @@ class Cmd(cmd.Cmd):
             self._restore_termios(self._saved_termios)
             self._peek_notification()
             self._restore_termios(o)
-        signal.alarm(1)
+        signal.alarm(self._notification_check_interval)
 
 def main():
     CONF(project='rpc-cli', version='rpc-cli')
