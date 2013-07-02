@@ -5,11 +5,11 @@
          {
             "OFPActionOutput" : {
                "max_len" : 65535,
-               "port" : 4294967292
+               "port" : 65532
             }
          }
       ],
-      "in_port" : 4294967293,
+      "in_port" : 65533,
       "data" : "8guk0D9w8gukffjqCABFAABU+BoAAP8Br4sKAAABCgAAAggAAgj3YAAAMdYCAAAAAACrjS0xAAAAABAREhMUFRYXGBkaGxwdHh8gISIjJCUmJygpKissLS4vAAAAAAAAAAA="
    }
 }
