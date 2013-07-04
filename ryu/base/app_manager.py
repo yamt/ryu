@@ -116,12 +116,12 @@ class RyuApp(object):
         if name in SERVICE_BRICKS:
             if isinstance(ev, EventRequestBase):
                 ev.src = self.name
-            LOG.debug("EVENT %s->%s %s" %
-                      (self.name, name, ev.__class__.__name__))
+            LOG.debug("EVENT %s->%s %s %s" %
+                      (self.name, name, ev.__class__.__name__, state))
             SERVICE_BRICKS[name]._send_event(ev, state)
         else:
-            LOG.debug("EVENT LOST %s->%s %s" %
-                      (self.name, name, ev.__class__.__name__))
+            LOG.debug("EVENT LOST %s->%s %s %s" %
+                      (self.name, name, ev.__class__.__name__, state))
 
     def send_event_to_observers(self, ev, state=None):
         for observer in self.get_observers(ev, state):
