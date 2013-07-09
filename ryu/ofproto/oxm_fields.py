@@ -16,6 +16,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from ryu.lib import addrconv
+
 
 class TypeDescr(object):
     pass
@@ -24,6 +26,21 @@ class TypeDescr(object):
 class IntDescr(TypeDescr):
     def __init__(self, size):
         self.size = size
+
+    def to_user(self, bin):
+        i = 0
+        for x in xrange(self.size):
+            c = bin[:1]
+            i = i * 256 + ord(c)
+            bin = bin[1:]
+        return i
+
+    def from_user(self, i):
+        bin = ''
+        for x in xrange(self.size):
+            bin = chr(i & 255) + bin
+            i /= 256
+        return bin
 
 Int1 = IntDescr(1)
 Int2 = IntDescr(2)
@@ -34,14 +51,20 @@ Int8 = IntDescr(8)
 
 class MacAddr(TypeDescr):
     size = 6
+    to_user = addrconv.mac.bin_to_text
+    from_user = addrconv.mac.text_to_bin
 
 
 class IPv4Addr(TypeDescr):
     size = 4
+    to_user = addrconv.ipv4.bin_to_text
+    from_user = addrconv.ipv4.text_to_bin
 
 
 class IPv6Addr(TypeDescr):
     size = 16
+    to_user = addrconv.ipv6.bin_to_text
+    from_user = addrconv.ipv6.text_to_bin
 
 
 class D(object):
@@ -111,3 +134,42 @@ def generate_constants(modname):
         add_attr('OFPXMT_OFB_' + uk, ofpxmt)
         add_attr('OXM_OF_' + uk, mod.oxm_tlv_header(ofpxmt, td.size))
         add_attr('OXM_OF_' + uk + '_W', mod.oxm_tlv_header_w(ofpxmt, td.size))
+
+
+def find_field_by_name(name):
+    for t in oxm_types:
+        if t.name == name:
+            return t
+    raise KeyError
+
+
+def from_user(name, user_value):
+    f = find_field_by_name(name)
+    t = f.type
+    if isinstance(user_value, tuple):
+        (value, mask) = user_value
+    else:
+        value = user_value
+        mask = None
+    value = t.from_user(value)
+    if not mask is None:
+        mask = t.from_user(mask)
+    return f.num, value, mask
+
+
+def find_field_by_num(n):
+    for t in oxm_types:
+        if t.num == n:
+            return t
+    raise KeyError
+
+
+def to_user(n, v, m):
+    f = find_field_by_num(n)
+    t = f.type
+    value = t.to_user(v)
+    if m is None:
+        user_value = value
+    else:
+        user_value = (value, t.to_user(m))
+    return f.name, user_value
