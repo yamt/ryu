@@ -67,10 +67,15 @@ class IPv6Addr(TypeDescr):
     from_user = addrconv.ipv6.text_to_bin
 
 
+OFPXMC_OPENFLOW_BASIC = 0x8000
+
+
 class D(object):
+    _class = OFPXMC_OPENFLOW_BASIC
+
     def __init__(self, name, num, type_):
         self.name = name
-        self.num = num
+        self.num = num | (self._class << 7)
         self.type = type_
 
 
@@ -129,7 +134,10 @@ def generate_constants(modname):
 
     for i in oxm_types:
         uk = string.upper(i.name)
-        ofpxmt = i.num
+        oxm_class = i.num >> 7
+        if oxm_class != OFPXMC_OPENFLOW_BASIC:
+            continue
+        ofpxmt = i.num & 0x3f
         td = i.type
         add_attr('OFPXMT_OFB_' + uk, ofpxmt)
         add_attr('OXM_OF_' + uk, mod.oxm_tlv_header(ofpxmt, td.size))
