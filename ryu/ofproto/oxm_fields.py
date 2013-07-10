@@ -16,6 +16,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import itertools
+
 from ryu.lib import addrconv
 
 
@@ -173,3 +175,14 @@ def to_user(n, v, m):
     else:
         user_value = (value, t.to_user(m))
     return f.name, user_value
+
+
+def normalize_user(k, uv):
+    (n, v, m) = from_user(k, uv)
+    # apply mask
+    if not m is None:
+        v = ''.join(chr(ord(x) & ord(y)) for (x, y)
+            in itertools.izip(v, m))
+    (k2, uv2) = to_user(n, v, m)
+    assert k2 == k
+    return (k2, uv2)
