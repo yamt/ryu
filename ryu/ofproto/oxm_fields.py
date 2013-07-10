@@ -144,15 +144,11 @@ def generate_constants(modname):
         add_attr('OXM_OF_' + uk + '_W', mod.oxm_tlv_header_w(ofpxmt, td.size))
 
 
-def find_field_by_name(name):
-    for t in oxm_types:
-        if t.name == name:
-            return t
-    raise KeyError
+name_to_field = dict((f.name, f) for f in oxm_types)
 
 
 def from_user(name, user_value):
-    f = find_field_by_name(name)
+    f = name_to_field[name]
     t = f.type
     if isinstance(user_value, tuple):
         (value, mask) = user_value
@@ -165,15 +161,11 @@ def from_user(name, user_value):
     return f.num, value, mask
 
 
-def find_field_by_num(n):
-    for t in oxm_types:
-        if t.num == n:
-            return t
-    raise KeyError
+num_to_field = dict((f.num, f) for f in oxm_types)
 
 
 def to_user(n, v, m):
-    f = find_field_by_num(n)
+    f = num_to_field[n]
     t = f.type
     value = t.to_user(v)
     if m is None:
