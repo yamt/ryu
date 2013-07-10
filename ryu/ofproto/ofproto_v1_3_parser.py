@@ -383,17 +383,8 @@ class OFPMatch(StringifyMixin):
         # eg.
         #   OFPMatch(eth_src=('ff:ff:ff:00:00:00'), eth_type=0x800,
         #            ipv4_src='10.0.0.1')
-        fields2 = {}
-        for k, uv in kwargs.iteritems():
-            (n, v, m) = oxm_fields.from_user(k, uv)
-            # apply mask
-            if not m is None:
-                v = ''.join(chr(ord(x) & ord(y)) for (x, y)
-                    in itertools.izip(v, m))
-            k2, uv2 = oxm_fields.to_user(n, v, m)
-            assert k2 == k
-            fields2[k2] = uv2
-        self._fields2 = fields2
+        self._fields2 = dict(oxm_fields.normalize_user(k, uv) for (k, uv)
+                             in kwargs.iteritems())
 
     def __getitem__(self, key):
         return self._fields2[key]
