@@ -1656,9 +1656,8 @@ class OFPMatch(StringifyMixin):
         if self.fields or self._wc.__dict__ != FlowWildcards().__dict__:
             return self.serialize_old(buf, offset)
 
-        fields = []
-        for k, v in self._fields2.iteritems():
-            fields.append(oxm_fields.from_user(k, v))
+        fields = [oxm_fields.from_user(k, v) for (k, v)
+                  in self._fields2.iteritems()]
 
         # assumption: sorting by OXM type values makes fields
         # meet ordering requirements (eg. eth_type before ipv4_src)
