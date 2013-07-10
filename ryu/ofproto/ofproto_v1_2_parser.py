@@ -1651,6 +1651,12 @@ class OFPMatch(StringifyMixin):
             fields2[k2] = uv2
         self._fields2 = fields2
 
+    def __getitem__(self, key):
+        return self._fields2[key]
+
+    def __contains__(self, key):
+        return key in self._fields2
+
     def append_field(self, header, value, mask=None):
         self.fields.append(OFPMatchField.make(header, value, mask))
 
