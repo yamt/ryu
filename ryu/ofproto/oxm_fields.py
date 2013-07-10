@@ -16,6 +16,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# there are two representations of value and mask this module deal with.
+#
+# "user"
+#   (value, mask) or value.  the latter means no mask.
+#   value and mask are strings.
+#
+# "internal"
+#   value and mask are on-wire bytes.
+#   mask is None if no mask.
+
 import itertools
 
 from ryu.lib import addrconv
