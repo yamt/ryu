@@ -17,7 +17,7 @@
 Interface monitor.
 Watching packet recevined on this interface and parse VRRP packet.
 
-RRPManager creates/deletes instances of interface monitor dynamically.
+VRRPManager creates/deletes instances of interface monitor dynamically.
 """
 
 import contextlib
