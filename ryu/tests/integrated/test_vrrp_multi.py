@@ -24,9 +24,11 @@ PYTHONPATH=. ./bin/ryu-manager --verbose \
 
 ./ryu/services/vrrp/dumper.py is optional.
 
-  -----          --------------          -----
-  |OVS|<--veth-->|Linux bridge|<--veth-->|OVS|
-  -----          --------------          -----
+         +---+          ----------------
+      /--|OVS|<--veth-->|              |
+   Ryu   +---+          | linux bridge |<--veth--> command to generate packets
+      \--|OVS|<--veth-->|              |
+         +---+          ----------------
 
 configure OVSs to connect ryu
 example
