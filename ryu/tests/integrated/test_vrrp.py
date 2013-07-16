@@ -33,16 +33,7 @@ another vrrp daemon can be run under vrrp-dump name space if you like.
   |OVS|<--veth-->|vrrp-dump name space|
   -----          ----------------------
 
-# ip netns add vrrp-dump
-# ip link add veth-ovs type veth peer name veth-dump
-# ip link set netns vrrp-dump veth-dump
-# ip netns exec vrrp-dump tshark -i veth-dump
-# ovs-vsctl add-br s0
-# ovs-vsctl add-port s0 veth-ovs
-# ovs-vsctl set bridge s0 protocols='[OpenFlow12]'
-# ovs-vsctl set-controller s0 tcp:127.0.0.1:6633
-# ip link set veth-ovs up
-# ip link set veth-dump up
+See test_vrrp.sh
 
 If you like, vrrpd can be run in vrrp-dump netns
 # ip netns exec vrrp-dump vrrpd -i veth-dump -v 7 10.0.0.1
