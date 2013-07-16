@@ -84,7 +84,7 @@ class RyuApp(object):
 
     def stop(self):
         self.is_active = False
-        self._send_event(self._event_stop)
+        self._send_event(self._event_stop, None)
         hub.joinall(self.threads)
 
     def register_handler(self, ev_cls, handler):
