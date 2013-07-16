@@ -19,7 +19,7 @@ Usage:
 PYTHONPATH=. ./bin/ryu-manager --verbose \
              ./ryu/topology/switches.py \
              ./ryu/services/vrrp/manager.py \
-             ./ryu/tests/integrated/test_vrrp.py \
+             ./ryu/tests/integrated/test_vrrp_multi.py \
              ./ryu/services/vrrp/dumper.py
 
 ./ryu/services/vrrp/dumper.py is optional.
