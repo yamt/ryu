@@ -139,7 +139,7 @@ class VRRPConfigApp(app_manager.RyuApp):
     def _config_switch(self, switches, switch_index,
                        vrrp_version, ip_addr, priority):
         self.logger.debug('%s', switches.dps)
-        dpid = switches.dps.keys()[switch_index]
+        dpid = sorted(switches.dps.keys())[switch_index]
         self.logger.debug('%s', lib_dpid.dpid_to_str(dpid))
         self.logger.debug('%s', switches.port_state)
         # hack: use the smallest port no to avoid picking OVS local port
