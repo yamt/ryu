@@ -24,11 +24,11 @@ PYTHONPATH=. ./bin/ryu-manager --verbose \
 
 ./ryu/services/vrrp/dumper.py is optional.
 
-                   ----------------
-      /--<--veth-->|              |
-   Ryu             | linux bridge |<--veth--> command to generate packets
-      \--<--veth-->|              |
-                   ----------------
+                    ----------------
+      /--<--veth0-->|              |
+   Ryu              | linux bridge |<--veth2--> command to generate packets
+      \--<--veth1-->|   (vrrpbr)   |
+                    ----------------
 
 
 # ip link add veth0 type veth peer name veth0-br
