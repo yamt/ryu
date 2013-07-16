@@ -327,7 +327,7 @@ class VRRPV2StateBackup(VRRPState):
         vrrp_router.send_advertisement()
 
         # This action should be done router on
-        # EventVRRPStateChange(VRRP_STATE_BACKUP->VRRP_STATE_MASTER)
+        # EventVRRPStateChanged(VRRP_STATE_BACKUP->VRRP_STATE_MASTER)
         #
         # RFC3768 6.4.2 Backup
         # o  Broadcast a gratuitous ARP request containing the virtual
@@ -405,7 +405,7 @@ class VRRPRouterV2(VRRPRouter):
             self.send_advertisement()
 
             # This action should be done router on
-            # EventVRRPStateChange(None->VRRP_STATE_MASTER)
+            # EventVRRPStateChanged(None->VRRP_STATE_MASTER)
             #
             # RFC3768 6.4.1
             # o  Broadcast a gratuitous ARP request containing the virtual
@@ -594,7 +594,7 @@ class VRRPRouterV3(VRRPRouter):
             self.send_advertisement()
 
             # This action should be done router on
-            # EventVRRPStateChange(None->VRRP_STATE_MASTER)
+            # EventVRRPStateChanged(None->VRRP_STATE_MASTER)
             #
             # RFC 5795 6.4.1
             #(115) + If the protected IPvX address is an IPv4 address, then:
