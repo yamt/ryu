@@ -35,6 +35,8 @@ another vrrp daemon can be run under vrrp-dump name space if you like.
 
 See test_vrrp.sh
 
+this test requires OVS with OpenFlow 1.2
+
 If you like, vrrpd can be run in vrrp-dump netns
 # ip netns exec vrrp-dump vrrpd -i veth-dump -v 7 10.0.0.1
 NOTE: vrid: 7 and ip address: 10.0.0.1 are hardcoded below
