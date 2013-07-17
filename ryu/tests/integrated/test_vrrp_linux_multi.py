@@ -122,15 +122,16 @@ class VRRPConfigApp(app_manager.RyuApp):
         self._main_version_priority_sleep(vrrp_version, priority, True)
 
     def _configure_vrrp_router(self, vrrp_version, priority,
-                               primary_ip_address, ifname):
+                               primary_ip_address, ifname, vrid=_VRID):
         primary_ip_address = netaddr.IPAddress(primary_ip_address)
         interface = vrrp_event.VRRPInterfaceNetworkDevice(
             lib_mac.DONTCARE, primary_ip_address, None, ifname)
         self.logger.debug('%s', interface)
 
-        ip_addresses = [netaddr.IPAddress(_IP_ADDRESS).value]
+        vip = '10.0.%d.1' % vrid
+        ip_addresses = [netaddr.IPAddress(vip).value]
         config = vrrp_event.VRRPConfig(
-            version=vrrp_version, vrid=_VRID, priority=priority,
+            version=vrrp_version, vrid=vrid, priority=priority,
             ip_addresses=ip_addresses)
         self.logger.debug('%s', config)
 
@@ -143,6 +144,31 @@ class VRRPConfigApp(app_manager.RyuApp):
         app_mgr = app_manager.AppManager.get_instance()
         self.logger.debug('%s', app_mgr.applications)
         vrrp_mgr = app_mgr.applications['VRRPManager']
+
+        step = 5
+        instances = {}
+        for vrid in xrange(1, 256, step):
+            if vrid == _VRID:
+                continue
+            print "vrid", vrid
+            l = {}
+            prio = max(vrrp.VRRP_PRIORITY_BACKUP_MIN,
+                   min(vrrp.VRRP_PRIORITY_BACKUP_MAX, vrid))
+            rep0 = self._configure_vrrp_router(vrrp_version,
+                                               prio,
+                                               _PRIMARY_IP_ADDRESS0, _IFNAME0,
+                                               vrid)
+            assert not rep0.instance_name is None
+            l[0] = rep0
+            prio = max(vrrp.VRRP_PRIORITY_BACKUP_MIN,
+                   min(vrrp.VRRP_PRIORITY_BACKUP_MAX, 256 - vrid))
+            rep1 = self._configure_vrrp_router(vrrp_version,
+                                               prio,
+                                               _PRIMARY_IP_ADDRESS1, _IFNAME1,
+                                               vrid)
+            assert not rep1.instance_name is None
+            l[1] = rep1
+            instances[vrid] = l
 
         rep0 = self._configure_vrrp_router(vrrp_version, priority,
                                            _PRIMARY_IP_ADDRESS0, _IFNAME0)
@@ -160,9 +186,13 @@ class VRRPConfigApp(app_manager.RyuApp):
             for i in rep.instance_list:
                 print i.instance_name, i.monitor_name, i.config, i.interface, \
                       i.state
-            assert len(rep.instance_list) == 2
+            assert len(rep.instance_list) == (len(instances) + 1) * 2
             num_of_master = 0
+            n = 0
             for i in rep.instance_list:
+                if i.config.vrid != _VRID:
+                    continue
+                n += 1
                 assert i.state == vrrp_event.VRRP_STATE_MASTER or \
                     i.state == vrrp_event.VRRP_STATE_BACKUP
                 if i.state == vrrp_event.VRRP_STATE_MASTER:
@@ -174,18 +204,36 @@ class VRRPConfigApp(app_manager.RyuApp):
                 elif priority < vrrp.VRRP_PRIORITY_BACKUP_DEFAULT:
                     if i.instance_name == rep0.instance_name:
                         assert i.state == vrrp_event.VRRP_STATE_BACKUP
+            assert n == 2
             assert num_of_master == 1
+
+        for vrid in xrange(1, 256, step):
+            if vrid == _VRID:
+                continue
+            which = vrid & 1
+            vrrp_api.vrrp_shutdown(self, instances[vrid][which].instance_name)
 
         vrrp_api.vrrp_shutdown(self, rep0.instance_name)
         if do_sleep:
             print "shutting down an instance"
             time.sleep(10)
             rep = vrrp_api.vrrp_list(self)
+            assert len(rep.instance_list) == len(instances) + 1
+            n = 0
             for i in rep.instance_list:
+                if i.config.vrid != _VRID:
+                    continue
+                n += 1
                 print i.instance_name, i.monitor_name, i.config, i.interface, \
                       i.state
-            assert len(rep.instance_list) == 1
-            i = rep.instance_list[0]
-            assert i.instance_name == rep1.instance_name
-            assert i.state == vrrp_event.VRRP_STATE_MASTER
+                assert i.instance_name == rep1.instance_name
+                assert i.state == vrrp_event.VRRP_STATE_MASTER
+            assert n == 1
+
         vrrp_api.vrrp_shutdown(self, rep1.instance_name)
+        for vrid in xrange(1, 256, step):
+            if vrid == _VRID:
+                continue
+            which = 1 - (vrid & 1)
+            vrrp_api.vrrp_shutdown(self, instances[vrid][which].instance_name)
+
