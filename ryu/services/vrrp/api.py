@@ -46,6 +46,7 @@ def vrrp_transmit(app, monitor_name, data):
 
 def vrrp_list(app, instance_name=None):
     """list instances.
+    returns EventVRRPListReply([VRRPInstance]).
     """
     list_request = vrrp_event.EventVRRPListRequest(instance_name)
     list_request.dst = vrrp_event.VRRP_MANAGER_NAME
