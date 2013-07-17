@@ -166,9 +166,9 @@ class VRRPInterfaceMonitor(app_manager.RyuApp):
         for proto in packet_.protocols:
             if proto == may_vrrp:
                 break
-            offset += proto.length
+            offset += len(proto)
         if not may_vrrp.checksum_ok(
-                may_ip, packet_.data[offset:offset + may_vrrp.length]):
+                may_ip, packet_.data[offset:offset + len(may_vrrp)]):
             self.logger.debug('bad checksum')
             return
         if may_vrrp.vrid != self.config.vrid:
