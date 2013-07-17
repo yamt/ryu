@@ -153,9 +153,39 @@ class VRRPConfigApp(app_manager.RyuApp):
         self.logger.debug('%s', vrrp_mgr._instances)
 
         if do_sleep:
+            print "priority", priority
             time.sleep(10)
+
+            rep = vrrp_api.vrrp_list(self)
+            for i in rep.instance_list:
+                print i.instance_name, i.monitor_name, i.config, i.interface, \
+                      i.state
+            assert len(rep.instance_list) == 2
+            num_of_master = 0
+            for i in rep.instance_list:
+                assert i.state == vrrp_event.VRRP_STATE_MASTER or \
+                    i.state == vrrp_event.VRRP_STATE_BACKUP
+                if i.state == vrrp_event.VRRP_STATE_MASTER:
+                    num_of_master += 1
+                # note: _PRIMARY_IP_ADDRESS0 < _PRIMARY_IP_ADDRESS1
+                if priority > vrrp.VRRP_PRIORITY_BACKUP_DEFAULT:
+                    if i.instance_name == rep0.instance_name:
+                        assert i.state == vrrp_event.VRRP_STATE_MASTER
+                elif priority < vrrp.VRRP_PRIORITY_BACKUP_DEFAULT:
+                    if i.instance_name == rep0.instance_name:
+                        assert i.state == vrrp_event.VRRP_STATE_BACKUP
+            assert num_of_master == 1
 
         vrrp_api.vrrp_shutdown(self, rep0.instance_name)
         if do_sleep:
+            print "shutting down an instance"
             time.sleep(10)
+            rep = vrrp_api.vrrp_list(self)
+            for i in rep.instance_list:
+                print i.instance_name, i.monitor_name, i.config, i.interface, \
+                      i.state
+            assert len(rep.instance_list) == 1
+            i = rep.instance_list[0]
+            assert i.instance_name == rep1.instance_name
+            assert i.state == vrrp_event.VRRP_STATE_MASTER
         vrrp_api.vrrp_shutdown(self, rep1.instance_name)
