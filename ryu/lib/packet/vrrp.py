@@ -215,7 +215,7 @@ class vrrp(packet_base.PacketBase):
 
         try:
             may_ip, may_vrrp = protocols[-2], protocols[-1]
-            if isinstance(may_vrrp, bytearray):
+            if isinstance(may_vrrp, bytearray):  # padding?
                 may_ip, may_vrrp = protocols[-3], protocols[-2]
         except IndexError:
             return None, None
