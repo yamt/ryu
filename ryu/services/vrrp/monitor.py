@@ -15,7 +15,7 @@
 # limitations under the License.
 """
 Interface monitor.
-Watching packet recevined on this interface and parse VRRP packet.
+Watching packet received on this interface and parse VRRP packet.
 
 VRRPManager creates/deletes instances of interface monitor dynamically.
 """
