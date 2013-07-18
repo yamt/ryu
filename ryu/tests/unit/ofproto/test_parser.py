@@ -96,10 +96,21 @@ class Test_Parser(unittest.TestCase):
     def test_parser(self):
         import os
         import fnmatch
-        directory = './ofproto/data'
-        for file in os.listdir(directory):
-            if fnmatch.fnmatch(file, '*.packet'):
+
+        packet_data_dir = '../packet_data'
+        json_dir = './ofproto/json'
+        ofvers = [
+            'of10',
+            'of12',
+            'of13',
+        ]
+        for ver in ofvers:
+            pdir = packet_data_dir + '/' + ver
+            jdir = json_dir + '/' + ver
+            for file in os.listdir(pdir):
+                if not fnmatch.fnmatch(file, '*.packet'):
+                    continue
                 print ("processing %s ... " % file)
-                wire_msg = open(directory + '/' + file, 'rb').read()
-                json_str = open(directory + '/' + file + '.json', 'rb').read()
+                wire_msg = open(pdir + '/' + file, 'rb').read()
+                json_str = open(jdir + '/' + file + '.json', 'rb').read()
                 self._test_msg(file, wire_msg, json_str)
