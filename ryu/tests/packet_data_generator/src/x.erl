@@ -36,7 +36,7 @@ do(Body, {OFPVersion, N}) ->
         {ok, BinMsg} -> ok;
         {error, Error} -> io:format("~p ~p~n", [Error, Msg]), BinMsg = hoge
     end,
-    {ok, F} = file:open(["../data/", integer_to_list(OFPVersion), "-",
+    {ok, F} = file:open(["../packet_data/", integer_to_list(OFPVersion), "-",
         integer_to_list(N), "-", Name, ".packet"], [write, binary]),
 
     % sanity check
