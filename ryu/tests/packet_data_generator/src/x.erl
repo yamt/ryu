@@ -17,6 +17,10 @@
 -module(x).
 -export([do/2, x/0]).
 
+% eg. 1 -> of10
+ofp_version_string(Vers) ->
+    ["of", integer_to_list(9 + Vers)].
+
 do(skip, {OFPVersion, N}) ->
     {OFPVersion, N + 1};
 do(Body, {OFPVersion, N}) ->
@@ -36,7 +40,8 @@ do(Body, {OFPVersion, N}) ->
         {ok, BinMsg} -> ok;
         {error, Error} -> io:format("~p ~p~n", [Error, Msg]), BinMsg = hoge
     end,
-    {ok, F} = file:open(["../packet_data/", integer_to_list(OFPVersion), "-",
+    {ok, F} = file:open(["../packet_data/",
+        ofp_version_string(OFPVersion), "/", integer_to_list(OFPVersion), "-",
         integer_to_list(N), "-", Name, ".packet"], [write, binary]),
 
     % sanity check
