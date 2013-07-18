@@ -7,10 +7,10 @@
                "flags" : 14,
                "bands" : [
                   {
-                     "OFPMeterBandHeader" : {
+                     "OFPMeterBandDrop" : {
                         "len" : 16,
                         "rate" : 1000,
-                        "type" : 0,
+                        "type" : 1,
                         "burst_size" : 10
                      }
                   }
