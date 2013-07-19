@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import ryu.ofproto.oxm_fields
+from ryu.ofproto import oxm_fields
 
 from struct import calcsize
 
@@ -780,7 +780,46 @@ def oxm_tlv_header_extract_length(header):
         length = header & 0xff
     return length
 
-ryu.ofproto.oxm_fields.generate_constants(__name__)
+oxm_types = [
+    oxm_fields.OpenFlowBasic('in_port', 0, oxm_fields.Int4),
+    oxm_fields.OpenFlowBasic('in_phy_port', 1, oxm_fields.Int4),
+    oxm_fields.OpenFlowBasic('metadata', 2, oxm_fields.Int8),
+    oxm_fields.OpenFlowBasic('eth_dst', 3, oxm_fields.MacAddr),
+    oxm_fields.OpenFlowBasic('eth_src', 4, oxm_fields.MacAddr),
+    oxm_fields.OpenFlowBasic('eth_type', 5, oxm_fields.Int2),
+    oxm_fields.OpenFlowBasic('vlan_vid', 6, oxm_fields.Int2),
+    oxm_fields.OpenFlowBasic('vlan_pcp', 7, oxm_fields.Int1),
+    oxm_fields.OpenFlowBasic('ip_dscp', 8, oxm_fields.Int1),
+    oxm_fields.OpenFlowBasic('ip_ecn', 9, oxm_fields.Int1),
+    oxm_fields.OpenFlowBasic('ip_proto', 10, oxm_fields.Int1),
+    oxm_fields.OpenFlowBasic('ipv4_src', 11, oxm_fields.IPv4Addr),
+    oxm_fields.OpenFlowBasic('ipv4_dst', 12, oxm_fields.IPv4Addr),
+    oxm_fields.OpenFlowBasic('tcp_src', 13, oxm_fields.Int2),
+    oxm_fields.OpenFlowBasic('tcp_dst', 14, oxm_fields.Int2),
+    oxm_fields.OpenFlowBasic('udp_src', 15, oxm_fields.Int2),
+    oxm_fields.OpenFlowBasic('udp_dst', 16, oxm_fields.Int2),
+    oxm_fields.OpenFlowBasic('sctp_src', 17, oxm_fields.Int2),
+    oxm_fields.OpenFlowBasic('sctp_dst', 18, oxm_fields.Int2),
+    oxm_fields.OpenFlowBasic('icmpv4_type', 19, oxm_fields.Int1),
+    oxm_fields.OpenFlowBasic('icmpv4_code', 20, oxm_fields.Int1),
+    oxm_fields.OpenFlowBasic('arp_op', 21, oxm_fields.Int2),
+    oxm_fields.OpenFlowBasic('arp_spa', 22, oxm_fields.IPv4Addr),
+    oxm_fields.OpenFlowBasic('arp_tpa', 23, oxm_fields.IPv4Addr),
+    oxm_fields.OpenFlowBasic('arp_sha', 24, oxm_fields.MacAddr),
+    oxm_fields.OpenFlowBasic('arp_tha', 25, oxm_fields.MacAddr),
+    oxm_fields.OpenFlowBasic('ipv6_src', 26, oxm_fields.IPv6Addr),
+    oxm_fields.OpenFlowBasic('ipv6_dst', 27, oxm_fields.IPv6Addr),
+    oxm_fields.OpenFlowBasic('ipv6_flabel', 28, oxm_fields.Int4),
+    oxm_fields.OpenFlowBasic('icmpv6_type', 29, oxm_fields.Int1),
+    oxm_fields.OpenFlowBasic('icmpv6_code', 30, oxm_fields.Int1),
+    oxm_fields.OpenFlowBasic('ipv6_nd_target', 31, oxm_fields.IPv6Addr),
+    oxm_fields.OpenFlowBasic('ipv6_nd_sll', 32, oxm_fields.MacAddr),
+    oxm_fields.OpenFlowBasic('ipv6_nd_tll', 33, oxm_fields.MacAddr),
+    oxm_fields.OpenFlowBasic('mpls_label', 34, oxm_fields.Int4),
+    oxm_fields.OpenFlowBasic('mpls_tc', 35, oxm_fields.Int1),
+]
+
+oxm_fields.generate(__name__)
 
 
 # define constants
