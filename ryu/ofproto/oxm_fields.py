@@ -79,6 +79,13 @@ class IPv6Addr(TypeDescr):
     from_user = addrconv.ipv6.text_to_bin
 
 
+class UnknownType(TypeDescr):
+    import base64
+
+    to_user = staticmethod(base64.b64encode)
+    from_user = staticmethod(base64.b64decode)
+
+
 OFPXMC_OPENFLOW_BASIC = 0x8000
 
 
@@ -120,8 +127,13 @@ def generate(modname):
 
 
 def from_user(name_to_field, name, user_value):
-    f = name_to_field[name]
-    t = f.type
+    try:
+        f = name_to_field[name]
+        t = f.type
+        num = f.num
+    except KeyError:
+        t = UnknownType
+        num = int(name.split('_')[1])
     if isinstance(user_value, tuple):
         (value, mask) = user_value
     else:
@@ -130,18 +142,23 @@ def from_user(name_to_field, name, user_value):
     value = t.from_user(value)
     if not mask is None:
         mask = t.from_user(mask)
-    return f.num, value, mask
+    return num, value, mask
 
 
 def to_user(num_to_field, n, v, m):
-    f = num_to_field[n]
-    t = f.type
+    try:
+        f = num_to_field[n]
+        t = f.type
+        name = f.name
+    except KeyError:
+        t = UnknownType
+        name = 'unknown_%d' % n
     value = t.to_user(v)
     if m is None:
         user_value = value
     else:
         user_value = (value, t.to_user(m))
-    return f.name, user_value
+    return name, user_value
 
 
 def normalize_user(mod, k, uv):
