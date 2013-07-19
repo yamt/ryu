@@ -50,6 +50,10 @@ class Test_Parser(unittest.TestCase):
                                    ofproto_v1_3_parser),
     }
 
+    def __init__(self, methodName):
+        print 'init', methodName
+        super(Test_Parser, self).__init__(methodName)
+
     def setUp(self):
         pass
 
@@ -64,7 +68,7 @@ class Test_Parser(unittest.TestCase):
     def _jsondict_to_msg(dp, jsondict):
         return ofproto_parser.ofp_msg_from_jsondict(dp, jsondict)
 
-    def _test_msg(self, file, wire_msg, json_str):
+    def _test_msg(self, name, wire_msg, json_str):
         json_dict = json.loads(json_str)
         # on-wire -> OFPxxx -> json
         has_parser = False
@@ -75,7 +79,7 @@ class Test_Parser(unittest.TestCase):
                                      wire_msg)
             json_dict2 = self._msg_to_jsondict(msg)
             # XXXdebug code
-            #open('/tmp/ofproto.json', 'wb').write(json.dumps(json_dict))
+            open(('/tmp/%s.json' % name), 'wb').write(json.dumps(json_dict2))
             eq_(json_dict, json_dict2)
             has_parser = True
         except TypeError:
@@ -98,6 +102,7 @@ def _add_tests():
     import os
     import fnmatch
     import new
+    import functools
 
     packet_data_dir = '../packet_data'
     json_dir = './ofproto/json'
@@ -114,14 +119,17 @@ def _add_tests():
                 continue
             wire_msg = open(pdir + '/' + file, 'rb').read()
             json_str = open(jdir + '/' + file + '.json', 'rb').read()
-
-            def _run(self):
-                print ('processing %s ...' % file)
-                self._test_msg(file, wire_msg, json_str)
             method_name = ('test_' + file).replace('-', '_').replace('.', '_')
+
+            def _run(self, name, wire_msg, json_str):
+                print ('processing %s ...' % name)
+                self._test_msg(name, wire_msg, json_str)
             print ('adding %s ...' % method_name)
-            _run.func_name = method_name
-            setattr(Test_Parser, method_name,
-                    new.instancemethod(_run, None, Test_Parser))
+            f = functools.partial(_run, name=method_name, wire_msg=wire_msg,
+                                  json_str=json_str)
+            f.func_name = method_name
+            f.__name__ = method_name
+            im = new.instancemethod(f, None, Test_Parser)
+            setattr(Test_Parser, method_name, im)
 
 _add_tests()
