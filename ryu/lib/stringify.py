@@ -56,7 +56,7 @@ class StringifyMixin(object):
         # repr() to escape binaries
         return self.__class__.__name__ + '(' + \
             ','.join("%s=%s" % (k, repr(v)) for k, v in
-            self.stringify_attrs()) + ')'
+                     self.stringify_attrs()) + ')'
     __repr__ = __str__  # note: str(list) uses __repr__ for elements
 
     @classmethod
