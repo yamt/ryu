@@ -439,7 +439,24 @@ x() ->
         #ofp_meter_features_reply{max_meter = 16777216,
                                   band_types = [drop,dscp_remark,experimenter],
                                   capabilities = [kbps,pktps,burst,stats],
-                                  max_bands = 255,max_color = 0}
-
+                                  max_bands = 255,max_color = 0},
+        #ofp_port_desc_request{flags = []},
+        #ofp_port_desc_reply{flags = [],
+                             body = [#ofp_port{port_no = 7,hw_addr = <<"\362\v\244\320?p">>,
+                                               name = <<"Port7">>,config = [],
+                                               state = [live],
+                                               curr = ['100mb_fd',copper,autoneg],
+                                               advertised = [copper,autoneg],
+                                               supported = ['100mb_fd',copper,autoneg],
+                                               peer = ['100mb_fd',copper,autoneg],
+                                               curr_speed = 5000,max_speed = 5000},
+                                     #ofp_port{port_no = 6,hw_addr = <<"\362\v\244}\370\352">>,
+                                               name = <<"Port6">>,config = [],
+                                               state = [live],
+                                               curr = ['100mb_fd',copper,autoneg],
+                                               advertised = [copper,autoneg],
+                                               supported = ['100mb_fd',copper,autoneg],
+                                               peer = ['100mb_fd',copper,autoneg],
+                                               curr_speed = 5000,max_speed = 5000}]}
     ],
     lists:foldl(fun x:do/2, {4, 0}, List).
