@@ -22,7 +22,6 @@ from ryu import utils
 from ofproto_parser import StringifyMixin, MsgBase, msg_pack_into, msg_str_attr
 from . import ofproto_parser
 from . import ofproto_v1_2
-from . import oxm_fields
 
 import logging
 LOG = logging.getLogger('ryu.ofproto.ofproto_v1_2_parser')
@@ -1639,7 +1638,7 @@ class OFPMatch(StringifyMixin):
         # eg.
         #   OFPMatch(eth_src=('ff:ff:ff:00:00:00'), eth_type=0x800,
         #            ipv4_src='10.0.0.1')
-        self._fields2 = dict(oxm_fields.normalize_user(k, uv) for (k, uv)
+        self._fields2 = dict(ofproto_v1_2.oxm_normalize_user(k, uv) for (k, uv)
                              in kwargs.iteritems())
 
     def __getitem__(self, key):
@@ -1656,7 +1655,7 @@ class OFPMatch(StringifyMixin):
         if self.fields or self._wc.__dict__ != FlowWildcards().__dict__:
             return self.serialize_old(buf, offset)
 
-        fields = [oxm_fields.from_user(k, v) for (k, v)
+        fields = [ofproto_v1_2.oxm_from_user(k, v) for (k, v)
                   in self._fields2.iteritems()]
 
         # assumption: sorting by OXM type values makes fields
@@ -1920,7 +1919,7 @@ class OFPMatch(StringifyMixin):
                                               offset + hdr_len + value_len)
             else:
                 mask = None
-            k, uv = oxm_fields.to_user(oxm_type, value, mask)
+            k, uv = ofproto_v1_2.oxm_to_user(oxm_type, value, mask)
             fields[k] = uv
             field_len = hdr_len + (header & 0xff)
             offset += field_len
