@@ -133,7 +133,7 @@ def from_user(name_to_field, name, user_value):
         num = f.num
     except KeyError:
         t = UnknownType
-        if name.startswith('unknown_'):
+        if name.startswith('field_'):
             num = int(name.split('_')[1])
         else:
             raise KeyError('unknown match field ' + name)
@@ -155,7 +155,7 @@ def to_user(num_to_field, n, v, m):
         name = f.name
     except KeyError:
         t = UnknownType
-        name = 'unknown_%d' % n
+        name = 'field_%d' % n
     value = t.to_user(v)
     if m is None:
         user_value = value
