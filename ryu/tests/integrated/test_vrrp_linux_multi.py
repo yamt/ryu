@@ -74,7 +74,6 @@ from ryu.services.vrrp import event as vrrp_event
 
 
 _VRID = 7
-_IP_ADDRESS = '10.0.0.1'
 
 _IFNAME0 = 'veth0'
 _PRIMARY_IP_ADDRESS0 = '10.0.0.2'
