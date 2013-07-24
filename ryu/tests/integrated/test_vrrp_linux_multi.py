@@ -82,10 +82,6 @@ _PRIMARY_IP_ADDRESS0 = '10.0.0.2'
 _IFNAME1 = 'veth1'
 _PRIMARY_IP_ADDRESS1 = '10.0.0.3'
 
-# _IFNAME = 'eth2'
-# _VRID = 1
-# _IP_ADDRESS = '172.17.107.2'
-
 
 class VRRPConfigApp(app_manager.RyuApp):
     def __init__(self, *args, **kwargs):
