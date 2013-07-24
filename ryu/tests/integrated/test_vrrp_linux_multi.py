@@ -118,7 +118,7 @@ class VRRPConfigApp(app_manager.RyuApp):
 
     def _configure_vrrp_router(self, vrrp_version, priority,
                                primary_ip_address, ifname, vrid=_VRID):
-        primary_ip_address = netaddr.IPAddress(primary_ip_address)
+        primary_ip_address = netaddr.IPAddress(primary_ip_address).value
         interface = vrrp_event.VRRPInterfaceNetworkDevice(
             lib_mac.DONTCARE, primary_ip_address, None, ifname)
         self.logger.debug('%s', interface)
