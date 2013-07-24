@@ -62,12 +62,12 @@ from veth2 by packet generator like packeth
 NOTE: vrid: 7 and ip address: 10.0.0.1... are hardcoded below
 """
 
-import netaddr
 import time
 
 from ryu.base import app_manager
 from ryu.lib import hub
 from ryu.lib import mac as lib_mac
+from ryu.lib import addrconv
 from ryu.lib.packet import vrrp
 from ryu.services.vrrp import api as vrrp_api
 from ryu.services.vrrp import event as vrrp_event
@@ -76,10 +76,10 @@ from ryu.services.vrrp import event as vrrp_event
 _VRID = 7
 
 _IFNAME0 = 'veth0'
-_PRIMARY_IP_ADDRESS0 = '10.0.0.2'
+_PRIMARY_IP_ADDRESS0 = addrconv.ipv4.text_to_bin('10.0.0.2')
 
 _IFNAME1 = 'veth1'
-_PRIMARY_IP_ADDRESS1 = '10.0.0.3'
+_PRIMARY_IP_ADDRESS1 = addrconv.ipv4.text_to_bin('10.0.0.3')
 
 
 class VRRPConfigApp(app_manager.RyuApp):
@@ -87,7 +87,7 @@ class VRRPConfigApp(app_manager.RyuApp):
         super(VRRPConfigApp, self).__init__(*args, **kwargs)
         self.logger.info(
             'virtual router mac address = %s',
-            lib_mac.haddr_to_str(vrrp.vrrp_ipv4_src_mac_address(_VRID)))
+            addrconv.mac.bin_to_text(vrrp.vrrp_ipv4_src_mac_address(_VRID)))
 
     def start(self):
         hub.spawn(self._main)
@@ -113,13 +113,12 @@ class VRRPConfigApp(app_manager.RyuApp):
 
     def _configure_vrrp_router(self, vrrp_version, priority,
                                primary_ip_address, ifname, vrid=_VRID):
-        primary_ip_address = netaddr.IPAddress(primary_ip_address).value
         interface = vrrp_event.VRRPInterfaceNetworkDevice(
             lib_mac.DONTCARE, primary_ip_address, None, ifname)
         self.logger.debug('%s', interface)
 
-        vip = '10.0.%d.1' % vrid
-        ip_addresses = [netaddr.IPAddress(vip).value]
+        vip = addrconv.ipv4.text_to_bin('10.0.%d.1' % vrid)
+        ip_addresses = [vip]
         config = vrrp_event.VRRPConfig(
             version=vrrp_version, vrid=vrid, priority=priority,
             ip_addresses=ip_addresses)
