@@ -18,12 +18,11 @@
 Events for VRRP
 """
 
-import netaddr
-
 from ryu.controller import event
 from ryu.lib import dpid as dpid_lib
 from ryu.lib import mac as mac_lib
 from ryu.lib.packet import vrrp
+from ryu.lib import addrconv
 
 
 # When an instance is created, state transition is None -> Initialize
@@ -33,6 +32,13 @@ VRRP_STATE_BACKUP = 'Backup'
 
 
 VRRP_MANAGER_NAME = 'VRRPManager'
+
+
+def ip_bin_to_text(ip_bin):
+    if vrrp.is_ipv6(ip_bin):
+        return addrconv.ipv6.bin_to_text(ip_bin)
+    else:
+        return addrconv.ipv4.bin_to_text(ip_bin)
 
 
 class VRRPInterfaceBase(object):
@@ -69,7 +75,7 @@ class VRRPInterfaceNetworkDevice(VRRPInterfaceBase):
         return '%s<%s, %s, %s, %s>' % (
             self.__class__.__name__,
             str(mac_lib.haddr_to_str(self.mac_address)),
-            str(netaddr.IPAddress(self.primary_ip_address)), self.vlan_id,
+            ip_bin_to_text(self.primary_ip_address), self.vlan_id,
             self.device_name)
 
     def __eq__(self, other):
