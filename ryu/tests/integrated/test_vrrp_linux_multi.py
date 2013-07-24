@@ -142,7 +142,7 @@ class VRRPConfigApp(app_manager.RyuApp):
             print "vrid", vrid
             l = {}
             prio = max(vrrp.VRRP_PRIORITY_BACKUP_MIN,
-                   min(vrrp.VRRP_PRIORITY_BACKUP_MAX, vrid))
+                       min(vrrp.VRRP_PRIORITY_BACKUP_MAX, vrid))
             rep0 = self._configure_vrrp_router(vrrp_version,
                                                prio,
                                                _PRIMARY_IP_ADDRESS0, _IFNAME0,
@@ -150,7 +150,7 @@ class VRRPConfigApp(app_manager.RyuApp):
             assert not rep0.instance_name is None
             l[0] = rep0
             prio = max(vrrp.VRRP_PRIORITY_BACKUP_MIN,
-                   min(vrrp.VRRP_PRIORITY_BACKUP_MAX, 256 - vrid))
+                       min(vrrp.VRRP_PRIORITY_BACKUP_MAX, 256 - vrid))
             rep1 = self._configure_vrrp_router(vrrp_version,
                                                prio,
                                                _PRIMARY_IP_ADDRESS1, _IFNAME1,
@@ -183,7 +183,7 @@ class VRRPConfigApp(app_manager.RyuApp):
                     rep = vrrp_api.vrrp_list(self)
                     if len(rep.instance_list) >= len(instances) * 2:
                         if any(i.state == vrrp_event.VRRP_STATE_INITIALIZE
-                            for i in rep.instance_list):
+                               for i in rep.instance_list):
                             continue
                         break
                     print len(rep.instance_list), '/', len(instances) * 2
@@ -198,23 +198,23 @@ class VRRPConfigApp(app_manager.RyuApp):
                 bad = 0
                 for i in rep.instance_list:
                     assert i.state in (vrrp_event.VRRP_STATE_MASTER,
-                        vrrp_event.VRRP_STATE_BACKUP)
+                                       vrrp_event.VRRP_STATE_BACKUP)
                     if i.state == vrrp_event.VRRP_STATE_MASTER:
                         num_of_master += 1
 
                     vr = instances[i.config.vrid]
-                    if (vr[0].config.priority > vr[1].config.priority and \
-                        i.instance_name == vr[1].instance_name) or \
-                       (vr[0].config.priority < vr[1].config.priority and \
-                        i.instance_name == vr[0].instance_name):
-                            if i.state == vrrp_event.VRRP_STATE_MASTER:
-                                print "bad master:"
-                                print d[vr[0].instance_name].state, \
-                                      d[vr[0].instance_name].config.priority
-                                print d[vr[1].instance_name].state, \
-                                      d[vr[1].instance_name].config.priority
-                                bad += 1
-#                            assert i.state != vrrp_event.VRRP_STATE_MASTER
+                    if (vr[0].config.priority > vr[1].config.priority and
+                            i.instance_name == vr[1].instance_name) or \
+                       (vr[0].config.priority < vr[1].config.priority and
+                            i.instance_name == vr[0].instance_name):
+                        if i.state == vrrp_event.VRRP_STATE_MASTER:
+                            print "bad master:"
+                            print d[vr[0].instance_name].state, \
+                                d[vr[0].instance_name].config.priority
+                            print d[vr[1].instance_name].state, \
+                                d[vr[1].instance_name].config.priority
+                            bad += 1
+#                       assert i.state != vrrp_event.VRRP_STATE_MASTER
                 if bad > 0:
                     # this could be a transient state
                     print bad, "bad masters"
@@ -247,7 +247,7 @@ class VRRPConfigApp(app_manager.RyuApp):
             while True:
                 rep = vrrp_api.vrrp_list(self)
                 if all(i.state == vrrp_event.VRRP_STATE_MASTER
-                    for i in rep.instance_list):
+                       for i in rep.instance_list):
                     break
                 time.sleep(1)
 
