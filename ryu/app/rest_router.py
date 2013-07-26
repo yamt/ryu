@@ -1122,8 +1122,8 @@ class VlanRouter(object):
         for send_port in self.port_data.values():
             if in_port is None or in_port != send_port.port_no:
                 src_mac = send_port.mac
-                dst_mac = mac_lib.BROADCAST
-                arp_target_mac = mac_lib.DONTCARE
+                dst_mac = mac_lib.BROADCAST_STR
+                arp_target_mac = mac_lib.DONTCARE_STR
                 inport = self.ofctl.dp.ofproto.OFPP_CONTROLLER
                 output = send_port.port_no
                 self.ofctl.send_arp(arp.ARP_REQUEST, self.vlan_id,
