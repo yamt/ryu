@@ -15,9 +15,9 @@
 # limitations under the License.
 """
 Interface monitor.
-Watching packet recevined on this interface and parse VRRP packet.
+Watching packet received on this interface and parse VRRP packet.
 
-RRPManager creates/deletes instances of interface monitor dynamically.
+VRRPManager creates/deletes instances of interface monitor dynamically.
 """
 
 import contextlib
@@ -128,6 +128,12 @@ class VRRPInterfaceMonitor(app_manager.RyuApp):
         # it ourselvs.
         packet_ = packet.Packet(packet_data)
         protocols = packet_.protocols
+
+        # we expect either of
+        #   [ether, vlan, ip, vrrp{, padding}]
+        # or
+        #   [ether, ip, vrrp{, padding}]
+
         if len(protocols) < 2:
             self.logger.debug('len(protocols) %d', len(protocols))
             return
