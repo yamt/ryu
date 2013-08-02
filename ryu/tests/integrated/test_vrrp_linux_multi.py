@@ -24,11 +24,11 @@ PYTHONPATH=. ./bin/ryu-manager --verbose \
 
 ./ryu/services/vrrp/dumper.py is optional.
 
-                   ----------------
-      /--<--veth-->|              |
-   Ryu             | linux bridge |<--veth--> command to generate packets
-      \--<--veth-->|              |
-                   ----------------
+                    ----------------
+      /--<--veth0-->|              |
+   Ryu              | linux bridge |<--veth2--> command to generate packets
+      \--<--veth1-->|   (vrrpbr)   |
+                    ----------------
 
 
 # ip link add veth0 type veth peer name veth0-br
@@ -62,9 +62,6 @@ from veth2 by packet generator like packeth
 NOTE: vrid: 7 and ip address: 10.0.0.1... are hardcoded below
 """
 
-import netaddr
-import time
-
 from ryu.base import app_manager
 from ryu.lib import hub
 from ryu.lib import mac as lib_mac
@@ -72,65 +69,29 @@ from ryu.lib.packet import vrrp
 from ryu.services.vrrp import api as vrrp_api
 from ryu.services.vrrp import event as vrrp_event
 
-
-_VRID = 7
-_IP_ADDRESS = '10.0.0.1'
-
-_IFNAME0 = 'veth0'
-_PRIMARY_IP_ADDRESS0 = '10.0.0.2'
-
-_IFNAME1 = 'veth1'
-_PRIMARY_IP_ADDRESS1 = '10.0.0.3'
-
-# _IFNAME = 'eth2'
-# _VRID = 1
-# _IP_ADDRESS = '172.17.107.2'
+from . import vrrp_common
 
 
-class VRRPConfigApp(app_manager.RyuApp):
+class VRRPConfigApp(vrrp_common.VRRPCommon):
+    _IFNAME0 = 'veth0'
+    _IFNAME1 = 'veth1'
+
     def __init__(self, *args, **kwargs):
         super(VRRPConfigApp, self).__init__(*args, **kwargs)
-        self.logger.info(
-            'virtual router mac address = %s',
-            lib_mac.haddr_to_str(vrrp.vrrp_ipv4_src_mac_address(_VRID)))
 
     def start(self):
         hub.spawn(self._main)
 
-    def _main(self):
-        time.sleep(1)
-        self._main_version(vrrp.VRRP_VERSION_V3)
-        time.sleep(5)
-        self._main_version(vrrp.VRRP_VERSION_V2)
-
-    def _main_version(self, vrrp_version):
-        self._main_version_priority(vrrp_version,
-                                    vrrp.VRRP_PRIORITY_ADDRESS_OWNER)
-        time.sleep(5)
-        self._main_version_priority(vrrp_version,
-                                    vrrp.VRRP_PRIORITY_BACKUP_MAX)
-        time.sleep(5)
-        self._main_version_priority(vrrp_version,
-                                    vrrp.VRRP_PRIORITY_BACKUP_DEFAULT)
-        time.sleep(5)
-        self._main_version_priority(vrrp_version,
-                                    vrrp.VRRP_PRIORITY_BACKUP_MIN)
-
-    def _main_version_priority(self, vrrp_version, priority):
-        self._main_version_priority_sleep(vrrp_version, priority, False)
-        time.sleep(5)
-        self._main_version_priority_sleep(vrrp_version, priority, True)
-
     def _configure_vrrp_router(self, vrrp_version, priority,
-                               primary_ip_address, ifname):
-        primary_ip_address = netaddr.IPAddress(primary_ip_address)
+                               primary_ip_address, ifname, vrid):
         interface = vrrp_event.VRRPInterfaceNetworkDevice(
-            lib_mac.DONTCARE, primary_ip_address, None, ifname)
+            lib_mac.DONTCARE_STR, primary_ip_address, None, ifname)
         self.logger.debug('%s', interface)
 
-        ip_addresses = [netaddr.IPAddress(_IP_ADDRESS).value]
+        vip = '10.0.%d.1' % vrid
+        ip_addresses = [vip]
         config = vrrp_event.VRRPConfig(
-            version=vrrp_version, vrid=_VRID, priority=priority,
+            version=vrrp_version, vrid=vrid, priority=priority,
             ip_addresses=ip_addresses)
         self.logger.debug('%s', config)
 
@@ -138,24 +99,3 @@ class VRRPConfigApp(app_manager.RyuApp):
         self.logger.debug('%s', rep)
 
         return rep
-
-    def _main_version_priority_sleep(self, vrrp_version, priority, do_sleep):
-        app_mgr = app_manager.AppManager.get_instance()
-        self.logger.debug('%s', app_mgr.applications)
-        vrrp_mgr = app_mgr.applications['VRRPManager']
-
-        rep0 = self._configure_vrrp_router(vrrp_version, priority,
-                                           _PRIMARY_IP_ADDRESS0, _IFNAME0)
-        rep1 = self._configure_vrrp_router(
-            vrrp_version, vrrp.VRRP_PRIORITY_BACKUP_DEFAULT,
-            _PRIMARY_IP_ADDRESS1, _IFNAME1)
-
-        self.logger.debug('%s', vrrp_mgr._instances)
-
-        if do_sleep:
-            time.sleep(10)
-
-        vrrp_api.vrrp_shutdown(self, rep0.instance_name)
-        if do_sleep:
-            time.sleep(10)
-        vrrp_api.vrrp_shutdown(self, rep1.instance_name)
