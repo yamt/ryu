@@ -78,14 +78,13 @@ ovs-system              0000.122038293b55       no
 # ip link b0 set up
 """
 
-import netaddr
 import time
 
 from ryu.base import app_manager
 from ryu.controller import handler
 from ryu.lib import dpid as lib_dpid
 from ryu.lib import hub
-from ryu.lib import mac as lib_mac
+from ryu.lib import addrconv
 from ryu.lib.packet import vrrp
 from ryu.services.vrrp import api as vrrp_api
 from ryu.services.vrrp import event as vrrp_event
@@ -147,10 +146,9 @@ class VRRPConfigApp(app_manager.RyuApp):
         self.logger.debug('%d', port_no)
         port = switches.port_state[dpid][port_no]
         self.logger.debug('%s', port)
-        mac = port.hw_addr
-        self.logger.debug('%s', lib_mac.haddr_to_str(mac))
+        mac = addrconv.mac.bin_to_text(port.hw_addr)
+        self.logger.debug('%s', mac)
 
-        ip_addr = netaddr.IPAddress(ip_addr).value
         interface = vrrp_event.VRRPInterfaceOpenFlow(
             mac, ip_addr, None, dpid, port_no)
         self.logger.debug('%s', interface)
