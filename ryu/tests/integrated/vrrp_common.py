@@ -164,7 +164,7 @@ class VRRPCommon(app_manager.RyuApp):
         vrrp_api.vrrp_shutdown(self, instances[_VRID][0].instance_name)
 
         if do_sleep:
-            print "shutting down an instance"
+            print "shutting down instances"
             while True:
                 rep = vrrp_api.vrrp_list(self)
                 if len(rep.instance_list) <= len(instances):
