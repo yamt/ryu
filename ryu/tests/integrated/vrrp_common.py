@@ -14,54 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Usage:
-PYTHONPATH=. ./bin/ryu-manager --verbose \
-             ./ryu/services/vrrp/manager.py \
-             ./ryu/services/vrrp/dumper.py \
-             ./ryu/services/vrrp/sample_manager.py \
-             ./ryu/tests/integrated/test_vrrp_linux_multi.py
-
-./ryu/services/vrrp/dumper.py is optional.
-
-                    ----------------
-      /--<--veth0-->|              |
-   Ryu              | linux bridge |<--veth2--> command to generate packets
-      \--<--veth1-->|   (vrrpbr)   |
-                    ----------------
-
-
-# ip link add veth0 type veth peer name veth0-br
-# ip link add veth1 type veth peer name veth1-br
-# ip link add veth2 type veth peer name veth2-br
-
-# brctl addbr vrrpbr
-# brctl addif vrrpbr veth0-br
-# brctl addif vrrpbr veth1-br
-# brctl addif vrrpbr veth2-br
-
-
-# ip link set veth0 up
-# ip link set veth0-br up
-# ip link set veth1 up
-# ip link set veth1-br up
-# ip link set veth2 up
-# ip link set veth2-br up
-# ip link set vrrpbr up
-
-if you like, capture packets on each interfaces like
-# tshark -i vrrpbr
-# tshark -i veth0
-# tshark -i veth1
-# tshark -i veth2
-
-virtual router mac address: 00:00:5E:00:01:{VRID} = 00:00:5E:00:01:07
-during working, send packets destined to mac address 00:00:5E:00:01:07
-from veth2 by packet generator like packeth
-
-NOTE: vrid: 7 and ip address: 10.0.0.1... are hardcoded below
-"""
-
 import time
 
 from ryu.base import app_manager
@@ -73,9 +25,7 @@ from ryu.services.vrrp import event as vrrp_event
 
 
 _VRID = 7
-
 _PRIMARY_IP_ADDRESS0 = '10.0.0.2'
-
 _PRIMARY_IP_ADDRESS1 = '10.0.0.3'
 
 
