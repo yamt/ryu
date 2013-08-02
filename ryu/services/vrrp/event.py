@@ -34,13 +34,6 @@ VRRP_STATE_BACKUP = 'Backup'
 VRRP_MANAGER_NAME = 'VRRPManager'
 
 
-def ip_bin_to_text(ip_bin):
-    if vrrp.is_ipv6(ip_bin):
-        return addrconv.ipv6.bin_to_text(ip_bin)
-    else:
-        return addrconv.ipv4.bin_to_text(ip_bin)
-
-
 class VRRPInterfaceBase(object):
     """
     interface on which VRRP router works
@@ -61,7 +54,9 @@ class VRRPInterfaceBase(object):
                 self.vlan_id == other.vlan_id)
 
     def __hash__(self):
-        return hash((self.mac_address, self.primary_ip_address, self.vlan_id))
+        return hash((
+            addrconv.mac.text_to_bin(self.mac_address),
+            vrrp.ip_text_to_bin(self.primary_ip_address), self.vlan_id))
 
 
 class VRRPInterfaceNetworkDevice(VRRPInterfaceBase):
@@ -74,8 +69,8 @@ class VRRPInterfaceNetworkDevice(VRRPInterfaceBase):
     def __str__(self):
         return '%s<%s, %s, %s, %s>' % (
             self.__class__.__name__,
-            str(mac_lib.haddr_to_str(self.mac_address)),
-            ip_bin_to_text(self.primary_ip_address), self.vlan_id,
+            self.mac_address,
+            self.primary_ip_address, self.vlan_id,
             self.device_name)
 
     def __eq__(self, other):
@@ -83,8 +78,10 @@ class VRRPInterfaceNetworkDevice(VRRPInterfaceBase):
                 self.device_name == other.device_name)
 
     def __hash__(self):
-        return hash((self.mac_address, self.primary_ip_address, self.vlan_id,
-                     self.device_name))
+        return hash((
+            addrconv.mac.text_to_bin(self.mac_address),
+            vrrp.ip_text_to_bin(self.primary_ip_address), self.vlan_id,
+            self.device_name))
 
 
 class VRRPInterfaceOpenFlow(VRRPInterfaceBase):
@@ -98,8 +95,8 @@ class VRRPInterfaceOpenFlow(VRRPInterfaceBase):
     def __str__(self):
         return '%s<%s, %s, %s, %s, %d>' % (
             self.__class__.__name__,
-            str(mac_lib.haddr_to_str(self.mac_address)),
-            str(netaddr.IPAddress(self.primary_ip_address)), self.vlan_id,
+            self.mac_address,
+            self.primary_ip_address, self.vlan_id,
             dpid_lib.dpid_to_str(self.dpid), self.port_no)
 
     def __eq__(self, other):
@@ -107,8 +104,10 @@ class VRRPInterfaceOpenFlow(VRRPInterfaceBase):
                 self.dpid == other.dpid and self.port_no == other.port_no)
 
     def __hash__(self):
-        return hash((self.mac_address, self.primary_ip_address, self.vlan_id,
-                     self.dpid, self.port_no))
+        return hash((
+            addrconv.mac.text_to_bin(self.mac_address),
+            vrrp.ip_text_to_bin(self.primary_ip_address), self.vlan_id,
+            self.dpid, self.port_no))
 
 
 class VRRPConfig(object):
@@ -151,7 +150,8 @@ class VRRPConfig(object):
                 self.is_ipv6 == other.is_ipv6)
 
     def __hash__(self):
-        hash((self.version, self.vrid, self.priority, self.ip_addresses,
+        hash((self.version, self.vrid, self.priority,
+              map(vrrp.ip_text_to_bin, self.ip_addresses),
               self.advertisement_interval, self.preempt_mode,
               self.preempt_delay, self.accept_mode, self.is_ipv6))
 

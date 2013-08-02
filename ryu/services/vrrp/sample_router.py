@@ -205,9 +205,10 @@ class RouterIPV4(RouterBase):
     def _garp_packet(self, ip_address):
         # prepare garp packet
         src_mac = vrrp.vrrp_ipv4_src_mac_address(self.config.vrid)
-        e = ethernet.ethernet(mac_lib.BROADCAST, src_mac, ether.ETH_TYPE_ARP)
+        e = ethernet.ethernet(mac_lib.BROADCAST_STR, src_mac,
+                              ether.ETH_TYPE_ARP)
         a = arp.arp_ip(arp.ARP_REQUEST, src_mac, ip_address,
-                       mac_lib.DONTCARE, ip_address)
+                       mac_lib.DONTCARE_STR, ip_address)
 
         p = packet.Packet()
         p.add_protocol(e)
@@ -254,7 +255,7 @@ class RouterIPV4(RouterBase):
         p = packet.Packet(data)
         for proto in p.protocols:
             if isinstance(proto, ethernet.ethernet):
-                if proto.dst not in (mac_lib.BROADCAST, dst_mac):
+                if proto.dst not in (mac_lib.BROADCAST_STR, dst_mac):
                     return None
                 ethertype = proto.ethertype
                 if not ((self.interface.vlan_id is None and
@@ -459,12 +460,12 @@ class RouterIPV4OpenFlow(RouterIPV4):
         self._arp_process(msg.data)
 
     def _drop_match(self, dp):
-        match = dp.ofproto_parser.OFPMatch()
-        match.set_in_port(self.interface.port_no)
-        match.set_dl_dst(vrrp.vrrp_ipv4_src_mac_address(self.config.vrid))
+        kwargs = {}
+        kwargs['in_port'] = self.interface.port_no
+        kwargs['eth_dst'] = vrrp.vrrp_ipv4_src_mac_address(self.config.vrid)
         if self.interface.vlan_id is not None:
-            match.set_vlan_vid(self.interface.vlan_id)
-        return match
+            kwargs['vlan_vid'] = self.interface.vlan_id
+        return dp.ofproto_parser.OFPMatch(**kwargs)
 
     def _install_drop_rule(self, dp):
         match = self._drop_match(dp)
@@ -477,16 +478,15 @@ class RouterIPV4OpenFlow(RouterIPV4):
                           self._DROP_PRIORITY, match, [])
 
     def _arp_match(self, dp):
-        match = dp.ofproto_parser.OFPMatch()
-        match.set_in_port(self.interface.port_no)
-        match.set_dl_dst(mac_lib.BROADCAST)
-        match.set_dl_type(ether.ETH_TYPE_ARP)
+        kwargs = {}
+        kwargs['in_port'] = self.interface.port_no
+        kwargs['eth_dst'] = mac_lib.BROADCAST_STR
+        kwargs['eth_type'] = ether.ETH_TYPE_ARP
         if self.interface.vlan_id is not None:
-            match.set_vlan_vid(self.interface.vlan_id)
-        match.set_arp_opcode(arp.ARP_REQUEST)
-        match.set_arp_tpa(self,
-                          vrrp.vrrp_ipv4_src_mac_address(self.config.vrid))
-        return match
+            kwargs['vlan_vid'] = self.interface.vlan_id
+        kwargs['arp_op'] = arp.ARP_REQUEST
+        kwargs['arp_tpa'] = vrrp.vrrp_ipv4_src_mac_address(self.config.vrid)
+        return dp.ofproto_parser.OFPMatch(**kwargs)
 
     def _install_arp_rule(self, dp):
         ofproto = dp.ofproto
