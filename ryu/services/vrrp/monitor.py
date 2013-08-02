@@ -327,8 +327,7 @@ class VRRPInterfaceMonitorNetworkDevice(VRRPInterfaceMonitor):
             family = socket.IPPROTO_IP
             sockaddr = struct.pack('H', socket.AF_INET)
             sockaddr += struct.pack('!H', 0)
-            sockaddr += struct.pack('!4s',
-                addrconv.ipv4.text_to_bin(vrrp.VRRP_IPV4_DST_ADDRESS))
+            sockaddr += addrconv.ipv4.text_to_bin(vrrp.VRRP_IPV4_DST_ADDRESS)
 
         sockaddr += '\x00' * (SS_MAXSIZE - len(sockaddr))
         group_req += sockaddr
