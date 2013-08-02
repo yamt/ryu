@@ -30,6 +30,7 @@ from ryu.controller import handler
 from ryu.controller import ofp_event
 from ryu.lib import dpid as dpid_lib
 from ryu.lib import hub
+from ryu.lib import addrconv
 from ryu.lib.packet import arp
 from ryu.lib.packet import packet
 from ryu.lib.packet import vlan
@@ -239,7 +240,8 @@ class VRRPInterfaceMonitorNetworkDevice(VRRPInterfaceMonitor):
                                            socket.htons(ether_type))
         self.packet_socket.bind((self.interface.device_name, ether_type,
                                  socket.PACKET_MULTICAST,
-                                 arp.ARP_HW_TYPE_ETHERNET, mac_address))
+                                 arp.ARP_HW_TYPE_ETHERNET,
+                                 addrconv.mac.text_to_bin(mac_address)))
 
         self.ifindex = if_nametoindex(self.interface.device_name)
 
@@ -275,7 +277,8 @@ class VRRPInterfaceMonitorNetworkDevice(VRRPInterfaceMonitor):
         else:
             add_drop = PACKET_DROP_MEMBERSHIP
         packet_mreq = struct.pack('IHH8s', self.ifindex,
-                                  PACKET_MR_MULTICAST, 6, mac_address)
+                                  PACKET_MR_MULTICAST, 6,
+                                  addrconv.mac.text_to_bin(mac_address))
         self.packet_socket.setsockopt(SOL_PACKET, add_drop, packet_mreq)
 
     def _join_vrrp_group(self, join_leave):
@@ -306,7 +309,7 @@ class VRRPInterfaceMonitorNetworkDevice(VRRPInterfaceMonitor):
             sockaddr = struct.pack('H',  socket.AF_INET6)
             sockaddr += struct.pack('!H', 0)
             sockaddr += struct.pack('!I', 0)
-            sockaddr += vrrp.VRRP_IPV6_DST_ADDRESS
+            sockaddr += addrconv.ipv6.text_to_bin(vrrp.VRRP_IPV6_DST_ADDRESS)
             sockaddr += struct.pack('I', 0)
         else:
             # #define __SOCK_SIZE__   16 /* sizeof(struct sockaddr) */
@@ -324,7 +327,7 @@ class VRRPInterfaceMonitorNetworkDevice(VRRPInterfaceMonitor):
             family = socket.IPPROTO_IP
             sockaddr = struct.pack('H', socket.AF_INET)
             sockaddr += struct.pack('!H', 0)
-            sockaddr += struct.pack('!I', vrrp.VRRP_IPV4_DST_ADDRESS)
+            sockaddr += addrconv.ipv4.text_to_bin(vrrp.VRRP_IPV4_DST_ADDRESS)
 
         sockaddr += '\x00' * (SS_MAXSIZE - len(sockaddr))
         group_req += sockaddr
@@ -422,27 +425,29 @@ class VRRPInterfaceMonitorOpenFlow(VRRPInterfaceMonitor):
         utils.dp_packet_out(dp, self.interface.port_no, ev.data)
 
     def _ofp_match(self, ofproto_parser):
-        match = ofproto_parser.OFPMatch()
-        match.set_in_port(self.interface.port_no)
         is_ipv6 = vrrp.is_ipv6(self.config.ip_addresses[0])
+        kwargs = {}
+        kwargs['in_port'] = self.interface.port_no
         if is_ipv6:
-            match.set_dl_dst(vrrp.VRRP_IPV6_DST_MAC_ADDRESS)
-            match.set_dl_src(vrrp.vrrp_ipv6_src_mac_address(self.config.vrid))
-            match.set_dl_type(ether.ETH_TYPE_IPV6)
-            match.set_ipv6_dst(vrrp.VRRP_IPV6_DST_ADDRESS)
+            kwargs['eth_dst'] = vrrp.VRRP_IPV6_DST_MAC_ADDRESS
+            kwargs['eth_src'] = \
+                vrrp.vrrp_ipv6_src_mac_address(self.config.vrid)
+            kwargs['eth_type'] = ether.ETH_TYPE_IPV6
+            kwargs['ipv6_dst'] = vrrp.VRRP_IPV6_DST_ADDRESS
         else:
-            match.set_dl_dst(vrrp.VRRP_IPV4_DST_MAC_ADDRESS)
-            match.set_dl_src(vrrp.vrrp_ipv4_src_mac_address(self.config.vrid))
-            match.set_dl_type(ether.ETH_TYPE_IP)
-            match.set_ipv4_dst(vrrp.VRRP_IPV4_DST_ADDRESS)
+            kwargs['eth_dst'] = vrrp.VRRP_IPV4_DST_MAC_ADDRESS
+            kwargs['eth_src'] = \
+                vrrp.vrrp_ipv4_src_mac_address(self.config.vrid)
+            kwargs['eth_type'] = ether.ETH_TYPE_IP
+            kwargs['ipv4_dst'] = vrrp.VRRP_IPV4_DST_ADDRESS
 
         if self.interface.vlan_id is not None:
-            match.set_vlan_vid(self.interface.vlan_id)
-        match.set_ip_proto(inet.IPPROTO_VRRP)
+            kwargs['vlan_vid'] = self.interface.vlan_id
+        kwargs['ip_proto'] = inet.IPPROTO_VRRP
         # OF1.2 doesn't support TTL match.
         # It needs to be checked by packet in handler
 
-        return match
+        return ofproto_parser.OFPMatch(**kwargs)
 
     def _initialize(self):
         dp = self._get_dp()
