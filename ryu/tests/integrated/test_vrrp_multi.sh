@@ -14,6 +14,7 @@ create() {
     ${VSCTL} add-port ${BR} ${LOCAL_PORT}
     ${VSCTL} set interface ${LOCAL_PORT} type=patch
     ${VSCTL} set interface ${LOCAL_PORT} options:peer=${PEER_PORT}
+    ${VSCTL} set bridge ${BR} protocols='[OpenFlow12]'
     ${VSCTL} set-controller ${BR} ${CONT}
 }
 
