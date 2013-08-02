@@ -323,7 +323,7 @@ class VRRPV2StateMaster(VRRPState):
             if (config.priority < vrrp_.priority or
                 (config.priority == vrrp_.priority and
                  vrrp.ip_address_lt(vrrp_router.interface.primary_ip_address,
-                 ip.src))):
+                                    ip.src))):
                 vrrp_router.adver_timer.cancel()
 
                 vrrp_router.state_change(vrrp_event.VRRP_STATE_BACKUP)
@@ -526,7 +526,7 @@ class VRRPV3StateMaster(VRRPState):
             if (config.priority < vrrp_.priority or
                 (config.priority == vrrp_.priority and
                  vrrp.ip_address_lt(vrrp_router.interface.primary_ip_address,
-                 ip.src))):
+                                    ip.src))):
                 vrrp_router.adver_timer.cancel()
                 params.master_adver_interval = vrrp_.max_adver_int_in_sec
 
