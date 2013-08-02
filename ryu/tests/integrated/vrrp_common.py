@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import time
+import random
 
 from ryu.base import app_manager
 from ryu.lib import hub
@@ -156,6 +157,22 @@ class VRRPCommon(app_manager.RyuApp):
         if do_sleep:
             print "priority", priority
             print "waiting for instances starting"
+
+            self._check(vrrp_api, instances)
+
+        for vrid in instances.keys():
+            if vrid == _VRID:
+                continue
+            which = vrid & 1
+            new_priority = int(random.uniform(vrrp.VRRP_PRIORITY_BACKUP_MIN,
+                                              vrrp.VRRP_PRIORITY_BACKUP_MAX))
+            i = instances[vrid][which]
+            vrrp_api.vrrp_config_change(self, i.instance_name,
+                                        priority=new_priority)
+            i.config.priority = new_priority
+
+        if do_sleep:
+            print "priority shuffled"
 
             self._check(vrrp_api, instances)
 
