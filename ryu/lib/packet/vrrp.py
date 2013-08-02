@@ -170,7 +170,7 @@ def is_ipv6(ip_address):
 
 
 def ip_text_to_bin(ip_text):
-    if vrrp.is_ipv6(ip_text):
+    if is_ipv6(ip_text):
         return addrconv.ipv6.text_to_bin(ip_text)
     else:
         return addrconv.ipv4.text_to_bin(ip_text)
