@@ -55,6 +55,56 @@ class VRRPCommon(app_manager.RyuApp):
         self._main_version_priority_sleep(vrrp_version, priority, False)
         self._main_version_priority_sleep(vrrp_version, priority, True)
 
+    def _check(self, vrrp_api, instances):
+        while True:
+            while True:
+                rep = vrrp_api.vrrp_list(self)
+                if len(rep.instance_list) >= len(instances) * 2:
+                    if any(i.state == vrrp_event.VRRP_STATE_INITIALIZE
+                           for i in rep.instance_list):
+                        continue
+                    break
+                print len(rep.instance_list), '/', len(instances) * 2
+                time.sleep(1)
+
+#                for i in rep.instance_list:
+#                    print i.instance_name, i.monitor_name, i.config, \
+#                          i.interface, i.state
+            assert len(rep.instance_list) == len(instances) * 2
+            num_of_master = 0
+            d = dict(((i.instance_name, i) for i in rep.instance_list))
+            bad = 0
+            for i in rep.instance_list:
+                assert i.state in (vrrp_event.VRRP_STATE_MASTER,
+                                   vrrp_event.VRRP_STATE_BACKUP)
+                if i.state == vrrp_event.VRRP_STATE_MASTER:
+                    num_of_master += 1
+
+                vr = instances[i.config.vrid]
+                if (vr[0].config.priority > vr[1].config.priority and
+                        i.instance_name == vr[1].instance_name) or \
+                   (vr[0].config.priority < vr[1].config.priority and
+                        i.instance_name == vr[0].instance_name):
+                    if i.state == vrrp_event.VRRP_STATE_MASTER:
+                        print "bad master:"
+                        print d[vr[0].instance_name].state, \
+                            d[vr[0].instance_name].config.priority
+                        print d[vr[1].instance_name].state, \
+                            d[vr[1].instance_name].config.priority
+                        bad += 1
+#                       assert i.state != vrrp_event.VRRP_STATE_MASTER
+            if bad > 0:
+                # this could be a transient state
+                print bad, "bad masters"
+                time.sleep(1)
+                continue
+            if num_of_master >= len(instances):
+                assert num_of_master == len(instances)
+                break
+            print num_of_master, '/', len(instances)
+            time.sleep(1)
+            continue
+
     def _main_version_priority_sleep(self, vrrp_version, priority, do_sleep):
         app_mgr = app_manager.AppManager.get_instance()
         self.logger.debug('%s', app_mgr.applications)
@@ -107,54 +157,7 @@ class VRRPCommon(app_manager.RyuApp):
             print "priority", priority
             print "waiting for instances starting"
 
-            while True:
-                while True:
-                    rep = vrrp_api.vrrp_list(self)
-                    if len(rep.instance_list) >= len(instances) * 2:
-                        if any(i.state == vrrp_event.VRRP_STATE_INITIALIZE
-                               for i in rep.instance_list):
-                            continue
-                        break
-                    print len(rep.instance_list), '/', len(instances) * 2
-                    time.sleep(1)
-
-#                for i in rep.instance_list:
-#                    print i.instance_name, i.monitor_name, i.config, \
-#                          i.interface, i.state
-                assert len(rep.instance_list) == len(instances) * 2
-                num_of_master = 0
-                d = dict(((i.instance_name, i) for i in rep.instance_list))
-                bad = 0
-                for i in rep.instance_list:
-                    assert i.state in (vrrp_event.VRRP_STATE_MASTER,
-                                       vrrp_event.VRRP_STATE_BACKUP)
-                    if i.state == vrrp_event.VRRP_STATE_MASTER:
-                        num_of_master += 1
-
-                    vr = instances[i.config.vrid]
-                    if (vr[0].config.priority > vr[1].config.priority and
-                            i.instance_name == vr[1].instance_name) or \
-                       (vr[0].config.priority < vr[1].config.priority and
-                            i.instance_name == vr[0].instance_name):
-                        if i.state == vrrp_event.VRRP_STATE_MASTER:
-                            print "bad master:"
-                            print d[vr[0].instance_name].state, \
-                                d[vr[0].instance_name].config.priority
-                            print d[vr[1].instance_name].state, \
-                                d[vr[1].instance_name].config.priority
-                            bad += 1
-#                       assert i.state != vrrp_event.VRRP_STATE_MASTER
-                if bad > 0:
-                    # this could be a transient state
-                    print bad, "bad masters"
-                    time.sleep(1)
-                    continue
-                if num_of_master >= len(instances):
-                    assert num_of_master == len(instances)
-                    break
-                print num_of_master, '/', len(instances)
-                time.sleep(1)
-                continue
+            self._check(vrrp_api, instances)
 
         for vrid in instances.keys():
             if vrid == _VRID:
