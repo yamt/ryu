@@ -9,6 +9,12 @@
             "OFPInstructionActions" : {
                "actions" : [
                   {
+                     "OFPActionSetField" : {
+                        "key" : "vlan_vid",
+                        "value" : 258
+                     }
+                  },
+                  {
                      "OFPActionOutput" : {
                         "max_len" : 65535,
                         "port" : 6
