@@ -50,6 +50,39 @@ def msg_parser(datapath, version, msg_type, msg_len, xid, buf):
     return parser(datapath, version, msg_type, msg_len, xid, buf)
 
 
+def oxm_tlv_parse(buf, offset):
+    hdr_pack_str = '!I'
+    (header, ) = struct.unpack_from(hdr_pack_str, buf, offset)
+    hdr_len = struct.calcsize(hdr_pack_str)
+    oxm_type = header >> 9  # class|field
+    oxm_hasmask = ofproto_v1_2.oxm_tlv_header_extract_hasmask(header)
+    value_len = ofproto_v1_2.oxm_tlv_header_extract_length(header)
+    value_pack_str = '!%ds' % value_len
+    assert struct.calcsize(value_pack_str) == value_len
+    (value, ) = struct.unpack_from(value_pack_str, buf,
+                                   offset + hdr_len)
+    if oxm_hasmask:
+        (mask, ) = struct.unpack_from(value_pack_str, buf,
+                                      offset + hdr_len + value_len)
+    else:
+        mask = None
+    field_len = hdr_len + (header & 0xff)
+    return oxm_type, value, mask, field_len
+
+
+def oxm_tlv_serialize(n, value, mask, buf, offset):
+    if mask:
+        assert len(value) == len(mask)
+        pack_str = "!I%ds%ds" % (len(value), len(mask))
+        msg_pack_into(pack_str, buf, offset,
+                      (n << 9) | (1 << 8) | (len(value) * 2), value, mask)
+    else:
+        pack_str = "!I%ds" % (len(value),)
+        msg_pack_into(pack_str, buf, offset,
+                      (n << 9) | (0 << 8) | len(value), value)
+    return struct.calcsize(pack_str)
+
+
 @_register_parser
 @_set_msg_type(ofproto_v1_2.OFPT_HELLO)
 class OFPHello(MsgBase):
@@ -794,19 +827,51 @@ class OFPActionPopMpls(OFPAction):
 @OFPAction.register_action_type(ofproto_v1_2.OFPAT_SET_FIELD,
                                 ofproto_v1_2.OFP_ACTION_SET_FIELD_SIZE)
 class OFPActionSetField(OFPAction):
-    def __init__(self, field):
+    def __init__(self, field=None, value=None, key=None):
+        # old api
+        #   OFPActionSetField(field)
+        # new api
+        #   OFPActionSetField("eth_src", "00:00:00:00:00")
         super(OFPActionSetField, self).__init__()
-        self.field = field
+        if isinstance(field, OFPMatchField):
+            # old api compat
+            assert value is None
+            self.field = field
+        else:
+            if key is None:
+                key = field
+            assert isinstance(key, (str, unicode))
+            assert not isinstance(value, tuple)  # no mask
+            self.key = key
+            self.value = value
 
     @classmethod
     def parser(cls, buf, offset):
         (type_, len_) = struct.unpack_from('!HH', buf, offset)
-        field = OFPMatchField.parser(buf, offset + 4)
-        action = cls(field)
+        (n, value, mask, _len) = oxm_tlv_parse(buf, offset + 4)
+        k, uv = ofproto_v1_2.oxm_to_user(n, value, mask)
+        action = cls(k, uv)
         action.len = len_
+
+        # old api compat
+        action.field = OFPMatchField.parser(buf, offset + 4)
+
         return action
 
     def serialize(self, buf, offset):
+        # old api compat
+        if self._composed_with_old_api():
+            return self.serialize_old(buf, offset)
+
+        n, value, mask = ofproto_v1_2.oxm_from_user(self.key, self.value)
+        len_ = oxm_tlv_serialize(n, value, mask, buf, offset + 4)
+        self.len = utils.round_up(4 + len_, 8)
+        msg_pack_into('!HH', buf, offset, self.type, self.len)
+        pad_len = self.len - len_
+        ofproto_parser.msg_pack_into("%dx" % pad_len, buf, offset + 4 + len_)
+
+    # XXX old api compat
+    def serialize_old(self, buf, offset):
         len_ = ofproto_v1_2.OFP_ACTION_SET_FIELD_SIZE + self.field.oxm_len()
         self.len = utils.round_up(len_, 8)
         pad_len = self.len - len_
@@ -815,6 +880,55 @@ class OFPActionSetField(OFPAction):
         self.field.serialize(buf, offset + 4)
         offset += len_
         ofproto_parser.msg_pack_into("%dx" % pad_len, buf, offset)
+
+    # XXX old api compat
+    def _composed_with_old_api(self):
+        return not hasattr(self, 'value')
+
+    def to_jsondict(self):
+        # XXX old api compat
+        if self._composed_with_old_api():
+            # copy object first because serialize_old is destructive
+            o2 = OFPActionSetField(self.field)
+            # serialize and parse to fill new fields
+            buf = bytearray()
+            o2.serialize(buf, 0)
+            o = OFPActionSetField.parser(str(buf), 0)
+        else:
+            o = self
+        return super(OFPActionSetField, o).to_jsondict(lambda x: x)
+
+    @classmethod
+    def from_jsondict(cls, dict_):
+        # XXX old api compat
+        o = super(OFPActionSetField, cls).from_jsondict(dict_, lambda x: x)
+
+        # XXX old api compat
+        # serialize and parse to fill old attributes
+        buf = bytearray()
+        o.serialize(buf, 0)
+        return OFPActionSetField.parser(str(buf), 0)
+
+    # XXX old api compat
+    def __str__(self):
+        # XXX old api compat
+        if self._composed_with_old_api():
+            # copy object first because serialize_old is destructive
+            o2 = OFPActionSetField(self.field)
+            # serialize and parse to fill new fields
+            buf = bytearray()
+            o2.serialize(buf, 0)
+            o = OFPActionSetField.parser(str(buf), 0)
+        else:
+            o = self
+        return super(OFPActionSetField, o).__str__()
+
+    __repr__ = __str__
+
+    # XXX old api compat
+    def stringify_attrs(self):
+        yield "key", self.key
+        yield "value", self.value
 
 
 @OFPAction.register_action_type(
@@ -1700,18 +1814,8 @@ class OFPMatch(StringifyMixin):
         hdr_pack_str = '!HH'
         field_offset = offset + struct.calcsize(hdr_pack_str)
         for (n, value, mask) in fields:
-            if mask:
-                assert len(value) == len(mask)
-                pack_str = "!I%ds%ds" % (len(value), len(mask))
-                msg_pack_into(pack_str, buf, field_offset,
-                              (n << 9) | (1 << 8) | (len(value) * 2),
-                              value, mask)
-            else:
-                pack_str = "!I%ds" % (len(value),)
-                msg_pack_into(pack_str, buf, field_offset,
-                              (n << 9) | (0 << 8) | len(value),
-                              value)
-            field_offset += struct.calcsize(pack_str)
+            field_offset += oxm_tlv_serialize(n, value, mask, buf,
+                                              field_offset)
 
         length = field_offset - offset
         msg_pack_into(hdr_pack_str, buf, offset,
@@ -1939,24 +2043,9 @@ class OFPMatch(StringifyMixin):
 
         fields = {}
         while length > 0:
-            hdr_pack_str = '!I'
-            (header, ) = struct.unpack_from(hdr_pack_str, buf, offset)
-            hdr_len = struct.calcsize(hdr_pack_str)
-            oxm_type = header >> 9  # class|field
-            oxm_hasmask = ofproto_v1_2.oxm_tlv_header_extract_hasmask(header)
-            value_len = ofproto_v1_2.oxm_tlv_header_extract_length(header)
-            value_pack_str = '!%ds' % value_len
-            assert struct.calcsize(value_pack_str) == value_len
-            (value, ) = struct.unpack_from(value_pack_str, buf,
-                                           offset + hdr_len)
-            if oxm_hasmask:
-                (mask, ) = struct.unpack_from(value_pack_str, buf,
-                                              offset + hdr_len + value_len)
-            else:
-                mask = None
-            k, uv = ofproto_v1_2.oxm_to_user(oxm_type, value, mask)
+            n, value, mask, field_len = oxm_tlv_parse(buf, offset)
+            k, uv = ofproto_v1_2.oxm_to_user(n, value, mask)
             fields[k] = uv
-            field_len = hdr_len + (header & 0xff)
             offset += field_len
             length -= field_len
         match._fields2 = fields
