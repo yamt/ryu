@@ -470,9 +470,7 @@ class OFPInstruction(StringifyMixin):
 
 @OFPInstruction.register_instruction_type([ofproto_v1_2.OFPIT_GOTO_TABLE])
 class OFPInstructionGotoTable(StringifyMixin):
-    _base_attributes = ['type', 'len']
-
-    def __init__(self, table_id):
+    def __init__(self, table_id, type_=None, len_=None):
         super(OFPInstructionGotoTable, self).__init__()
         self.type = ofproto_v1_2.OFPIT_GOTO_TABLE
         self.len = ofproto_v1_2.OFP_INSTRUCTION_GOTO_TABLE_SIZE
@@ -492,9 +490,7 @@ class OFPInstructionGotoTable(StringifyMixin):
 
 @OFPInstruction.register_instruction_type([ofproto_v1_2.OFPIT_WRITE_METADATA])
 class OFPInstructionWriteMetadata(StringifyMixin):
-    _base_attributes = ['type', 'len']
-
-    def __init__(self, metadata, metadata_mask):
+    def __init__(self, metadata, metadata_mask, len_=None):
         super(OFPInstructionWriteMetadata, self).__init__()
         self.type = ofproto_v1_2.OFPIT_WRITE_METADATA
         self.len = ofproto_v1_2.OFP_INSTRUCTION_WRITE_METADATA_SIZE
@@ -518,9 +514,7 @@ class OFPInstructionWriteMetadata(StringifyMixin):
                                            ofproto_v1_2.OFPIT_APPLY_ACTIONS,
                                            ofproto_v1_2.OFPIT_CLEAR_ACTIONS])
 class OFPInstructionActions(StringifyMixin):
-    _base_attributes = ['len']
-
-    def __init__(self, type_, actions=None):
+    def __init__(self, type_, actions=None, len_=None):
         super(OFPInstructionActions, self).__init__()
         self.type = type_
         self.actions = actions
@@ -562,8 +556,6 @@ class OFPInstructionActions(StringifyMixin):
 
 
 class OFPActionHeader(StringifyMixin):
-    _base_attributes = ['type', 'len']
-
     def __init__(self, type_, len_):
         self.type = type_
         self.len = len_
@@ -606,7 +598,7 @@ class OFPAction(OFPActionHeader):
 @OFPAction.register_action_type(ofproto_v1_2.OFPAT_OUTPUT,
                                 ofproto_v1_2.OFP_ACTION_OUTPUT_SIZE)
 class OFPActionOutput(OFPAction):
-    def __init__(self, port, max_len=0):
+    def __init__(self, port, max_len=0, type_=None, len_=None):
         super(OFPActionOutput, self).__init__()
         self.port = port
         self.max_len = max_len
@@ -625,7 +617,7 @@ class OFPActionOutput(OFPAction):
 @OFPAction.register_action_type(ofproto_v1_2.OFPAT_GROUP,
                                 ofproto_v1_2.OFP_ACTION_GROUP_SIZE)
 class OFPActionGroup(OFPAction):
-    def __init__(self, group_id):
+    def __init__(self, group_id, type_=None, len_=None):
         super(OFPActionGroup, self).__init__()
         self.group_id = group_id
 
@@ -643,7 +635,7 @@ class OFPActionGroup(OFPAction):
 @OFPAction.register_action_type(ofproto_v1_2.OFPAT_SET_QUEUE,
                                 ofproto_v1_2.OFP_ACTION_SET_QUEUE_SIZE)
 class OFPActionSetQueue(OFPAction):
-    def __init__(self, queue_id):
+    def __init__(self, queue_id, type_=None, len_=None):
         super(OFPActionSetQueue, self).__init__()
         self.queue_id = queue_id
 
@@ -661,7 +653,7 @@ class OFPActionSetQueue(OFPAction):
 @OFPAction.register_action_type(ofproto_v1_2.OFPAT_SET_MPLS_TTL,
                                 ofproto_v1_2.OFP_ACTION_MPLS_TTL_SIZE)
 class OFPActionSetMplsTtl(OFPAction):
-    def __init__(self, mpls_ttl):
+    def __init__(self, mpls_ttl, type_=None, len_=None):
         super(OFPActionSetMplsTtl, self).__init__()
         self.mpls_ttl = mpls_ttl
 
@@ -679,7 +671,7 @@ class OFPActionSetMplsTtl(OFPAction):
 @OFPAction.register_action_type(ofproto_v1_2.OFPAT_DEC_MPLS_TTL,
                                 ofproto_v1_2.OFP_ACTION_HEADER_SIZE)
 class OFPActionDecMplsTtl(OFPAction):
-    def __init__(self):
+    def __init__(self, type_=None, len_=None):
         super(OFPActionDecMplsTtl, self).__init__()
 
     @classmethod
@@ -692,7 +684,7 @@ class OFPActionDecMplsTtl(OFPAction):
 @OFPAction.register_action_type(ofproto_v1_2.OFPAT_SET_NW_TTL,
                                 ofproto_v1_2.OFP_ACTION_NW_TTL_SIZE)
 class OFPActionSetNwTtl(OFPAction):
-    def __init__(self, nw_ttl):
+    def __init__(self, nw_ttl, type_=None, len_=None):
         super(OFPActionSetNwTtl, self).__init__()
         self.nw_ttl = nw_ttl
 
@@ -710,7 +702,7 @@ class OFPActionSetNwTtl(OFPAction):
 @OFPAction.register_action_type(ofproto_v1_2.OFPAT_DEC_NW_TTL,
                                 ofproto_v1_2.OFP_ACTION_HEADER_SIZE)
 class OFPActionDecNwTtl(OFPAction):
-    def __init__(self):
+    def __init__(self, type_=None, len_=None):
         super(OFPActionDecNwTtl, self).__init__()
 
     @classmethod
@@ -723,7 +715,7 @@ class OFPActionDecNwTtl(OFPAction):
 @OFPAction.register_action_type(ofproto_v1_2.OFPAT_COPY_TTL_OUT,
                                 ofproto_v1_2.OFP_ACTION_HEADER_SIZE)
 class OFPActionCopyTtlOut(OFPAction):
-    def __init__(self):
+    def __init__(self, type_=None, len_=None):
         super(OFPActionCopyTtlOut, self).__init__()
 
     @classmethod
@@ -736,7 +728,7 @@ class OFPActionCopyTtlOut(OFPAction):
 @OFPAction.register_action_type(ofproto_v1_2.OFPAT_COPY_TTL_IN,
                                 ofproto_v1_2.OFP_ACTION_HEADER_SIZE)
 class OFPActionCopyTtlIn(OFPAction):
-    def __init__(self):
+    def __init__(self, type_=None, len_=None):
         super(OFPActionCopyTtlIn, self).__init__()
 
     @classmethod
@@ -749,7 +741,7 @@ class OFPActionCopyTtlIn(OFPAction):
 @OFPAction.register_action_type(ofproto_v1_2.OFPAT_PUSH_VLAN,
                                 ofproto_v1_2.OFP_ACTION_PUSH_SIZE)
 class OFPActionPushVlan(OFPAction):
-    def __init__(self, ethertype):
+    def __init__(self, ethertype, type_=None, len_=None):
         super(OFPActionPushVlan, self).__init__()
         self.ethertype = ethertype
 
@@ -767,7 +759,7 @@ class OFPActionPushVlan(OFPAction):
 @OFPAction.register_action_type(ofproto_v1_2.OFPAT_PUSH_MPLS,
                                 ofproto_v1_2.OFP_ACTION_PUSH_SIZE)
 class OFPActionPushMpls(OFPAction):
-    def __init__(self, ethertype):
+    def __init__(self, ethertype, type_=None, len_=None):
         super(OFPActionPushMpls, self).__init__()
         self.ethertype = ethertype
 
@@ -785,7 +777,7 @@ class OFPActionPushMpls(OFPAction):
 @OFPAction.register_action_type(ofproto_v1_2.OFPAT_POP_VLAN,
                                 ofproto_v1_2.OFP_ACTION_HEADER_SIZE)
 class OFPActionPopVlan(OFPAction):
-    def __init__(self):
+    def __init__(self, type_=None, len_=None):
         super(OFPActionPopVlan, self).__init__()
 
     @classmethod
@@ -798,7 +790,7 @@ class OFPActionPopVlan(OFPAction):
 @OFPAction.register_action_type(ofproto_v1_2.OFPAT_POP_MPLS,
                                 ofproto_v1_2.OFP_ACTION_POP_MPLS_SIZE)
 class OFPActionPopMpls(OFPAction):
-    def __init__(self, ethertype):
+    def __init__(self, ethertype, type_=None, len_=None):
         super(OFPActionPopMpls, self).__init__()
         self.ethertype = ethertype
 
@@ -928,7 +920,7 @@ class OFPActionSetField(OFPAction):
     ofproto_v1_2.OFPAT_EXPERIMENTER,
     ofproto_v1_2.OFP_ACTION_EXPERIMENTER_HEADER_SIZE)
 class OFPActionExperimenter(OFPAction):
-    def __init__(self, experimenter):
+    def __init__(self, experimenter, type_=None, len_=None):
         super(OFPActionExperimenter, self).__init__()
         self.experimenter = experimenter
 
@@ -946,7 +938,7 @@ class OFPActionExperimenter(OFPAction):
 
 
 class OFPBucket(StringifyMixin):
-    def __init__(self, weight, watch_port, watch_group, actions):
+    def __init__(self, weight, watch_port, watch_group, actions, len_=None):
         super(OFPBucket, self).__init__()
         self.weight = weight
         self.watch_port = watch_port
@@ -968,7 +960,7 @@ class OFPBucket(StringifyMixin):
             length += action.len
 
         m = cls(weigth, watch_port, watch_group, actions)
-        m._len = len_
+        m.len = len_
         return m
 
     def serialize(self, buf, offset):
@@ -979,10 +971,9 @@ class OFPBucket(StringifyMixin):
             action_offset += a.len
             action_len += a.len
 
-        self._len = utils.round_up(ofproto_v1_2.OFP_BUCKET_SIZE + action_len,
-                                   8)
+        self.len = utils.round_up(ofproto_v1_2.OFP_BUCKET_SIZE + action_len, 8)
         msg_pack_into(ofproto_v1_2.OFP_BUCKET_PACK_STR, buf, offset,
-                      self._len, self.weight, self.watch_port,
+                      self.len, self.weight, self.watch_port,
                       self.watch_group)
 
 
@@ -1003,7 +994,7 @@ class OFPGroupMod(MsgBase):
         offset = ofproto_v1_2.OFP_GROUP_MOD_SIZE
         for b in self.buckets:
             b.serialize(self.buf, offset)
-            offset += b._len
+            offset += b.len
 
 
 @_set_msg_type(ofproto_v1_2.OFPT_PORT_MOD)
@@ -1450,8 +1441,8 @@ class OFPGroupDescStats(StringifyMixin):
         while bucket_len > 0:
             bucket = OFPBucket.parser(buf, offset)
             buckets.append(bucket)
-            offset += bucket._len
-            bucket_len -= bucket._len
+            offset += bucket.len
+            bucket_len -= bucket.len
 
         o = cls(type_, group_id, buckets)
         o._length = length
@@ -1502,13 +1493,13 @@ class OFPQueueGetConfigRequest(MsgBase):
 
 
 class OFPQueuePropHeader(StringifyMixin):
-    def __init__(self, property_, len_):
+    def __init__(self, property_, len_=None):
         self._property = property_
-        self._len = len_
+        self.len = len_
 
     def serialize(self, buf, offset):
         msg_pack_into(ofproto_v1_2.OFP_QUEUE_PROP_HEADER_PACK_STR,
-                      buf, offset, self._property, self._len)
+                      buf, offset, self._property, self.len)
 
 
 class OFPQueueProp(OFPQueuePropHeader):
@@ -1539,10 +1530,11 @@ class OFPQueueProp(OFPQueuePropHeader):
 
 
 class OFPPacketQueue(StringifyMixin):
-    def __init__(self, queue_id, port, properties):
+    def __init__(self, queue_id, port, properties, len_=None):
         super(OFPPacketQueue, self).__init__()
         self.queue_id = queue_id
         self.port = port
+        self.len = len_
         self.properties = properties
 
     @classmethod
@@ -1555,17 +1547,17 @@ class OFPPacketQueue(StringifyMixin):
         while length < len_:
             queue_prop = OFPQueueProp.parser(buf, offset)
             properties.append(queue_prop)
-            offset += queue_prop._len
-            length += queue_prop._len
+            offset += queue_prop.len
+            length += queue_prop.len
         o = cls(queue_id, port, properties)
-        o._len = len_
+        o.len = len_
         return o
 
 
 @OFPQueueProp.register_property(ofproto_v1_2.OFPQT_MIN_RATE,
                                 ofproto_v1_2.OFP_QUEUE_PROP_MIN_RATE_SIZE)
 class OFPQueuePropMinRate(OFPQueueProp):
-    def __init__(self, rate):
+    def __init__(self, rate, len_=None):
         super(OFPQueuePropMinRate, self).__init__()
         self.rate = rate
 
@@ -1579,7 +1571,7 @@ class OFPQueuePropMinRate(OFPQueueProp):
 @OFPQueueProp.register_property(ofproto_v1_2.OFPQT_MAX_RATE,
                                 ofproto_v1_2.OFP_QUEUE_PROP_MAX_RATE_SIZE)
 class OFPQueuePropMaxRate(OFPQueueProp):
-    def __init__(self, rate):
+    def __init__(self, rate, len_=None):
         super(OFPQueuePropMaxRate, self).__init__()
         self.rate = rate
 
@@ -1614,8 +1606,8 @@ class OFPQueueGetConfigReply(MsgBase):
             queue = OFPPacketQueue.parser(msg.buf, offset)
             msg.queues.append(queue)
 
-            offset += queue._len
-            length += queue._len
+            offset += queue.len
+            length += queue.len
 
         return msg
 
