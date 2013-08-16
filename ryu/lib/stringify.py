@@ -43,6 +43,7 @@ _RESERVED_KEYWORD = dir(__builtin__)
 
 _mapdict = lambda f, d: dict([(k, f(v)) for k, v in d.items()])
 _mapdict_key = lambda f, d: dict([(f(k), v) for k, v in d.items()])
+_mapdict_kv = lambda f, d: dict([(k, f(k, v)) for k, v in d.items()])
 
 
 class StringifyMixin(object):
@@ -78,8 +79,8 @@ class StringifyMixin(object):
         return False
 
     @classmethod
-    def _encode_value(cls, v, encode_string=base64.b64encode):
-        encode = lambda x: cls._encode_value(x, encode_string)
+    def _encode_value(cls, k, v, encode_string=base64.b64encode):
+        encode = lambda x: cls._encode_value(k, x, encode_string)
         if isinstance(v, (bytes, unicode)):
             json_value = encode_string(v)
         elif isinstance(v, list):
@@ -101,9 +102,9 @@ class StringifyMixin(object):
         """returns an object to feed json.dumps()
         """
         dict_ = {}
-        encode = lambda x: self._encode_value(x, encode_string)
+        encode = lambda k, x: self._encode_value(k, x, encode_string)
         for k, v in obj_attrs(self):
-            dict_[k] = encode(v)
+            dict_[k] = encode(k, v)
         return {self.__class__.__name__: dict_}
 
     @classmethod
@@ -121,8 +122,8 @@ class StringifyMixin(object):
             return obj_cls.from_jsondict(v)
 
     @classmethod
-    def _decode_value(cls, json_value, decode_string=base64.b64decode):
-        decode = lambda x: cls._decode_value(x, decode_string)
+    def _decode_value(cls, k, json_value, decode_string=base64.b64decode):
+        decode = lambda x: cls._decode_value(k, x, decode_string)
         if isinstance(json_value, (bytes, unicode)):
             v = decode_string(json_value)
         elif isinstance(json_value, list):
@@ -155,8 +156,8 @@ class StringifyMixin(object):
                       **additional_args):
         """create an instance from a result of json.loads()
         """
-        decode = lambda x: cls._decode_value(x, decode_string)
-        kwargs = cls._restore_args(_mapdict(decode, dict_))
+        decode = lambda k, x: cls._decode_value(k, x, decode_string)
+        kwargs = cls._restore_args(_mapdict_kv(decode, dict_))
         try:
             return cls(**dict(kwargs, **additional_args))
         except TypeError:
