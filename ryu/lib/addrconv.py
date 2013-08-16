@@ -18,6 +18,10 @@ import netaddr
 
 
 class AddressConverter(object):
+    pass
+
+
+class NetAddrWrapper(AddressConverter):
     def __init__(self, addr, strat, **kwargs):
         self._addr = addr
         self._strat = strat
@@ -30,11 +34,24 @@ class AddressConverter(object):
         return str(self._addr(self._strat.packed_to_int(bin),
                               **self._addr_kwargs))
 
-ipv4 = AddressConverter(netaddr.IPAddress, netaddr.strategy.ipv4, version=4)
-ipv6 = AddressConverter(netaddr.IPAddress, netaddr.strategy.ipv6, version=6)
+ipv4 = NetAddrWrapper(netaddr.IPAddress, netaddr.strategy.ipv4, version=4)
+ipv6 = NetAddrWrapper(netaddr.IPAddress, netaddr.strategy.ipv6, version=6)
 
 
 class mac_mydialect(netaddr.mac_unix):
     word_fmt = '%.2x'
-mac = AddressConverter(netaddr.EUI, netaddr.strategy.eui48, version=48,
-                       dialect=mac_mydialect)
+mac = NetAddrWrapper(netaddr.EUI, netaddr.strategy.eui48, version=48,
+                     dialect=mac_mydialect)
+
+
+class NoopConverter(AddressConverter):
+    @staticmethod
+    def text_to_bin(text):
+        return text
+
+    @staticmethod
+    def bin_to_text(bin):
+        return bin
+
+
+plain_text = NoopConverter()
