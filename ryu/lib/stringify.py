@@ -79,24 +79,40 @@ class StringifyMixin(object):
         return False
 
     @classmethod
+    def _get_converter(cls, k):
+        return cls._JSON_FORMATTER[k]
+
+    @classmethod
+    def _get_encoder(cls, k, encode_string):
+        try:
+            return cls._get_converter(k).bin_to_text
+        except (AttributeError, KeyError):
+            return cls._get_default_encoder(encode_string)
+
+    @classmethod
     def _encode_value(cls, k, v, encode_string=base64.b64encode):
-        encode = lambda x: cls._encode_value(k, x, encode_string)
-        if isinstance(v, (bytes, unicode)):
-            json_value = encode_string(v)
-        elif isinstance(v, list):
-            json_value = map(encode, v)
-        elif isinstance(v, dict):
-            json_value = _mapdict(encode, v)
-            # while a python dict key can be any hashable object,
-            # a JSON object key should be a string.
-            json_value = _mapdict_key(str, json_value)
-            assert not cls._is_class(json_value)
-        else:
-            try:
-                json_value = v.to_jsondict()
-            except:
-                json_value = v
-        return json_value
+        return cls._get_encoder(k, encode_string)(v)
+
+    @classmethod
+    def _get_default_encoder(cls, encode_string):
+        def _encode(v):
+            if isinstance(v, (bytes, unicode)):
+                json_value = encode_string(v)
+            elif isinstance(v, list):
+                json_value = map(_encode, v)
+            elif isinstance(v, dict):
+                json_value = _mapdict(_encode, v)
+                # while a python dict key can be any hashable object,
+                # a JSON object key should be a string.
+                json_value = _mapdict_key(str, json_value)
+                assert not cls._is_class(json_value)
+            else:
+                try:
+                    json_value = v.to_jsondict()
+                except:
+                    json_value = v
+            return json_value
+        return _encode
 
     def to_jsondict(self, encode_string=base64.b64encode):
         """returns an object to feed json.dumps()
@@ -122,26 +138,40 @@ class StringifyMixin(object):
             return obj_cls.from_jsondict(v)
 
     @classmethod
+    def _get_decoder(cls, k, decode_string):
+        try:
+            return cls._get_converter(k).text_to_bin
+        except (AttributeError, KeyError):
+            #return lambda x: cls._default_decode(x, decode_string)
+            return cls._get_default_decoder(decode_string)
+
+    @classmethod
     def _decode_value(cls, k, json_value, decode_string=base64.b64decode):
-        decode = lambda x: cls._decode_value(k, x, decode_string)
-        if isinstance(json_value, (bytes, unicode)):
-            v = decode_string(json_value)
-        elif isinstance(json_value, list):
-            v = map(decode, json_value)
-        elif isinstance(json_value, dict):
-            if cls._is_class(json_value):
-                v = cls.obj_from_jsondict(json_value)
+        return cls._get_decoder(k, decode_string)(json_value)
+
+    @classmethod
+    def _get_default_decoder(cls, decode_string):
+        def _decode(json_value):
+            if isinstance(json_value, (bytes, unicode)):
+                v = decode_string(json_value)
+            elif isinstance(json_value, list):
+                v = map(_decode, json_value)
+            elif isinstance(json_value, dict):
+                if cls._is_class(json_value):
+                    v = cls.obj_from_jsondict(json_value)
+                else:
+                    v = _mapdict(_decode, json_value)
+                    # XXXhack
+                    # try to restore integer keys used by
+                    # OFPSwitchFeatures.ports.
+                    try:
+                        v = _mapdict_key(int, v)
+                    except ValueError:
+                        pass
             else:
-                v = _mapdict(decode, json_value)
-                # XXXhack
-                # try to restore integer keys used by OFPSwitchFeatures.ports.
-                try:
-                    v = _mapdict_key(int, v)
-                except ValueError:
-                    pass
-        else:
-            v = json_value
-        return v
+                v = json_value
+            return v
+        return _decode
 
     @staticmethod
     def _restore_args(dict_):
