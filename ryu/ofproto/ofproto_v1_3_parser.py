@@ -2469,7 +2469,7 @@ class OFPMeterMod(MsgBase):
         offset = ofproto_v1_3.OFP_METER_MOD_SIZE
         for b in self.bands:
             b.serialize(self.buf, offset)
-            offset += b._len
+            offset += b.len
 
 
 @_set_msg_type(ofproto_v1_3.OFPT_TABLE_MOD)
@@ -3020,8 +3020,8 @@ class OFPMeterStatsReply(OFPMultipartReply):
 class OFPMeterBand(StringifyMixin):
     def __init__(self, type_, len_):
         super(OFPMeterBand, self).__init__()
-        self._type = type_
-        self._len = len_
+        self.type = type_
+        self.len = len_
 
 
 class OFPMeterBandHeader(OFPMeterBand):
@@ -3053,14 +3053,14 @@ class OFPMeterBandHeader(OFPMeterBand):
 @OFPMeterBandHeader.register_meter_band_type(
     ofproto_v1_3.OFPMBT_DROP, ofproto_v1_3.OFP_METER_BAND_DROP_SIZE)
 class OFPMeterBandDrop(OFPMeterBandHeader):
-    def __init__(self, rate, burst_size):
+    def __init__(self, rate, burst_size, type_=None, len_=None):
         super(OFPMeterBandDrop, self).__init__()
         self.rate = rate
         self.burst_size = burst_size
 
     def serialize(self, buf, offset):
         msg_pack_into(ofproto_v1_3.OFP_METER_BAND_DROP_PACK_STR, buf, offset,
-                      self._type, self._len, self.rate, self.burst_size)
+                      self.type, self.len, self.rate, self.burst_size)
 
     @classmethod
     def parser(cls, buf, offset):
@@ -3075,7 +3075,7 @@ class OFPMeterBandDrop(OFPMeterBandHeader):
     ofproto_v1_3.OFPMBT_DSCP_REMARK,
     ofproto_v1_3.OFP_METER_BAND_DSCP_REMARK_SIZE)
 class OFPMeterBandDscpRemark(OFPMeterBandHeader):
-    def __init__(self, rate, burst_size, prec_level):
+    def __init__(self, rate, burst_size, prec_level, type_=None, len_=None):
         super(OFPMeterBandDscpRemark, self).__init__()
         self.rate = rate
         self.burst_size = burst_size
@@ -3083,7 +3083,7 @@ class OFPMeterBandDscpRemark(OFPMeterBandHeader):
 
     def serialize(self, buf, offset):
         msg_pack_into(ofproto_v1_3.OFP_METER_BAND_DSCP_REMARK_PACK_STR, buf,
-                      offset, self._type, self._len, self.rate,
+                      offset, self.type, self.len, self.rate,
                       self.burst_size, self.prec_level)
 
     @classmethod
@@ -3099,7 +3099,7 @@ class OFPMeterBandDscpRemark(OFPMeterBandHeader):
     ofproto_v1_3.OFPMBT_EXPERIMENTER,
     ofproto_v1_3.OFP_METER_BAND_EXPERIMENTER_SIZE)
 class OFPMeterBandExperimenter(OFPMeterBandHeader):
-    def __init__(self, rate, burst_size, experimenter):
+    def __init__(self, rate, burst_size, experimenter, type_=None, len_=None):
         super(OFPMeterBandExperimenter, self).__init__()
         self.rate = rate
         self.burst_size = burst_size
@@ -3107,7 +3107,7 @@ class OFPMeterBandExperimenter(OFPMeterBandHeader):
 
     def serialize(self, buf, offset):
         msg_pack_into(ofproto_v1_3.OFP_METER_BAND_EXPERIMENTER_PACK_STR, buf,
-                      offset, self._type, self._len, self.rate,
+                      offset, self.type, self.len, self.rate,
                       self.burst_size, self.experimenter)
 
     @classmethod
@@ -3141,8 +3141,8 @@ class OFPMeterConfigStats(StringifyMixin):
         while length < meter_config.length:
             band = OFPMeterBandHeader.parser(buf, offset)
             meter_config.bands.append(band)
-            offset += band._len
-            length += band._len
+            offset += band.len
+            length += band.len
 
         return meter_config
 
