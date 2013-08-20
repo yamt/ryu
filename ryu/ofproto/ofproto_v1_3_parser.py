@@ -82,10 +82,10 @@ class OFPHello(MsgBase):
 
 
 class OFPHelloElemVersionBitmap(StringifyMixin):
-    def __init__(self, versions):
+    def __init__(self, versions, type_=None, length=None):
         super(OFPHelloElemVersionBitmap, self).__init__()
-        self._type = ofproto_v1_3.OFPHET_VERSIONBITMAP
-        self._length = None
+        self.type = ofproto_v1_3.OFPHET_VERSIONBITMAP
+        self.length = None
         self._bitmaps = None
         self.versions = versions
 
@@ -110,7 +110,7 @@ class OFPHelloElemVersionBitmap(StringifyMixin):
                     for i, bitmap in enumerate(bitmaps)
                     for shift in range(31) if bitmap & (1 << shift)]
         elem = cls(versions)
-        elem._length = length
+        elem.length = length
         elem._bitmaps = bitmaps
         return elem
 
