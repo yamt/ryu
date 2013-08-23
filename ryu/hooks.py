@@ -31,3 +31,14 @@ def setup_hook(config):
     config['metadata'] = metadata
 
     metadata['version'] = str(version)
+
+    # pbr's setup_hook which will be executed after us replaces
+    # easy_install.get_script_args with their own version,
+    # override_get_script_args, prefering simpler scripts which
+    # are not aware of multi-version.
+    # prevent that by doing the opposite.  it's a horrible hack
+    # but we are in patching wars already...
+    from pbr import packaging
+    from setuptools.command import easy_install
+
+    packaging.override_get_script_args = easy_install.get_script_args
