@@ -46,6 +46,25 @@ _mapdict_key = lambda f, d: dict([(f(k), v) for k, v in d.items()])
 _mapdict_kv = lambda f, d: dict([(k, f(k, v)) for k, v in d.items()])
 
 
+class TypeDescr(object):
+    pass
+
+
+class AsciiStringType(TypeDescr):
+    @staticmethod
+    def encode(v):
+        return unicode(v, 'ascii')
+
+    @staticmethod
+    def decode(v):
+        return v.encode('ascii')
+
+
+_types = {
+    'ascii': AsciiStringType,
+}
+
+
 class StringifyMixin(object):
     _class_prefixes = []
 
@@ -79,14 +98,17 @@ class StringifyMixin(object):
         return False
 
     @classmethod
-    def _get_converter(cls, k):
-        return cls._JSON_FORMATTER[k]
+    def _get_type(cls, k):
+        for t, attrs in cls._TYPE.iteritems():
+            if k in attrs:
+                return _types[t]
+        raise AttributeError
 
     @classmethod
     def _get_encoder(cls, k, encode_string):
         try:
-            return cls._get_converter(k).bin_to_text
-        except (AttributeError, KeyError):
+            return cls._get_type(k).encode
+        except AttributeError:
             return cls._get_default_encoder(encode_string)
 
     @classmethod
@@ -140,8 +162,8 @@ class StringifyMixin(object):
     @classmethod
     def _get_decoder(cls, k, decode_string):
         try:
-            return cls._get_converter(k).text_to_bin
-        except (AttributeError, KeyError):
+            return cls._get_type(k).decoder
+        except AttributeError:
             #return lambda x: cls._default_decode(x, decode_string)
             return cls._get_default_decoder(decode_string)
 
