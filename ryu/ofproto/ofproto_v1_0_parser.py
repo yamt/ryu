@@ -83,7 +83,11 @@ class OFPPhyPort(ofproto_parser.namedtuple('OFPPhyPort', (
         'port_no', 'hw_addr', 'name', 'config', 'state', 'curr', 'advertised',
         'supported', 'peer'))):
 
-    _JSON_FORMATTER = {'hw_addr': addrconv.plain_text}
+    _TYPE = {
+        'ascii': [
+            'hw_addr',
+        ]
+    }
 
     @classmethod
     def parser(cls, buf, offset):
@@ -2105,7 +2109,11 @@ class OFPFlowMod(MsgBase):
 @_set_msg_type(ofproto_v1_0.OFPT_PORT_MOD)
 class OFPPortMod(MsgBase):
 
-    _JSON_FORMATTER = {'hw_addr': addrconv.plain_text}
+    _TYPE = {
+        'ascii': [
+            'hw_addr',
+        ]
+    }
 
     def __init__(self, datapath, port_no, hw_addr, config, mask, advertise):
         super(OFPPortMod, self).__init__(datapath)
