@@ -99,17 +99,18 @@ class StringifyMixin(object):
 
     @classmethod
     def _get_type(cls, k):
-        for t, attrs in cls._TYPE.iteritems():
-            if k in attrs:
-                return _types[t]
-        raise AttributeError
+        if hasattr(cls, '_TYPE'):
+            for t, attrs in cls._TYPE.iteritems():
+                if k in attrs:
+                    return _types[t]
+        return None
 
     @classmethod
     def _get_encoder(cls, k, encode_string):
-        try:
-            return cls._get_type(k).encode
-        except AttributeError:
-            return cls._get_default_encoder(encode_string)
+        t = cls._get_type(k)
+        if t:
+            return t.encode
+        return cls._get_default_encoder(encode_string)
 
     @classmethod
     def _encode_value(cls, k, v, encode_string=base64.b64encode):
@@ -161,11 +162,10 @@ class StringifyMixin(object):
 
     @classmethod
     def _get_decoder(cls, k, decode_string):
-        try:
-            return cls._get_type(k).decoder
-        except AttributeError:
-            #return lambda x: cls._default_decode(x, decode_string)
-            return cls._get_default_decoder(decode_string)
+        t = cls._get_type(k)
+        if t:
+            return t.decode
+        return cls._get_default_decoder(decode_string)
 
     @classmethod
     def _decode_value(cls, k, json_value, decode_string=base64.b64decode):
