@@ -159,6 +159,9 @@ class Test_Parser(unittest.TestCase):
             eq_(self._msg_to_jsondict(msg2), json_dict)
             eq_(wire_msg, msg2.buf)
 
+            msg2.serialize()
+            eq_(wire_msg, msg2.buf)
+
 
 def _add_tests():
     import os
