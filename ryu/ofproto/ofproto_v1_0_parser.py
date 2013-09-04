@@ -1075,6 +1075,15 @@ class OFPAggregateStats(ofproto_parser.namedtuple('OFPAggregateStats', (
 class OFPTableStats(ofproto_parser.namedtuple('OFPTableStats', (
         'table_id', 'name', 'wildcards', 'max_entries', 'active_count',
         'lookup_count', 'matched_count'))):
+
+    _TYPE = {
+        'ascii': [
+            # OF spec is unclear about the encoding of name.
+            # we assumes UTF-8.
+            'name',
+        ]
+    }
+
     @classmethod
     def parser(cls, buf, offset):
         tbl = struct.unpack_from(ofproto_v1_0.OFP_TABLE_STATS_PACK_STR,
