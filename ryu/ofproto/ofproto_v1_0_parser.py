@@ -87,9 +87,9 @@ class OFPPhyPort(ofproto_parser.namedtuple('OFPPhyPort', (
         'ascii': [
             'hw_addr',
 
-            # XXX OF spec is unclear about the encoding of name.
-            # OVS seems to use UTF-8.
-            # 'name',
+            # OF spec is unclear about the encoding of name.
+            # we assumes UTF-8, which is used by OVS.
+            'name',
         ]
     }
 
