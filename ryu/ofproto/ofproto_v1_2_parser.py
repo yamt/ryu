@@ -2307,6 +2307,15 @@ class OFPTableStats(
                                stat.lookup_count, stat.matched_count))
             self.logger.debug('TableStats: %s', tables)
     """
+
+    _TYPE = {
+        'ascii': [
+            # OF spec is unclear about the encoding of name.
+            # we assumes UTF-8.
+            'name',
+        ]
+    }
+
     @classmethod
     def parser(cls, buf, offset):
         table = struct.unpack_from(
