@@ -114,7 +114,9 @@ class Test_rpc(unittest.TestCase):
         assert isinstance(obj, int)
         result = c.call("resp", [obj])
         assert result == obj
-        assert isinstance(result, type(obj))
+        # XXX https://github.com/msgpack/msgpack-python/pull/64
+        #assert isinstance(result, type(obj))
+        assert isinstance(result, (int, long))
 
     def test_0_call_int3(self):
         c = rpc.Client(self._client_sock)
@@ -122,7 +124,9 @@ class Test_rpc(unittest.TestCase):
         assert isinstance(obj, int)
         result = c.call("resp", [obj])
         assert result == obj
-        assert isinstance(result, type(obj))
+        # XXX https://github.com/msgpack/msgpack-python/pull/64
+        #assert isinstance(result, type(obj))
+        assert isinstance(result, (int, long))
 
     def test_0_call_long(self):
         c = rpc.Client(self._client_sock)
@@ -139,7 +143,9 @@ class Test_rpc(unittest.TestCase):
         assert isinstance(obj, (int, long))
         result = c.call("resp", [obj])
         assert result == obj
-        assert isinstance(result, type(obj))
+        # XXX https://github.com/msgpack/msgpack-python/pull/64
+        #assert isinstance(result, type(obj))
+        assert isinstance(result, (int, long))
 
     @raises(TypeError)
     def test_0_call_bytearray(self):
