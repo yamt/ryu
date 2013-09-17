@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import unittest
+from nose.tools import ok_
 from nose.tools import eq_
 
 from ryu.utils import import_module
@@ -58,18 +59,27 @@ class Test_import_module(unittest.TestCase):
     def test_import_same_module1(self):
         fuga1 = import_module('./lib/test_mod/fuga/mod.py')
         eq_("this is fuga", fuga1.name)
-        eq_(ryu.tests.unit.lib.test_mod.fuga.mod, fuga1)
+        # the above ends up with creating another instance of the module.
+        # if it can be a problem, it's the module's responsibility to deal
+        # with it.
+        ok_(ryu.tests.unit.lib.test_mod.fuga.mod != fuga1)
 
     def test_import_same_module2(self):
         fuga1 = import_module('./lib/test_mod/fuga/mod.py')
         eq_("this is fuga", fuga1.name)
         fuga2 = import_module('ryu.tests.unit.lib.test_mod.fuga.mod')
         eq_("this is fuga", fuga2.name)
-        eq_(fuga1, fuga2)
+        # the above ends up with creating another instance of the module.
+        # if it can be a problem, it's the module's responsibility to deal
+        # with it.
+        ok_(fuga1 != fuga2)
 
     def test_import_same_module3(self):
         fuga1 = import_module('./lib/test_mod/fuga/mod.py')
         eq_("this is fuga", fuga1.name)
         fuga3 = self._my_import('ryu.tests.unit.lib.test_mod.fuga.mod')
         eq_("this is fuga", fuga3.name)
-        eq_(fuga1, fuga3)
+        # the above ends up with creating another instance of the module.
+        # if it can be a problem, it's the module's responsibility to deal
+        # with it.
+        ok_(fuga1 != fuga3)
