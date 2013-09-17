@@ -20,6 +20,7 @@ from nose.tools import eq_
 
 from ryu.utils import import_module
 import ryu.tests.unit.lib.test_mod.fuga.mod
+import ryu.tests.unit.lib.test_mod.no_double_import.mod
 
 
 class Test_import_module(unittest.TestCase):
@@ -83,3 +84,13 @@ class Test_import_module(unittest.TestCase):
         # if it can be a problem, it's the module's responsibility to deal
         # with it.
         ok_(fuga1 != fuga3)
+
+    def test_import_same_module4(self):
+        ndbl1 = import_module('./lib/test_mod/no_double_import/mod.py')
+        eq_("this is no_double_import", ndbl1.name)
+        eq_(ryu.tests.unit.lib.test_mod.no_double_import.mod, ndbl1)
+        hoge1 = import_module('./lib/test_mod/hoge/mod.py')
+        eq_("this is hoge", hoge1.name)
+        ndbl2 = import_module('./lib/test_mod/no_double_import/mod.py')
+        eq_("this is no_double_import", ndbl2.name)
+        eq_(ryu.tests.unit.lib.test_mod.no_double_import.mod, ndbl2)
