@@ -62,3 +62,7 @@ class PortUnknown(RyuException):
 
 class MacAddressDuplicated(RyuException):
     message = 'MAC address %(mac)s is duplicated'
+
+
+class DoubleImport(RyuException):
+    message = 'double import of $(module) detected'

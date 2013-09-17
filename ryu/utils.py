@@ -36,6 +36,7 @@ import os
 import sys
 import re
 from oslo.config import cfg
+from ryu.exception import DoubleImport
 
 LOG = logging.getLogger('ryu.utils')
 
@@ -89,7 +90,7 @@ def import_module(modname):
             sys.path.append(dirname)
         try:
             __import__(name)
-        except cfg.ArgsAlreadyParsedError:
+        except (cfg.ArgsAlreadyParsedError, DoubleImport):
             # ryu-manager needs to import modules calling
             # register_cli_opts. Thus, passing a imported file as a
             # command line option for ryu-manager results in double import
