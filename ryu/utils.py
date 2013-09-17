@@ -51,11 +51,11 @@ def import_module(modname):
         try:
             __import__(name)
         except cfg.ArgsAlreadyParsedError:
-        # ryu-manager needs to import modules calling
-        # register_cli_opts. Thus, passing a imported file as a
-        # command line option for ryu-manager results in double import
-        # (e.g. ryu.topology.switches). The following code is not
-        # perfect but better than nothing.
+            # ryu-manager needs to import modules calling
+            # register_cli_opts. Thus, passing a imported file as a
+            # command line option for ryu-manager results in double import
+            # (e.g. ryu.topology.switches). The following code is not
+            # perfect but better than nothing.
             for key in sys.modules.keys():
                 if key.endswith(name):
                     return sys.modules[key]
