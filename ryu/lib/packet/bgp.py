@@ -125,6 +125,7 @@ class _OptParam(StringifyMixin):
     _PACK_STR = '!BB'  # type, length
     _TYPES = {}
     _REV_TYPES = None
+    _UNKNOWN_TYPE = None
 
     def __init__(self, type_, value=None, length=None):
         if type_ is None:
@@ -144,8 +145,8 @@ class _OptParam(StringifyMixin):
         value = bytes(rest[:length])
         rest = rest[length:]
         subcls = cls._lookup_type(type_)
-        return subcls(type_=type_, length=length,
-                      **subcls.parse_value(value)), rest
+        kwargs = subcls.parse_value(value)
+        return subcls(type_=type_, length=length, **kwargs), rest
 
     def serialize(self):
         # fixup
@@ -157,11 +158,26 @@ class _OptParam(StringifyMixin):
         return buf + value
 
     @classmethod
+    def register_unknown_type(cls):
+        def _register_type(subcls):
+            cls._UNKNOWN_TYPE = subcls
+            return subcls
+        return _register_type
+
+    @classmethod
+    def register_type(cls, type_):
+        def _register_type(subcls):
+            cls._TYPES[type_] = subcls
+            cls._REV_TYPES = None
+            return subcls
+        return _register_type
+
+    @classmethod
     def _lookup_type(cls, type_):
         try:
             return cls._TYPES[type_]
         except KeyError:
-            return BGPOptParamUnknown
+            return cls._UNKNOWN_TYPE
 
     @classmethod
     def parse_value(cls, buf):
@@ -176,6 +192,7 @@ class _OptParam(StringifyMixin):
         return buf
 
 
+@_OptParam.register_unknown_type()
 class BGPOptParamUnknown(_OptParam):
     @classmethod
     def parse_value(cls, buf):
@@ -187,6 +204,40 @@ class BGPOptParamUnknown(_OptParam):
         return self.value
 
 
+@_OptParam.register_type(BGP_OPT_CAPABILITY)
+class BGPOptParamCapability(_OptParam):
+    _CAP_HDR_PACK_STR = '!BB'
+
+    def __init__(self, cap_code, cap_value, cap_length=None,
+                 type_=None, length=None):
+        super(BGPOptParamCapability, self).__init__(type_=type_, length=length)
+        self.cap_code = cap_code
+        self.cap_length = cap_length
+        self.cap_value = cap_value
+
+    @classmethod
+    def parse_value(cls, buf):
+        (code, length) = struct.unpack_from(cls._CAP_HDR_PACK_STR, buffer(buf))
+        value = buf[struct.calcsize(cls._CAP_HDR_PACK_STR):]
+        assert len(value) == length
+        kwargs = {
+            'cap_code': code,
+            'cap_length': length,
+            'cap_value': value,
+        }
+        return kwargs
+
+    def serialize_value(self):
+        # fixup
+        cap_value = self.cap_value
+        self.cap_length = len(cap_value)
+
+        buf = bytearray()
+        msg_pack_into(self._CAP_HDR_PACK_STR, buf, 0, self.cap_code,
+                      self.cap_length)
+        return buf + cap_value
+
+
 class BGPWithdrawnRoute(_IPAddrPrefix):
     pass
 
@@ -195,9 +246,10 @@ class _PathAttribute(StringifyMixin):
     _PACK_STR = '!BB'  # flags, type
     _PACK_STR_LEN = '!B'  # length
     _PACK_STR_EXT_LEN = '!H'  # length w/ BGP_ATTR_FLAG_EXTENDED_LENGTH
+    _ATTR_FLAGS = None
     _TYPES = {}
     _REV_TYPES = None
-    _ATTR_FLAGS = None
+    _UNKNOWN_TYPE = None
 
     def __init__(self, value=None, flags=0, type_=None, length=None):
         if type_ is None:
@@ -210,13 +262,6 @@ class _PathAttribute(StringifyMixin):
         self.length = length
         if not value is None:
             self.value = value
-
-    @classmethod
-    def _lookup_type(cls, type_):
-        try:
-            return cls._TYPES[type_]
-        except KeyError:
-            return BGPPathAttributeUnknown
 
     @classmethod
     def parser(cls, buf):
@@ -255,12 +300,26 @@ class _PathAttribute(StringifyMixin):
         return buf + value
 
     @classmethod
+    def register_unknown_type(cls):
+        def _register_type(subcls):
+            cls._UNKNOWN_TYPE = subcls
+            return subcls
+        return _register_type
+
+    @classmethod
     def register_type(cls, type_):
         def _register_type(subcls):
             cls._TYPES[type_] = subcls
             cls._REV_TYPES = None
             return subcls
         return _register_type
+
+    @classmethod
+    def _lookup_type(cls, type_):
+        try:
+            return cls._TYPES[type_]
+        except KeyError:
+            return cls._UNKNOWN_TYPE
 
     @classmethod
     def parse_value(cls, buf):
@@ -275,6 +334,7 @@ class _PathAttribute(StringifyMixin):
         return buf
 
 
+@_PathAttribute.register_unknown_type()
 class BGPPathAttributeUnknown(_PathAttribute):
     @classmethod
     def parse_value(cls, buf):
