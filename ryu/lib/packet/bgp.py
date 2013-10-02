@@ -138,13 +138,6 @@ class _OptParam(StringifyMixin):
             self.value = value
 
     @classmethod
-    def _lookup_type(cls, type_):
-        try:
-            return cls._TYPES[type_]
-        except KeyError:
-            return BGPOptParamUnknown
-
-    @classmethod
     def parser(cls, buf):
         (type_, length) = struct.unpack_from(cls._PACK_STR, buffer(buf))
         rest = buf[struct.calcsize(cls._PACK_STR):]
@@ -162,6 +155,25 @@ class _OptParam(StringifyMixin):
         buf = bytearray()
         msg_pack_into(self._PACK_STR, buf, 0, self.type, self.length)
         return buf + value
+
+    @classmethod
+    def _lookup_type(cls, type_):
+        try:
+            return cls._TYPES[type_]
+        except KeyError:
+            return BGPOptParamUnknown
+
+    @classmethod
+    def parse_value(cls, buf):
+        (value,) = struct.unpack_from(cls._VALUE_PACK_STR, buffer(buf))
+        return {
+            'value': value
+        }
+
+    def serialize_value(self):
+        buf = bytearray()
+        msg_pack_into(self._VALUE_PACK_STR, buf, 0, self.value)
+        return buf
 
 
 class BGPOptParamUnknown(_OptParam):
@@ -200,14 +212,6 @@ class _PathAttribute(StringifyMixin):
             self.value = value
 
     @classmethod
-    def register_type(cls, type_):
-        def _register_type(subcls):
-            cls._TYPES[type_] = subcls
-            cls._REV_TYPES = None
-            return subcls
-        return _register_type
-
-    @classmethod
     def _lookup_type(cls, type_):
         try:
             return cls._TYPES[type_]
@@ -230,13 +234,6 @@ class _PathAttribute(StringifyMixin):
         return subcls(flags=flags, type_=type_, length=length,
                       **subcls.parse_value(value)), rest
 
-    @classmethod
-    def parse_value(cls, buf):
-        (value,) = struct.unpack_from(cls._VALUE_PACK_STR, buffer(buf))
-        return {
-            'value': value
-        }
-
     def serialize(self):
         # fixup
         if not self._ATTR_FLAGS is None:
@@ -256,6 +253,21 @@ class _PathAttribute(StringifyMixin):
         msg_pack_into(self._PACK_STR, buf, 0, self.flags, self.type)
         msg_pack_into(len_pack_str, buf, len(buf), self.length)
         return buf + value
+
+    @classmethod
+    def register_type(cls, type_):
+        def _register_type(subcls):
+            cls._TYPES[type_] = subcls
+            cls._REV_TYPES = None
+            return subcls
+        return _register_type
+
+    @classmethod
+    def parse_value(cls, buf):
+        (value,) = struct.unpack_from(cls._VALUE_PACK_STR, buffer(buf))
+        return {
+            'value': value
+        }
 
     def serialize_value(self):
         buf = bytearray()
