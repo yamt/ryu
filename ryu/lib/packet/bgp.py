@@ -477,7 +477,7 @@ class BGPNLRI(_IPAddrPrefix):
     pass
 
 
-class BGPMessage(packet_base.PacketBase):
+class BGPMessage(packet_base.PacketBase, _TypeDisp):
     """Base class for BGP-4 messages.
 
     An instance has the following attributes at least.
@@ -496,14 +496,6 @@ class BGPMessage(packet_base.PacketBase):
 
     _HDR_PACK_STR = '!16sHB'  # marker, len, type
     _HDR_LEN = struct.calcsize(_HDR_PACK_STR)
-    _TYPES = {}
-
-    @classmethod
-    def register_type(cls, type_):
-        def _register_type(subcls):
-            cls._TYPES[type_] = subcls
-            return subcls
-        return _register_type
 
     def __init__(self, type_, len_=None, marker=None):
         if marker is None:
@@ -526,7 +518,7 @@ class BGPMessage(packet_base.PacketBase):
                 '%d < %d' % (len(buf), msglen))
         binmsg = buf[cls._HDR_LEN:msglen]
         rest = buf[msglen:]
-        subcls = cls._TYPES[type_]
+        subcls = cls._lookup_type(type_)
         kwargs = subcls.parser(binmsg)
         return subcls(marker=marker, len_=len_, type_=type_, **kwargs), rest
 
