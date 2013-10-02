@@ -121,18 +121,64 @@ class _IPAddrPrefix(StringifyMixin):
         return buf + bytes(bin_ip_addr)
 
 
-class _OptParam(StringifyMixin):
-    _PACK_STR = '!BB'  # type, length
+class _Value(object):
+    _VALUE_PACK_STR = None
+
+    @classmethod
+    def parse_value(cls, buf):
+        (value,) = struct.unpack_from(cls._VALUE_PACK_STR, buffer(buf))
+        return {
+            'value': value
+        }
+
+    def serialize_value(self):
+        buf = bytearray()
+        msg_pack_into(self._VALUE_PACK_STR, buf, 0, self.value)
+        return buf
+
+
+class _TypeDisp(object):
     _TYPES = {}
     _REV_TYPES = None
     _UNKNOWN_TYPE = None
 
+    @classmethod
+    def register_unknown_type(cls):
+        def _register_type(subcls):
+            cls._UNKNOWN_TYPE = subcls
+            return subcls
+        return _register_type
+
+    @classmethod
+    def register_type(cls, type_):
+        cls._TYPES = cls._TYPES.copy()
+        def _register_type(subcls):
+            cls._TYPES[type_] = subcls
+            cls._REV_TYPES = None
+            return subcls
+        return _register_type
+
+    @classmethod
+    def _lookup_type(cls, type_):
+        try:
+            return cls._TYPES[type_]
+        except KeyError:
+            return cls._UNKNOWN_TYPE
+
+    @classmethod
+    def _rev_lookup_type(cls, targ_cls):
+        if cls._REV_TYPES is None:
+            rev = dict((v, k) for k, v in cls._TYPES.iteritems())
+            cls._REV_TYPES = rev
+        return cls._REV_TYPES[targ_cls]
+
+
+class _OptParam(StringifyMixin, _TypeDisp, _Value):
+    _PACK_STR = '!BB'  # type, length
+
     def __init__(self, type_, value=None, length=None):
         if type_ is None:
-            if self._REV_TYPES is None:
-                self._REV_TYPES = dict((v, k) for k, v in
-                                       self._TYPES.iteritems())
-            type_ = self._REV_TYPES[self.__class__]
+            type_ = self._rev_lookup_type(self.__class__)
         self.type = type_
         self.length = length
         if not value is None:
@@ -156,40 +202,6 @@ class _OptParam(StringifyMixin):
         buf = bytearray()
         msg_pack_into(self._PACK_STR, buf, 0, self.type, self.length)
         return buf + value
-
-    @classmethod
-    def register_unknown_type(cls):
-        def _register_type(subcls):
-            cls._UNKNOWN_TYPE = subcls
-            return subcls
-        return _register_type
-
-    @classmethod
-    def register_type(cls, type_):
-        def _register_type(subcls):
-            cls._TYPES[type_] = subcls
-            cls._REV_TYPES = None
-            return subcls
-        return _register_type
-
-    @classmethod
-    def _lookup_type(cls, type_):
-        try:
-            return cls._TYPES[type_]
-        except KeyError:
-            return cls._UNKNOWN_TYPE
-
-    @classmethod
-    def parse_value(cls, buf):
-        (value,) = struct.unpack_from(cls._VALUE_PACK_STR, buffer(buf))
-        return {
-            'value': value
-        }
-
-    def serialize_value(self):
-        buf = bytearray()
-        msg_pack_into(self._VALUE_PACK_STR, buf, 0, self.value)
-        return buf
 
 
 @_OptParam.register_unknown_type()
@@ -242,21 +254,15 @@ class BGPWithdrawnRoute(_IPAddrPrefix):
     pass
 
 
-class _PathAttribute(StringifyMixin):
+class _PathAttribute(StringifyMixin, _TypeDisp, _Value):
     _PACK_STR = '!BB'  # flags, type
     _PACK_STR_LEN = '!B'  # length
     _PACK_STR_EXT_LEN = '!H'  # length w/ BGP_ATTR_FLAG_EXTENDED_LENGTH
     _ATTR_FLAGS = None
-    _TYPES = {}
-    _REV_TYPES = None
-    _UNKNOWN_TYPE = None
 
     def __init__(self, value=None, flags=0, type_=None, length=None):
         if type_ is None:
-            if self._REV_TYPES is None:
-                self._REV_TYPES = dict((v, k) for k, v in
-                                       self._TYPES.iteritems())
-            type_ = self._REV_TYPES[self.__class__]
+            type_ = self._rev_lookup_type(self.__class__)
         self.flags = flags
         self.type = type_
         self.length = length
@@ -298,40 +304,6 @@ class _PathAttribute(StringifyMixin):
         msg_pack_into(self._PACK_STR, buf, 0, self.flags, self.type)
         msg_pack_into(len_pack_str, buf, len(buf), self.length)
         return buf + value
-
-    @classmethod
-    def register_unknown_type(cls):
-        def _register_type(subcls):
-            cls._UNKNOWN_TYPE = subcls
-            return subcls
-        return _register_type
-
-    @classmethod
-    def register_type(cls, type_):
-        def _register_type(subcls):
-            cls._TYPES[type_] = subcls
-            cls._REV_TYPES = None
-            return subcls
-        return _register_type
-
-    @classmethod
-    def _lookup_type(cls, type_):
-        try:
-            return cls._TYPES[type_]
-        except KeyError:
-            return cls._UNKNOWN_TYPE
-
-    @classmethod
-    def parse_value(cls, buf):
-        (value,) = struct.unpack_from(cls._VALUE_PACK_STR, buffer(buf))
-        return {
-            'value': value
-        }
-
-    def serialize_value(self):
-        buf = bytearray()
-        msg_pack_into(self._VALUE_PACK_STR, buf, 0, self.value)
-        return buf
 
 
 @_PathAttribute.register_unknown_type()
