@@ -121,13 +121,28 @@ class _IPAddrPrefix(StringifyMixin):
         return buf + bytes(bin_ip_addr)
 
 
-class BGPOptParam(StringifyMixin):
+class _OptParam(StringifyMixin):
     _PACK_STR = '!BB'  # type, length
+    _TYPES = {}
+    _REV_TYPES = None
 
-    def __init__(self, type_, value, length=None):
+    def __init__(self, type_, value=None, length=None):
+        if type_ is None:
+            if self._REV_TYPES is None:
+                self._REV_TYPES = dict((v, k) for k, v in
+                                       self._TYPES.iteritems())
+            type_ = self._REV_TYPES[self.__class__]
         self.type = type_
         self.length = length
-        self.value = value
+        if not value is None:
+            self.value = value
+
+    @classmethod
+    def _lookup_type(cls, type_):
+        try:
+            return cls._TYPES[type_]
+        except KeyError:
+            return BGPOptParamUnknown
 
     @classmethod
     def parser(cls, buf):
@@ -135,15 +150,29 @@ class BGPOptParam(StringifyMixin):
         rest = buf[struct.calcsize(cls._PACK_STR):]
         value = bytes(rest[:length])
         rest = rest[length:]
-        return cls(type_=type_, length=length, value=value), rest
+        subcls = cls._lookup_type(type_)
+        return subcls(type_=type_, length=length,
+                      **subcls.parse_value(value)), rest
 
     def serialize(self):
         # fixup
-        self.length = len(self.value)
+        value = self.serialize_value()
+        self.length = len(value)
 
         buf = bytearray()
         msg_pack_into(self._PACK_STR, buf, 0, self.type, self.length)
-        return buf + bytes(self.value)
+        return buf + value
+
+
+class BGPOptParamUnknown(_OptParam):
+    @classmethod
+    def parse_value(cls, buf):
+        return {
+            'value': buf
+        }
+
+    def serialize_value(self):
+        return self.value
 
 
 class BGPWithdrawnRoute(_IPAddrPrefix):
@@ -525,7 +554,7 @@ class BGPOpen(BGPMessage):
         binopts = rest[:opt_param_len]
         opt_param = []
         while binopts:
-            opt, binopts = BGPOptParam.parser(binopts)
+            opt, binopts = _OptParam.parser(binopts)
             opt_param.append(opt)
         return {
             "version": version,
