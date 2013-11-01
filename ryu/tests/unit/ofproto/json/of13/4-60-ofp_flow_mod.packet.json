@@ -191,14 +191,14 @@
                   "OXMTlv": {
                      "field": "ipv6_src", 
                      "mask": null, 
-                     "value": "::3e7"
+                     "value": "fe80::f00b:a4ff:fe48:28a5"
                   }
                }, 
                {
                   "OXMTlv": {
                      "field": "ipv6_dst", 
                      "mask": null, 
-                     "value": "::378"
+                     "value": "fe80::f00b:a4ff:fe05:b7dc"
                   }
                }, 
                {
