@@ -7,7 +7,7 @@ before_install:
   - "sudo easy_install pip"
 
 install:
-  - "pip install -r tools/pip-requires -r tools/test-requires --use-mirrors"
+  - "sudo pip install -r tools/pip-requires -r tools/test-requires --use-mirrors"
 
 script:
   - "./run_tests.sh -N"
