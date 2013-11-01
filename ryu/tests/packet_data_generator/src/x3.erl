@@ -133,12 +133,14 @@ x() ->
          #ofp_field{
              class = openflow_basic,name = ipv6_src,
              has_mask = false,
-             value = <<999:128>>,
+             % fe80::f00b:a4ff:fe48:28a5
+             value = <<16#fe80000000000000f00ba4fffe4828a5:128>>,
              mask = undefined},
          #ofp_field{
              class = openflow_basic,name = ipv6_dst,
              has_mask = false,
-             value = <<888:128>>,
+             % fe80::f00b:a4ff:fe05:b7dc
+             value = <<16#fe80000000000000f00ba4fffe05b7dc:128>>,
              mask = undefined},
          #ofp_field{
              class = openflow_basic,name = ipv6_flabel,
@@ -158,7 +160,8 @@ x() ->
          #ofp_field{
              class = openflow_basic,name = ipv6_nd_target,
              has_mask = false,
-             value = <<777:128>>,
+             % fe80::a60:6eff:fe7f:74e7
+             value = <<16#fe800000000000000a606efffe7f74e7:128>>,
              mask = undefined},
          #ofp_field{
              class = openflow_basic,name = ipv6_nd_sll,
