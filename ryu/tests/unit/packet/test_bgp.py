@@ -85,6 +85,10 @@ class Test_bgp(unittest.TestCase):
             bgp.BGP_COMMUNITY_NO_EXPORT,
             bgp.BGP_COMMUNITY_NO_ADVERTISE,
         ]
+        ecommunities = [
+            0x1122334455667788,
+            0x99aabbccddeeff00,
+        ]
         path_attributes = [
             bgp.BGPPathAttributeOrigin(value=1),
             bgp.BGPPathAttributeAsPath(value=[[1000], set([1001, 1002]),
@@ -96,6 +100,7 @@ class Test_bgp(unittest.TestCase):
             bgp.BGPPathAttributeAggregator(as_number=40000,
                                            addr='192.0.2.99'),
             bgp.BGPPathAttributeCommunities(communities=communities),
+            bgp.BGPPathAttributeExtendedCommunities(communities=ecommunities),
             bgp.BGPPathAttributeAs4Path(value=[[1000000], set([1000001, 1002]),
                                                [1003, 1000004]]),
             bgp.BGPPathAttributeAs4Aggregator(as_number=100040000,

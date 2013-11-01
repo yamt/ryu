@@ -74,6 +74,7 @@ BGP_ATTR_TYPE_AGGREGATOR = 7  # AS number and IPv4 address
 BGP_ATTR_TYPE_COMMUNITIES = 8  # RFC 1997
 BGP_ATTR_TYPE_MP_REACH_NLRI = 14  # RFC 4760
 BGP_ATTR_TYPE_MP_UNREACH_NLRI = 15  # RFC 4760
+BGP_ATTR_TYPE_EXTENDED_COMMUNITIES = 16  # RFC 4360
 BGP_ATTR_TYPE_AS4_PATH = 17  # RFC 4893
 BGP_ATTR_TYPE_AS4_AGGREGATOR = 18  # RFC 4893
 
@@ -594,6 +595,41 @@ class BGPPathAttributeCommunities(_PathAttribute):
         super(BGPPathAttributeCommunities, self).__init__(flags=flags,
                                                           type_=type_,
                                                           length=length)
+        self.communities = communities
+
+    @classmethod
+    def parse_value(cls, buf):
+        rest = buf
+        communities = []
+        elem_size = struct.calcsize(cls._VALUE_PACK_STR)
+        while len(rest) >= elem_size:
+            (comm, ) = struct.unpack_from(cls._VALUE_PACK_STR, buffer(rest))
+            communities.append(comm)
+            rest = rest[elem_size:]
+        return {
+            'communities': communities,
+        }
+
+    def serialize_value(self):
+        buf = bytearray()
+        for comm in self.communities:
+            bincomm = bytearray()
+            msg_pack_into(self._VALUE_PACK_STR, bincomm, 0, comm)
+            buf += bincomm
+        return buf
+
+
+@_PathAttribute.register_type(BGP_ATTR_TYPE_EXTENDED_COMMUNITIES)
+class BGPPathAttributeExtendedCommunities(_PathAttribute):
+    _VALUE_PACK_STR = '!Q'  # type high (+ type low) + value
+    _ATTR_FLAGS = BGP_ATTR_FLAG_OPTIONAL | BGP_ATTR_FLAG_TRANSITIVE
+
+    def __init__(self, communities,
+                 flags=0, type_=None, length=None):
+        super(BGPPathAttributeExtendedCommunities,
+              self).__init__(flags=flags,
+                             type_=type_,
+                             length=length)
         self.communities = communities
 
     @classmethod
