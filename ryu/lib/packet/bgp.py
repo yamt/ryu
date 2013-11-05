@@ -619,6 +619,36 @@ class BGPPathAttributeCommunities(_PathAttribute):
         return buf
 
 
+# Extended Communities
+# RFC 4360
+# RFC 5668
+# IANA registry:
+# https://www.iana.org/assignments/bgp-extended-communities/
+# bgp-extended-communities.xml
+#
+# type
+# high  low
+# 00    sub-type    Two-Octet AS Specific Extended Community (transitive)
+# 40    sub-type    Two-Octet AS Specific Extended Community
+#                   payload:
+#                     2 byte Global Administrator (AS number)
+#                     4 byte Local Administrator (defined by sub-type)
+# 01    sub-type    IPv4 Address Specific Extended Community (transitive)
+# 41    sub-type    IPv4 Address Specific Extended Community
+#                   payload:
+#                     4 byte Global Administrator (IPv4 address)
+#                     2 byte Local Administrator (defined by sub-type)
+# 03    sub-type    Opaque Extended Community (transitive)
+# 43    sub-type    Opaque Extended Community
+#                   payload:
+#                     6 byte opaque value (defined by sub-type)
+#
+# 00    02          Route Target Community (two-octet AS specific)
+# 01    02          Route Target Community (IPv4 address specific)
+# 02    02          Route Target Community (four-octet AS specific, RFC 5668)
+# 00    03          Route Origin Community (two-octet AS specific)
+# 01    03          Route Origin Community (IPv4 address specific)
+# 02    03          Route Origin Community (four-octet AS specific, RFC 5668)
 @_PathAttribute.register_type(BGP_ATTR_TYPE_EXTENDED_COMMUNITIES)
 class BGPPathAttributeExtendedCommunities(_PathAttribute):
     _VALUE_PACK_STR = '!Q'  # type high (+ type low) + value
