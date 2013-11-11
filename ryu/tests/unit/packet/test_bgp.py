@@ -89,16 +89,16 @@ class Test_bgp(unittest.TestCase):
             bgp.BGPTwoOctetAsSpecificExtendedCommunity(subtype=1,
                                                        as_number=65500,
                                                        local_administrator=
-                                                       'abcd'),
+                                                       3908876543),
             bgp.BGPFourOctetAsSpecificExtendedCommunity(subtype=2,
                                                         as_number=10000000,
                                                         local_administrator=
-                                                        'ab'),
+                                                        59876),
             bgp.BGPIPv4AddressSpecificExtendedCommunity(subtype=3,
                                                         ipv4_address=
                                                         '192.0.2.1',
                                                         local_administrator=
-                                                        'xy'),
+                                                        65432),
             bgp.BGPOpaqueExtendedCommunity(opaque='abcdefg'),
             bgp.BGPUnknownExtendedCommunity(type_=99, value='abcdefg'),
         ]

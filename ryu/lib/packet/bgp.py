@@ -727,7 +727,7 @@ class _ExtendedCommunity(StringifyMixin, _TypeDisp, _Value):
 
 @_ExtendedCommunity.register_type(_ExtendedCommunity.TWO_OCTET_AS_SPECIFIC)
 class BGPTwoOctetAsSpecificExtendedCommunity(_ExtendedCommunity):
-    _VALUE_PACK_STR = '!BH4s'  # sub type, as number, local adm
+    _VALUE_PACK_STR = '!BHI'  # sub type, as number, local adm
     _VALUE_FIELDS = ['subtype', 'as_number', 'local_administrator']
 
     def __init__(self, type_=_ExtendedCommunity.TWO_OCTET_AS_SPECIFIC,
@@ -738,7 +738,7 @@ class BGPTwoOctetAsSpecificExtendedCommunity(_ExtendedCommunity):
 
 @_ExtendedCommunity.register_type(_ExtendedCommunity.IPV4_ADDRESS_SPECIFIC)
 class BGPIPv4AddressSpecificExtendedCommunity(_ExtendedCommunity):
-    _VALUE_PACK_STR = '!B4s2s'  # sub type, IPv4 address, local adm
+    _VALUE_PACK_STR = '!B4sH'  # sub type, IPv4 address, local adm
     _VALUE_FIELDS = ['subtype', 'ipv4_address', 'local_administrator']
 
     def __init__(self, type_=_ExtendedCommunity.IPV4_ADDRESS_SPECIFIC,
@@ -767,7 +767,7 @@ class BGPIPv4AddressSpecificExtendedCommunity(_ExtendedCommunity):
 
 @_ExtendedCommunity.register_type(_ExtendedCommunity.FOUR_OCTET_AS_SPECIFIC)
 class BGPFourOctetAsSpecificExtendedCommunity(_ExtendedCommunity):
-    _VALUE_PACK_STR = '!BI2s'  # sub type, as number, local adm
+    _VALUE_PACK_STR = '!BIH'  # sub type, as number, local adm
     _VALUE_FIELDS = ['subtype', 'as_number', 'local_administrator']
 
     def __init__(self, type_=_ExtendedCommunity.FOUR_OCTET_AS_SPECIFIC,
