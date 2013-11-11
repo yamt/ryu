@@ -699,7 +699,7 @@ class _ExtendedCommunity(StringifyMixin, _TypeDisp, _Value):
     _PACK_STR = '!B7s'  # type high (+ type low) + value
     _IANA_AUTHORITY = 0x80
     _TRANSITIVE = 0x40
-    _TYPE_HIGH_MASK = ~(_IANA_AUTHORITY | _TRANSITIVE)
+    _TYPE_HIGH_MASK = ~_TRANSITIVE
 
     TWO_OCTET_AS_SPECIFIC = 0x00
     IPV4_ADDRESS_SPECIFIC = 0x01
