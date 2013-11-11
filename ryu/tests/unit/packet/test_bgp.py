@@ -86,8 +86,21 @@ class Test_bgp(unittest.TestCase):
             bgp.BGP_COMMUNITY_NO_ADVERTISE,
         ]
         ecommunities = [
-            0x1122334455667788,
-            0x99aabbccddeeff00,
+            bgp.BGPTwoOctetAsSpecificExtendedCommunity(subtype=1,
+                                                       as_number=65500,
+                                                       local_administrator=
+                                                       'abcd'),
+            bgp.BGPFourOctetAsSpecificExtendedCommunity(subtype=2,
+                                                        as_number=10000000,
+                                                        local_administrator=
+                                                        'ab'),
+            bgp.BGPIPv4AddressSpecificExtendedCommunity(subtype=3,
+                                                        ipv4_address=
+                                                        '192.0.2.1',
+                                                        local_administrator=
+                                                        'xy'),
+            bgp.BGPOpaqueExtendedCommunity(opaque='abcdefg'),
+            bgp.BGPUnknownExtendedCommunity(type_=99, value='abcdefg'),
         ]
         path_attributes = [
             bgp.BGPPathAttributeOrigin(value=1),
