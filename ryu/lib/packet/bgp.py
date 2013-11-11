@@ -159,17 +159,19 @@ class _IPAddrPrefix(_AddrPrefix):
 
 class _Value(object):
     _VALUE_PACK_STR = None
+    _VALUE_FIELDS = ['value']
 
     @classmethod
     def parse_value(cls, buf):
-        (value,) = struct.unpack_from(cls._VALUE_PACK_STR, buffer(buf))
-        return {
-            'value': value
-        }
+        values = struct.unpack_from(cls._VALUE_PACK_STR, buffer(buf))
+        return dict(zip(cls._VALUE_FIELDS, values))
 
     def serialize_value(self):
+        args = []
+        for f in self._VALUE_FIELDS:
+            args.append(getattr(self, f))
         buf = bytearray()
-        msg_pack_into(self._VALUE_PACK_STR, buf, 0, self.value)
+        msg_pack_into(self._VALUE_PACK_STR, buf, 0, *args)
         return buf
 
 
