@@ -22,7 +22,13 @@ PYTHONPATH=. ./bin/ryu-manager --verbose \
              ./ryu/services/vrrp/sample_manager.py \
              ./ryu/tests/integrated/test_vrrp_linux_multi.py
 
-./ryu/services/vrrp/dumper.py is optional.
+PYTHONPATH=. ./bin/ryu-manager --verbose \
+             ryu.services.vrrp.manager \
+             ryu.services.vrrp.dumper \
+             ryu.services.vrrp.sample_manager.py \
+             ryu.tests.integrated.test_vrrp_linux_multi
+
+ryu.services.vrrp.dumper is optional.
 
                     ----------------
       /--<--veth0-->|              |
