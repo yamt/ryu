@@ -82,7 +82,6 @@ from ryu.base import app_manager
 from ryu.controller import handler
 from ryu.lib import dpid as lib_dpid
 from ryu.lib import hub
-from ryu.lib import addrconv
 from ryu.lib.packet import vrrp
 from ryu.services.vrrp import api as vrrp_api
 from ryu.services.vrrp import event as vrrp_event
@@ -127,7 +126,7 @@ class VRRPConfigApp(vrrp_common.VRRPCommon):
         self.logger.debug('%d', port_no)
         port = switches.port_state[dpid][port_no]
         self.logger.debug('%s', port)
-        mac = addrconv.mac.bin_to_text(port.hw_addr)
+        mac = port.hw_addr
         self.logger.debug('%s', mac)
 
         interface = vrrp_event.VRRPInterfaceOpenFlow(
