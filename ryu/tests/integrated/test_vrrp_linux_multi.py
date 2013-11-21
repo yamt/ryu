@@ -68,6 +68,7 @@ from ryu.lib import mac as lib_mac
 from ryu.lib.packet import vrrp
 from ryu.services.vrrp import api as vrrp_api
 from ryu.services.vrrp import event as vrrp_event
+from ryu.services.vrrp import monitor_linux
 
 from . import vrrp_common
 

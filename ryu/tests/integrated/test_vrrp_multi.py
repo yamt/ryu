@@ -85,6 +85,7 @@ from ryu.lib import hub
 from ryu.lib.packet import vrrp
 from ryu.services.vrrp import api as vrrp_api
 from ryu.services.vrrp import event as vrrp_event
+from ryu.services.vrrp import monitor_openflow
 from ryu.topology import event as topo_event
 from ryu.topology import api as topo_api
 
