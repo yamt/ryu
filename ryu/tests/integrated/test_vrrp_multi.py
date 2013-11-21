@@ -17,12 +17,12 @@
 """
 Usage:
 PYTHONPATH=. ./bin/ryu-manager --verbose \
-             ./ryu/topology/switches.py \
-             ./ryu/services/vrrp/manager.py \
-             ./ryu/tests/integrated/test_vrrp_multi.py \
-             ./ryu/services/vrrp/dumper.py
+             ryu.topology.switches \
+             ryu.services.vrrp.manager \
+             ryu.tests.integrated.test_vrrp_multi \
+             ryu.services.vrrp.dumper
 
-./ryu/services/vrrp/dumper.py is optional.
+ryu.services.vrrp.dumper is optional.
 
          +---+          ----------------
       /--|OVS|<--veth-->|              |
