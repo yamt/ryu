@@ -17,18 +17,14 @@
 """
 Usage:
 PYTHONPATH=. ./bin/ryu-manager --verbose \
-             ./ryu/services/vrrp/manager.py \
-             ./ryu/services/vrrp/dumper.py \
-             ./ryu/services/vrrp/sample_manager.py \
-             ./ryu/tests/integrated/test_vrrp_linux_multi.py
-
-PYTHONPATH=. ./bin/ryu-manager --verbose \
              ryu.services.vrrp.manager \
              ryu.services.vrrp.dumper \
              ryu.services.vrrp.sample_manager.py \
-             ryu.tests.integrated.test_vrrp_linux_multi
+             ryu.tests.integrated.test_vrrp_linux_multi \
+             ryu.app.rest
 
 ryu.services.vrrp.dumper is optional.
+ryu.app.rest is merely to prevent ryu-manager from exiting.
 
                     ----------------
       /--<--veth0-->|              |
