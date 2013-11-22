@@ -20,21 +20,12 @@ Watching packet received on this interface and parse VRRP packet.
 VRRPManager creates/deletes instances of interface monitor dynamically.
 """
 
-import contextlib
-import fcntl
-import socket
-import struct
-
 from ryu.base import app_manager
 from ryu.controller import handler
-from ryu.lib import hub
-from ryu.lib import addrconv
-from ryu.lib.packet import arp
 from ryu.lib.packet import packet
 from ryu.lib.packet import vlan
 from ryu.lib.packet import vrrp
 from ryu.services.vrrp import event as vrrp_event
-from ryu.services.vrrp import utils
 
 
 class VRRPInterfaceMonitor(app_manager.RyuApp):
