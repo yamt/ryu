@@ -5288,10 +5288,10 @@ class ONFFlowMonitorRequest(StringifyMixin):
         # fixup
         match = self.match
         bin_match = bytearray()
-        match_len_with_pad = match.serialize(bin_match, 0)
-        assert len(bin_match) == match_len_with_pad
+        ofp_match_len = match.serialize(bin_match, 0)
+        assert len(bin_match) == ofp_match_len
         match_len = match.length
-        match_hdr_len = ofproto_v1_3.OFP_MATCH_SIZE
+        match_hdr_len = ofproto_v1_3.OFP_MATCH_SIZE - 4  # exclude pad[4]
         # strip ofp_match header and trailing padding
         bin_match = bytes(bin_match)[match_hdr_len:match_len]
         self.match_len = len(bin_match)
