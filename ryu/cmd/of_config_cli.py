@@ -101,6 +101,16 @@ class Cmd(cmd.Cmd):
             return []
         return [name for name in peers if name.startswith(text)]
 
+    def do_list_cap(self, line):
+        """list_cap <peer>
+        """
+
+        def f(p, args):
+            for i in p.netconf.server_capabilities:
+                print i
+
+        self._request(line, f)
+
     def do_raw_get(self, line):
         """raw_get <peer>
         """
@@ -134,6 +144,9 @@ class Cmd(cmd.Cmd):
         return self._complete_peer(text, line, begidx, endidx)
 
     def complete_raw_get_config(self, text, line, begidx, endidx):
+        return self._complete_peer(text, line, begidx, endidx)
+
+    def complete_list_cap(self, text, line, begidx, endidx):
         return self._complete_peer(text, line, begidx, endidx)
 
     def do_EOF(self, _line):
