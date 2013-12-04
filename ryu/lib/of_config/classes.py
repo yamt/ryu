@@ -207,3 +207,13 @@ class OFCapableSwitchType(_Base):
         _ct('resources', OFCapableSwitchResourceListType),
         _ct('logical-switches', OFLogicalSwitchListType),
     ]
+
+
+# probably should not be here but for convenience
+class NETCONF_Config(_Base):
+    _ELEMENTS = [
+        _ct('capable-switch', OFCapableSwitchType),
+    ]
+
+    def to_xml(self):
+        return super(NETCONF_Config, self).to_xml('{%s}config' % _ns_netconf)
