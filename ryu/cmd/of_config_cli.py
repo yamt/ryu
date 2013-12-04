@@ -35,6 +35,7 @@ from ryu.lib import of_config
 from ryu.lib.of_config import capable_switch
 from ryu.lib.of_config import constants as consts
 from ncclient.operations.rpc import RPCError
+import ryu.lib.of_config.classes as ofc
 
 
 CONF = cfg.CONF
@@ -72,13 +73,18 @@ def validate(tree):
         print schema.error_log
 
 
+def _pythonify(name):
+    # XXX code duplication
+    return name.replace('-', '_')
+
+
 class Cmd(cmd.Cmd):
     def __init__(self, *args, **kwargs):
         self._in_onecmd = False
         cmd.Cmd.__init__(self, *args, **kwargs)
 
     def _request(self, line, f):
-        args = line.split(None, 2)
+        args = line.split()
         try:
             peer = args[0]
         except:
@@ -140,6 +146,91 @@ class Cmd(cmd.Cmd):
 
         self._request(line, f)
 
+    def do_list_port(self, line):
+        """list_port <peer>
+        """
+
+        def f(p, args):
+            result = p.get()
+            o = ofc.OFCapableSwitchType.from_xml(result)
+            for p in o.resources.port:
+                print p.resource_id, p.name, p.number
+
+        self._request(line, f)
+
+    _port_settings = [
+        'admin-state',
+        'no-forward',
+        'no-packet-in',
+        'no-receive',
+    ]
+
+    def do_get_port_config(self, line):
+        """get_config_port <peer> <source> <port>
+        eg. get_port_config sw1 running LogicalSwitch7-Port2
+        """
+
+        def f(p, args):
+            try:
+                source, port = args
+            except:
+                print "argument error"
+                return
+            result = p.get_config(source)
+            o = ofc.OFCapableSwitchType.from_xml(result)
+            for p in o.resources.port:
+                if p.resource_id != port:
+                    continue
+                print p.resource_id
+                conf = p.configuration
+                for k in self._port_settings:
+                    try:
+                        print k, getattr(conf, _pythonify(k))
+                    except AttributeError:
+                        pass
+
+        self._request(line, f)
+
+    def do_set_port_config(self, line):
+        """set_port_config <peer> <target> <port> <key> <value>
+        eg. set_port_config sw1 running LogicalSwitch7-Port2 admin-state down
+        eg. set_port_config sw1 running LogicalSwitch7-Port2 no-forward false
+        """
+
+        def f(p, args):
+            try:
+                target, port, key, value = args
+            except:
+                print "argument error"
+                print args
+                return
+
+            # get switch id
+            result = p.get()
+            o = ofc.OFCapableSwitchType.from_xml(result)
+            capable_switch_id = o.id
+
+            conf = ofc.NETCONF_Config(
+                capable_switch=ofc.OFCapableSwitchType(
+                    id=capable_switch_id,
+                    resources=ofc.OFCapableSwitchResourceListType(
+                        port=ofc.OFPortType(
+                            resource_id=port,
+                            configuration=ofc.OFPortConfigurationType(
+                                **{_pythonify(key): value}
+                            )
+                        )
+                    )
+                )
+            )
+            try:
+                xml = conf.to_xml()
+                p.edit_config(target, xml)
+            except Exception, e:
+                print e
+
+        self._request(line, f)
+
     def complete_raw_get(self, text, line, begidx, endidx):
         return self._complete_peer(text, line, begidx, endidx)
 
@@ -147,6 +238,15 @@ class Cmd(cmd.Cmd):
         return self._complete_peer(text, line, begidx, endidx)
 
     def complete_list_cap(self, text, line, begidx, endidx):
+        return self._complete_peer(text, line, begidx, endidx)
+
+    def complete_list_port(self, text, line, begidx, endidx):
+        return self._complete_peer(text, line, begidx, endidx)
+
+    def complete_get_port_config(self, text, line, begidx, endidx):
+        return self._complete_peer(text, line, begidx, endidx)
+
+    def complete_set_port_config(self, text, line, begidx, endidx):
         return self._complete_peer(text, line, begidx, endidx)
 
     def do_EOF(self, _line):
