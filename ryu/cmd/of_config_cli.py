@@ -231,6 +231,90 @@ class Cmd(cmd.Cmd):
 
         self._request(line, f)
 
+    def do_list_queue(self, line):
+        """list_queue <peer>
+        """
+
+        def f(p, args):
+            result = p.get()
+            o = ofc.OFCapableSwitchType.from_xml(result)
+            for q in o.resources.queue:
+                print q.resource_id, q.port
+
+        self._request(line, f)
+
+    _queue_settings = [
+        'max-rate',
+        'min-rate',
+        'experimenter',
+    ]
+
+    def do_get_queue_config(self, line):
+        """get_queue_port <peer> <source> <queue>
+        eg. get_queue_config sw1 running LogicalSwitch7-Port1-Queue922
+        """
+
+        def f(p, args):
+            try:
+                source, queue = args
+            except:
+                print "argument error"
+                return
+            result = p.get_config(source)
+            o = ofc.OFCapableSwitchType.from_xml(result)
+            for q in o.resources.queue:
+                if q.resource_id != queue:
+                    continue
+                print q.resource_id
+                conf = q.properties
+                for k in self._queue_settings:
+                    try:
+                        print k, getattr(conf, _pythonify(k))
+                    except AttributeError:
+                        pass
+
+        self._request(line, f)
+
+    def do_set_queue_config(self, line):
+        """set_queue_config <peer> <target> <queue> <key> <value>
+        eg. set_queue_config sw1 running LogicalSwitch7-Port1-Queue922 \
+max-rate 100
+        """
+
+        def f(p, args):
+            try:
+                target, queue, key, value = args
+            except:
+                print "argument error"
+                print args
+                return
+
+            # get switch id
+            result = p.get()
+            o = ofc.OFCapableSwitchType.from_xml(result)
+            capable_switch_id = o.id
+
+            conf = ofc.NETCONF_Config(
+                capable_switch=ofc.OFCapableSwitchType(
+                    id=capable_switch_id,
+                    resources=ofc.OFCapableSwitchResourceListType(
+                        queue=ofc.OFQueueType(
+                            resource_id=queue,
+                            properties=ofc.OFQueuePropertiesType(
+                                **{_pythonify(key): value}
+                            )
+                        )
+                    )
+                )
+            )
+            try:
+                xml = conf.to_xml()
+                p.edit_config(target, xml)
+            except Exception, e:
+                print e
+
+        self._request(line, f)
+
     def complete_raw_get(self, text, line, begidx, endidx):
         return self._complete_peer(text, line, begidx, endidx)
 
@@ -247,6 +331,15 @@ class Cmd(cmd.Cmd):
         return self._complete_peer(text, line, begidx, endidx)
 
     def complete_set_port_config(self, text, line, begidx, endidx):
+        return self._complete_peer(text, line, begidx, endidx)
+
+    def complete_list_queue(self, text, line, begidx, endidx):
+        return self._complete_peer(text, line, begidx, endidx)
+
+    def complete_get_queue_config(self, text, line, begidx, endidx):
+        return self._complete_peer(text, line, begidx, endidx)
+
+    def complete_set_queue_config(self, text, line, begidx, endidx):
         return self._complete_peer(text, line, begidx, endidx)
 
     def do_EOF(self, _line):
