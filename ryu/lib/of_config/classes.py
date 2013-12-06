@@ -162,10 +162,27 @@ class OFPortType(_Base):
     ]
 
 
+class OFQueuePropertiesType(_Base):
+    _ELEMENTS = [
+        _e('min-rate'),
+        _e('max-rate'),
+        _e('experimenter'),
+    ]
+
+
+class OFQueueType(_Base):
+    _ELEMENTS = [
+        _e('resource-id'),
+        _e('id'),
+        _e('port'),
+        _ct('properties', OFQueuePropertiesType),
+    ]
+
+
 class OFCapableSwitchResourceListType(_Base):
     _ELEMENTS = [
         _ct('port', OFPortType),
-        _ct('queue'),
+        _ct('queue', OFQueueType),
         _ct('owned-certificate'),
         _ct('external-ceritifcate'),
         _ct('flow-table'),
