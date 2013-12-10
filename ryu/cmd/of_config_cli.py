@@ -315,32 +315,10 @@ max-rate 100
 
         self._request(line, f)
 
-    def complete_raw_get(self, text, line, begidx, endidx):
-        return self._complete_peer(text, line, begidx, endidx)
+    completedefault = _complete_peer
 
-    def complete_raw_get_config(self, text, line, begidx, endidx):
-        return self._complete_peer(text, line, begidx, endidx)
-
-    def complete_list_cap(self, text, line, begidx, endidx):
-        return self._complete_peer(text, line, begidx, endidx)
-
-    def complete_list_port(self, text, line, begidx, endidx):
-        return self._complete_peer(text, line, begidx, endidx)
-
-    def complete_get_port_config(self, text, line, begidx, endidx):
-        return self._complete_peer(text, line, begidx, endidx)
-
-    def complete_set_port_config(self, text, line, begidx, endidx):
-        return self._complete_peer(text, line, begidx, endidx)
-
-    def complete_list_queue(self, text, line, begidx, endidx):
-        return self._complete_peer(text, line, begidx, endidx)
-
-    def complete_get_queue_config(self, text, line, begidx, endidx):
-        return self._complete_peer(text, line, begidx, endidx)
-
-    def complete_set_queue_config(self, text, line, begidx, endidx):
-        return self._complete_peer(text, line, begidx, endidx)
+    def complete_EOF(self, _text, _line, _begidx, _endidx):
+        return []
 
     def do_EOF(self, _line):
         sys.exit(0)
