@@ -149,6 +149,27 @@ class OFPortConfigurationType(_Base):
     ]
 
 
+class OFPortCurrentFeatureListType(_Base):
+    _ELEMENTS = [
+        _e('rate'),
+        _e('auto-negotiate'),
+        _e('medium'),
+        _e('pause'),
+    ]
+
+
+OFPortOtherFeatureListType = OFPortCurrentFeatureListType
+
+
+class OFPortFeatureMasterList(_Base):
+    _ELEMENTS = [
+        _ct('current', OFPortCurrentFeatureListType),
+        _ct('advertised', OFPortOtherFeatureListType),
+        _ct('supported', OFPortOtherFeatureListType),
+        _ct('advertised-peer', OFPortOtherFeatureListType),
+    ]
+
+
 class OFPortType(_Base):
     _ELEMENTS = [
         _e('resource-id'),
@@ -158,7 +179,7 @@ class OFPortType(_Base):
         _e('max-rate'),
         _ct('configuration', OFPortConfigurationType),
         _ct('state'),
-        _ct('features'),
+        _ct('features', OFPortFeatureMasterList),
     ]
 
 
@@ -198,6 +219,54 @@ class OFLogicalSwitchResourceListType(_Base):
     ]
 
 
+#class OFOpenFlowSupportedVersionsType(_Base):
+#    _ELEMENTS = [
+#        _e('version'),
+#    ]
+
+
+class OFControllerOpenFlowStateType(_Base):
+    _ELEMENTS = [
+        _e('connection-state'),
+        _e('current-version'),
+
+        # XXX OF-Config 1.1.1 is inconsistent about supported-versions.
+        #
+        # according to its xml schema (p.43), i believe this should look
+        # like the following.  it's what linc/of_config does, too.
+        #     <supported-versions>1.3</supported-versions>
+        #
+        # on the other hand, it has an example (p.45) like the following.
+        # this one is compatible with OF-Config 1.1.
+        #     <supported-versions>
+        #         <version>1.2</version>
+        #         <version>1.1</version>
+        #     </supported-versions>
+
+        _e('supported-versions'),
+        #_ct('supported-versions', OFOpenFlowSupportedVersionsType),
+    ]
+
+
+class OFControllerType(_Base):
+    _ELEMENTS = [
+        _e('id'),
+        _e('role'),
+        _e('ip-address'),
+        _e('port'),
+        _e('local-ip-address'),
+        _e('local-port'),
+        _e('protocol'),
+        _ct('state', OFControllerOpenFlowStateType),
+    ]
+
+
+class OFControllerListType(_Base):
+    _ELEMENTS = [
+        _ct('controller', OFControllerType),
+    ]
+
+
 class OFLogicalSwitchType(_Base):
     _ELEMENTS = [
         _e('id'),
@@ -206,13 +275,14 @@ class OFLogicalSwitchType(_Base):
         _e('enabled'),
         _e('check-controller-certificate'),
         _e('lost-connection-behaviour'),
-        _ct('controllers'),
+        _ct('controllers', OFControllerListType),
         _ct('resources', OFLogicalSwitchResourceListType),
     ]
 
 
 class OFLogicalSwitchListType(_Base):
     _ELEMENTS = [
+        # this is named 'logical-switch' for OF-Config 1.1.
         _ct('switch', OFLogicalSwitchType),
     ]
 
