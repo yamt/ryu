@@ -340,6 +340,112 @@ max-rate 100
 
         self._request(line, f)
 
+    def do_list_logical_switch(self, line):
+        """list_logical_switch <peer>
+        """
+
+        def f(p, args):
+            result = p.get()
+            o = ofc.OFCapableSwitchType.from_xml(result)
+            for s in o.logical_switches.switch:
+                print s.id, s.datapath_id
+
+        self._request(line, f)
+
+    def do_show_logical_switch(self, line):
+        """show_logical_switch <peer> <logical switch>
+        """
+
+        def f(p, args):
+            try:
+                (lsw,) = args
+            except:
+                print "argument error"
+                return
+            result = p.get()
+            o = ofc.OFCapableSwitchType.from_xml(result)
+            for s in o.logical_switches.switch:
+                if s.id != lsw:
+                    continue
+                print s.id
+                print 'datapath-id', s.datapath_id
+                if s.resources.queue:
+                    print 'queues:'
+                    for q in s.resources.queue:
+                        print '\t', q
+                if s.resources.port:
+                    print 'ports:'
+                    for p in s.resources.port:
+                        print '\t', p
+
+        self._request(line, f)
+
+    _lsw_settings = [
+        'lost-connection-behavior',
+    ]
+
+    def do_get_logical_switch_config(self, line):
+        """get_logical_switch_config <peer> <source> <logical switch>
+        """
+
+        def f(p, args):
+            try:
+                source, lsw = args
+            except:
+                print "argument error"
+                return
+            result = p.get_config(source)
+            o = ofc.OFCapableSwitchType.from_xml(result)
+            for l in o.logical_switches.switch:
+                if l.id != lsw:
+                    continue
+                print l.id
+                for k in self._lsw_settings:
+                    try:
+                        v = getattr(l, _pythonify(k))
+                    except AttributeError:
+                        continue
+                    print k, v
+
+        self._request(line, f)
+
+    def do_set_logical_switch_config(self, line):
+        """set_logical_switch_config <peer> <logical switch> <key> <value>
+        eg. set_logical_switch_config sw1 running LogicalSwitch7 \
+lost-connection-behavior failStandaloneMode
+        """
+
+        def f(p, args):
+            try:
+                target, lsw, key, value = args
+            except:
+                print "argument error"
+                return
+
+            # get switch id
+            result = p.get()
+            o = ofc.OFCapableSwitchType.from_xml(result)
+            capable_switch_id = o.id
+
+            conf = ofc.NETCONF_Config(
+                capable_switch=ofc.OFCapableSwitchType(
+                    id=capable_switch_id,
+                    logical_switches=ofc.OFLogicalSwitchListType(
+                        switch=ofc.OFLogicalSwitchType(
+                            id=lsw,
+                            **{_pythonify(key): value}
+                        )
+                    )
+                )
+            )
+            try:
+                xml = conf.to_xml()
+                p.edit_config(target, xml)
+            except Exception, e:
+                print e
+
+        self._request(line, f)
+
     completedefault = _complete_peer
 
     def complete_EOF(self, _text, _line, _begidx, _endidx):
