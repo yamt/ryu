@@ -274,7 +274,7 @@ class OFLogicalSwitchType(_Base):
         _e('datapath-id'),
         _e('enabled'),
         _e('check-controller-certificate'),
-        _e('lost-connection-behaviour'),
+        _e('lost-connection-behavior'),
         _ct('controllers', OFControllerListType),
         _ct('resources', OFLogicalSwitchResourceListType),
     ]
