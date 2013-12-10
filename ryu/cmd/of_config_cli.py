@@ -178,8 +178,9 @@ class Cmd(cmd.Cmd):
         def f(p, args):
             result = p.get()
             o = ofc.OFCapableSwitchType.from_xml(result)
-            for p in o.resources.port:
-                print p.resource_id, p.name, p.number
+            if o.resources.port:
+                for p in o.resources.port:
+                    print p.resource_id, p.name, p.number
 
         self._request(line, f)
 
@@ -203,6 +204,8 @@ class Cmd(cmd.Cmd):
                 return
             result = p.get_config(source)
             o = ofc.OFCapableSwitchType.from_xml(result)
+            if not o.resources.port:
+                return
             for p in o.resources.port:
                 if p.resource_id != port:
                     continue
@@ -210,9 +213,10 @@ class Cmd(cmd.Cmd):
                 conf = p.configuration
                 for k in self._port_settings:
                     try:
-                        print k, getattr(conf, _pythonify(k))
+                        v = getattr(conf, _pythonify(k))
                     except AttributeError:
-                        pass
+                        continue
+                    print k, v
 
         self._request(line, f)
 
@@ -235,19 +239,23 @@ class Cmd(cmd.Cmd):
             o = ofc.OFCapableSwitchType.from_xml(result)
             capable_switch_id = o.id
 
-            conf = ofc.NETCONF_Config(
-                capable_switch=ofc.OFCapableSwitchType(
-                    id=capable_switch_id,
-                    resources=ofc.OFCapableSwitchResourceListType(
-                        port=ofc.OFPortType(
-                            resource_id=port,
-                            configuration=ofc.OFPortConfigurationType(
-                                **{_pythonify(key): value}
+            try:
+                conf = ofc.NETCONF_Config(
+                    capable_switch=ofc.OFCapableSwitchType(
+                        id=capable_switch_id,
+                        resources=ofc.OFCapableSwitchResourceListType(
+                            port=ofc.OFPortType(
+                                resource_id=port,
+                                configuration=ofc.OFPortConfigurationType(
+                                    **{_pythonify(key): value}
+                                )
                             )
                         )
                     )
                 )
-            )
+            except TypeError:
+                print "argument error"
+                return
             try:
                 xml = conf.to_xml()
                 p.edit_config(target, xml)
@@ -263,8 +271,9 @@ class Cmd(cmd.Cmd):
         def f(p, args):
             result = p.get()
             o = ofc.OFCapableSwitchType.from_xml(result)
-            for q in o.resources.queue:
-                print q.resource_id, q.port
+            if o.resources.queue:
+                for q in o.resources.queue:
+                    print q.resource_id, q.port
 
         self._request(line, f)
 
@@ -287,6 +296,8 @@ class Cmd(cmd.Cmd):
                 return
             result = p.get_config(source)
             o = ofc.OFCapableSwitchType.from_xml(result)
+            if not o.resources.queue:
+                return
             for q in o.resources.queue:
                 if q.resource_id != queue:
                     continue
@@ -294,9 +305,10 @@ class Cmd(cmd.Cmd):
                 conf = q.properties
                 for k in self._queue_settings:
                     try:
-                        print k, getattr(conf, _pythonify(k))
+                        v = getattr(conf, _pythonify(k))
                     except AttributeError:
-                        pass
+                        continue
+                    print k, v
 
         self._request(line, f)
 
@@ -319,19 +331,23 @@ max-rate 100
             o = ofc.OFCapableSwitchType.from_xml(result)
             capable_switch_id = o.id
 
-            conf = ofc.NETCONF_Config(
-                capable_switch=ofc.OFCapableSwitchType(
-                    id=capable_switch_id,
-                    resources=ofc.OFCapableSwitchResourceListType(
-                        queue=ofc.OFQueueType(
-                            resource_id=queue,
-                            properties=ofc.OFQueuePropertiesType(
-                                **{_pythonify(key): value}
+            try:
+                conf = ofc.NETCONF_Config(
+                    capable_switch=ofc.OFCapableSwitchType(
+                        id=capable_switch_id,
+                        resources=ofc.OFCapableSwitchResourceListType(
+                            queue=ofc.OFQueueType(
+                                resource_id=queue,
+                                properties=ofc.OFQueuePropertiesType(
+                                    **{_pythonify(key): value}
+                                )
                             )
                         )
                     )
                 )
-            )
+            except TypeError:
+                print "argument error"
+                return
             try:
                 xml = conf.to_xml()
                 p.edit_config(target, xml)
@@ -427,17 +443,21 @@ lost-connection-behavior failStandaloneMode
             o = ofc.OFCapableSwitchType.from_xml(result)
             capable_switch_id = o.id
 
-            conf = ofc.NETCONF_Config(
-                capable_switch=ofc.OFCapableSwitchType(
-                    id=capable_switch_id,
-                    logical_switches=ofc.OFLogicalSwitchListType(
-                        switch=ofc.OFLogicalSwitchType(
-                            id=lsw,
-                            **{_pythonify(key): value}
+            try:
+                conf = ofc.NETCONF_Config(
+                    capable_switch=ofc.OFCapableSwitchType(
+                        id=capable_switch_id,
+                        logical_switches=ofc.OFLogicalSwitchListType(
+                            switch=ofc.OFLogicalSwitchType(
+                                id=lsw,
+                                **{_pythonify(key): value}
+                            )
                         )
                     )
                 )
-            )
+            except TypeError:
+                print "argument error"
+                return
             try:
                 xml = conf.to_xml()
                 p.edit_config(target, xml)
