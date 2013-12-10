@@ -146,6 +146,31 @@ class Cmd(cmd.Cmd):
 
         self._request(line, f)
 
+    def do_get(self, line):
+        """get <peer>
+        """
+
+        def f(p, args):
+            result = p.get()
+            print ofc.OFCapableSwitchType.from_xml(result)
+
+        self._request(line, f)
+
+    def do_get_config(self, line):
+        """get_config <peer> <source>
+        """
+
+        def f(p, args):
+            try:
+                source = args[0]
+            except:
+                print "argument error"
+                return
+            result = p.get_config(source)
+            print ofc.OFCapableSwitchType.from_xml(result)
+
+        self._request(line, f)
+
     def do_list_port(self, line):
         """list_port <peer>
         """
