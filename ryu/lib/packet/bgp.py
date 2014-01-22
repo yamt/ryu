@@ -141,19 +141,14 @@ class _AddrPrefix(StringifyMixin):
     __metaclass__ = abc.ABCMeta
     _PACK_STR = '!B'  # length
 
-    def __init__(self, length, addr, prefix_length=0, prefixes=None):
+    def __init__(self, length, addr, prefixes=None):
+        # length is on-wire bit length of prefixes+addr.
         assert prefixes != ()
-        assert prefix_length % 8 == 0
         if isinstance(addr, tuple):
-            if prefixes:
-                # for _VPNAddrPrefix.__init__ etc
-                assert prefix_length > 0
-                (addr,) = addr
-            else:
-                # for _AddrPrefix.parser
-                assert prefix_length == 0
-                (addr,) = addr
-        self.length = prefix_length + length
+            # for _AddrPrefix.parser
+            # also for _VPNAddrPrefix.__init__ etc
+            (addr,) = addr
+        self.length = length
         if prefixes:
             addr = prefixes + (addr,)
         self.addr = addr
@@ -217,14 +212,11 @@ class _LabelledAddrPrefix(_AddrPrefix):
             assert not labels
             labels = addr[0]
             addr = addr[1:]
-        prefix_length = struct.calcsize(self._LABEL_PACK_STR) * 8 * len(labels)
+        else:
+            length += struct.calcsize(self._LABEL_PACK_STR) * 8 * len(labels)
+        assert length > struct.calcsize(self._LABEL_PACK_STR) * 8 * len(labels)
         prefixes = (labels,)
-        if is_tuple:
-            # for _AddrPrefix.parser
-            assert length > prefix_length
-            length -= prefix_length
-        super(_LabelledAddrPrefix, self).__init__(prefix_length=prefix_length,
-                                                  prefixes=prefixes,
+        super(_LabelledAddrPrefix, self).__init__(prefixes=prefixes,
                                                   length=length,
                                                   addr=addr,
                                                   **kwargs)
@@ -298,20 +290,17 @@ class _IPAddrPrefix(_AddrPrefix):
 class _VPNAddrPrefix(_AddrPrefix):
     _RD_PACK_STR = '!Q'
 
-    def __init__(self, length, addr, prefix_length=0, prefixes=(),
-                 route_dist=0):
-        our_prefix_length = struct.calcsize(self._RD_PACK_STR) * 8
+    def __init__(self, length, addr, prefixes=(), route_dist=0):
         if isinstance(addr, tuple):
             # for _AddrPrefix.parser
             assert not route_dist
-            assert length > our_prefix_length
+            assert length > struct.calcsize(self._RD_PACK_STR) * 8
             route_dist = addr[0]
             addr = addr[1:]
-            length -= our_prefix_length
-        prefix_length += our_prefix_length
+        else:
+            length += struct.calcsize(self._RD_PACK_STR) * 8
         prefixes = prefixes + (route_dist,)
-        super(_VPNAddrPrefix, self).__init__(prefix_length=prefix_length,
-                                             prefixes=prefixes,
+        super(_VPNAddrPrefix, self).__init__(prefixes=prefixes,
                                              length=length,
                                              addr=addr)
 
