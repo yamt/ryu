@@ -141,8 +141,21 @@ class _AddrPrefix(StringifyMixin):
     __metaclass__ = abc.ABCMeta
     _PACK_STR = '!B'  # length
 
-    def __init__(self, length, addr):
-        self.length = length
+    def __init__(self, length, addr, prefix_length=0, prefixes=None):
+        assert prefixes != ()
+        assert prefix_length % 8 == 0
+        if isinstance(addr, tuple):
+            if prefixes:
+                # for _VPNAddrPrefix.__init__ etc
+                assert prefix_length > 0
+                (addr,) = addr
+            else:
+                # for _AddrPrefix.parser
+                assert prefix_length == 0
+                (addr,) = addr
+        self.length = prefix_length + length
+        if prefixes:
+            addr = prefixes + (addr,)
         self.addr = addr
 
     @staticmethod
@@ -196,19 +209,25 @@ class _BinAddrPrefix(_AddrPrefix):
 class _LabelledAddrPrefix(_AddrPrefix):
     _LABEL_PACK_STR = '!3B'
 
-    def __init__(self, length, addr, labels=[]):
+    def __init__(self, length, addr, labels=[], **kwargs):
         assert isinstance(labels, list)
-        if isinstance(addr, tuple):
+        is_tuple = isinstance(addr, tuple)
+        if is_tuple:
+            # for _AddrPrefix.parser
             assert not labels
-            our_addr = addr
-            our_length = length
-        else:
-            label_length = struct.calcsize(self._LABEL_PACK_STR) * 8 * \
-                len(labels)
-            our_length = label_length + length
-            our_addr = (labels, addr)
-        super(_LabelledAddrPrefix, self).__init__(length=our_length,
-                                                  addr=our_addr)
+            labels = addr[0]
+            addr = addr[1:]
+        prefix_length = struct.calcsize(self._LABEL_PACK_STR) * 8 * len(labels)
+        prefixes = (labels,)
+        if is_tuple:
+            # for _AddrPrefix.parser
+            assert length > prefix_length
+            length -= prefix_length
+        super(_LabelledAddrPrefix, self).__init__(prefix_length=prefix_length,
+                                                  prefixes=prefixes,
+                                                  length=length,
+                                                  addr=addr,
+                                                  **kwargs)
 
     @classmethod
     def _label_to_bin(cls, label):
@@ -227,33 +246,36 @@ class _LabelledAddrPrefix(_AddrPrefix):
 
     @classmethod
     def _to_bin(cls, addr):
-        (labels, prefix) = addr
+        labels = addr[0]
+        rest = addr[1:]
         labels = map(lambda x: x << 4, labels)
         if labels:
             labels[-1] |= 1  # bottom of stack
         bin_labels = map(cls._label_to_bin, labels)
         return bytes(reduce(lambda x, y: x + y, bin_labels,
-                            bytearray()) + cls._prefix_to_bin(prefix))
+                            bytearray()) + cls._prefix_to_bin(rest))
 
     @classmethod
     def _from_bin(cls, addr):
+        rest = addr
         labels = []
         while True:
-            (label, addr) = cls._label_from_bin(addr)
+            (label, rest) = cls._label_from_bin(rest)
             labels.append(label >> 4)
             if label & 1:  # bottom of stack
                 break
-        return (labels, cls._prefix_from_bin(addr))
+        return (labels,) + cls._prefix_from_bin(rest)
 
 
 class _UnlabelledAddrPrefix(_AddrPrefix):
     @classmethod
     def _to_bin(cls, addr):
-        return cls._prefix_to_bin(addr)
+        return cls._prefix_to_bin((addr,))
 
     @classmethod
-    def _from_bin(cls, addr):
-        return cls._prefix_from_bin(addr)
+    def _from_bin(cls, binaddr):
+        (addr,) = cls._prefix_from_bin(binaddr)
+        return addr
 
 
 class _IPAddrPrefix(_AddrPrefix):
@@ -265,14 +287,52 @@ class _IPAddrPrefix(_AddrPrefix):
 
     @staticmethod
     def _prefix_to_bin(addr):
+        (addr,) = addr
         return addrconv.ipv4.text_to_bin(addr)
 
     @staticmethod
     def _prefix_from_bin(addr):
-        return addrconv.ipv4.bin_to_text(pad(addr, 4))
+        return (addrconv.ipv4.bin_to_text(pad(addr, 4)),)
 
 
-class LabelledIPAddrPrefix(_LabelledAddrPrefix, _IPAddrPrefix):
+class _VPNAddrPrefix(_AddrPrefix):
+    _RD_PACK_STR = '!Q'
+
+    def __init__(self, length, addr, prefix_length=0, prefixes=(),
+                 route_dist=0):
+        our_prefix_length = struct.calcsize(self._RD_PACK_STR) * 8
+        if isinstance(addr, tuple):
+            # for _AddrPrefix.parser
+            assert not route_dist
+            assert length > our_prefix_length
+            route_dist = addr[0]
+            addr = addr[1:]
+            length -= our_prefix_length
+        prefix_length += our_prefix_length
+        prefixes = prefixes + (route_dist,)
+        super(_VPNAddrPrefix, self).__init__(prefix_length=prefix_length,
+                                             prefixes=prefixes,
+                                             length=length,
+                                             addr=addr)
+
+    @classmethod
+    def _prefix_to_bin(cls, addr):
+        rd = addr[0]
+        rest = addr[1:]
+        binrd = bytearray()
+        msg_pack_into(cls._RD_PACK_STR, binrd, 0, rd)
+        return binrd + super(_VPNAddrPrefix, cls)._prefix_to_bin(rest)
+
+    @classmethod
+    def _prefix_from_bin(cls, binaddr):
+        binrd = binaddr[:8]
+        binrest = binaddr[8:]
+        (rd,) = struct.unpack_from(cls._RD_PACK_STR, buffer(binrd))
+        return (rd,) + super(_VPNAddrPrefix, cls)._prefix_from_bin(binrest)
+
+
+class LabelledVPNIPAddrPrefix(_LabelledAddrPrefix, _VPNAddrPrefix,
+                              _IPAddrPrefix):
     pass
 
 
@@ -282,7 +342,7 @@ class IPAddrPrefix(_UnlabelledAddrPrefix, _IPAddrPrefix):
 
 _ADDR_CLASSES = {
     (afi.IP, safi.UNICAST): IPAddrPrefix,
-    (afi.IP, safi.MPLS_VPN): LabelledIPAddrPrefix,
+    (afi.IP, safi.MPLS_VPN): LabelledVPNIPAddrPrefix,
 }
 
 
