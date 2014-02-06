@@ -55,10 +55,10 @@ CONF.register_cli_opts([
 
 def main():
     try:
-        CONF(project='ryu', version='neutron-ryu-ml2-agent %s' % version,
+        CONF(project='ryu', version='ofs_neutron_agent %s' % version,
              default_config_files=['/usr/local/etc/ryu/ryu.conf'])
     except cfg.ConfigFilesNotFoundError:
-        CONF(project='ryu', version='neutron-ryu-ml2-agent %s' % version)
+        CONF(project='ryu', version='ofs_neutron_agent %s' % version)
 
     osn_config.setup_logging(CONF)
 
