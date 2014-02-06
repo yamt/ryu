@@ -1,5 +1,5 @@
-# Copyright (C) 2013 Nippon Telegraph and Telephone Corporation.
-# Copyright (C) 2013 YAMAMOTO Takashi <yamamoto at valinux co jp>
+# Copyright (C) 2013,2014 Nippon Telegraph and Telephone Corporation.
+# Copyright (C) 2013,2014 YAMAMOTO Takashi <yamamoto at valinux co jp>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -45,7 +45,20 @@ class Test_Manager(unittest.TestCase):
     def test_help(self):
         main()
 
+    @staticmethod
+    def _reset_globals():
+        # hack to reset globals like SERVICE_BRICKS
+        import ryu.base.app_manager
+        reload(ryu.base.app_manager)
+
     @mock.patch('sys.argv', new=['ryu-manager', '--verbose',
                                  'ryu.tests.unit.cmd.dummy_app'])
     def test_no_services(self):
+        self._reset_globals()
+        main()
+
+    @mock.patch('sys.argv', new=['ryu-manager', '--verbose',
+                                 'ryu.tests.unit.cmd.dummy_openflow_app'])
+    def test_openflow_app(self):
+        self._reset_globals()
         main()
