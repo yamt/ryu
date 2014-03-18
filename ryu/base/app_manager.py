@@ -37,6 +37,14 @@ def lookup_service_brick(name):
     return SERVICE_BRICKS.get(name)
 
 
+def _lookup_service_brick_by_ev_cls(ev_cls):
+    return _lookup_service_brick_by_mod_name(ev_cls.__module__)
+
+
+def _lookup_service_brick_by_mod_name(mod_name):
+    return lookup_service_brick(mod_name.split('.')[-1])
+
+
 def register_app(app):
     assert isinstance(app, RyuApp)
     assert not app.name in SERVICE_BRICKS
@@ -170,6 +178,16 @@ class RyuApp(object):
     def unregister_observer_all_event(self, name):
         for observers in self.observers.values():
             observers.pop(name, None)
+
+    def observe_event(self, ev_cls, states=None):
+        brick = _lookup_service_brick_by_ev_cls(ev_cls)
+        if brick is not None:
+            brick.register_observer(ev_cls, self.name, states)
+
+    def unobserve_event(self, ev_cls):
+        brick = _lookup_service_brick_by_ev_cls(ev_cls)
+        if brick is not None:
+            brick.unregister_observer(ev_cls, self.name)
 
     def get_handlers(self, ev, state=None):
         handlers = self.event_handlers.get(ev.__class__, [])
@@ -339,12 +357,10 @@ class AppManager(object):
                 for e in m.callers.values():
                     if not e.ev_source:
                         continue
-                    # name is module name of ev_cls
-                    name = e.ev_source.split('.')[-1]
-                    if name in SERVICE_BRICKS:
-                        brick = SERVICE_BRICKS[name]
-                        brick.register_observer(
-                            e.ev_cls, i.name, e.dispatchers)
+                    brick = _lookup_service_brick_by_mod_name(e.ev_source)
+                    if brick:
+                        brick.register_observer(e.ev_cls, i.name,
+                                                m.dispatchers)
 
                     # allow RyuApp and Event class are in different module
                     for brick in SERVICE_BRICKS.itervalues():
