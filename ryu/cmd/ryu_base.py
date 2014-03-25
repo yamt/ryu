@@ -25,7 +25,7 @@ import sys
 
 
 subcommands = {
-    'manager': 'ryu.cmd.manager',
+    'run': 'ryu.cmd.manager',
     'of-config-cli': 'ryu.cmd.of_config_cli',
     'rpc-cli': 'ryu.cmd.rpc_cli',
 }
