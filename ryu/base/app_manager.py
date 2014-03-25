@@ -196,7 +196,8 @@ class RyuApp(object):
 
         dispatchers = lambda x: x.callers[ev.__class__].dispatchers
         return [handler for handler in handlers
-                if not dispatchers(handler) or state in dispatchers(handler)]
+                if not ev.__class__ in handler.callers or
+                state in dispatchers(handler)]
 
     def get_observers(self, ev, state):
         observers = []
