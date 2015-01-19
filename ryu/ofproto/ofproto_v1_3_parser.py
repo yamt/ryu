@@ -6046,4 +6046,3 @@ nx_actions.generate(
     'ryu.ofproto.ofproto_v1_3',
     'ryu.ofproto.ofproto_v1_3_parser'
 )
-
