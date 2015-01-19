@@ -3271,116 +3271,6 @@ class OFPActionExperimenterUnknown(OFPActionExperimenter):
                       self.data)
 
 
-class NXAction(OFPActionExperimenter):
-    _fmt_str = '!H'  # subtype
-    _subtypes = {}
-    experimenter = ofproto_common.NX_EXPERIMENTER_ID
-
-    def __init__(self):
-        super(NXAction, self).__init__(experimenter=self.experimenter)
-        self.subtype = self.subtype
-
-    @classmethod
-    def parse(cls, buf):
-        fmt_str = NXAction._fmt_str
-        (subtype,) = struct.unpack_from(fmt_str, buf, 0)
-        subtype_cls = cls._subtypes.get(subtype)
-        rest = buf[struct.calcsize(fmt_str):]
-        if subtype_cls is None:
-            return NXActionUnknown(subtype, rest)
-        return subtype_cls.parse(rest)
-
-    def serialize(self, buf, offset):
-        super(NXAction, self).serialize(buf, offset)
-        msg_pack_into(NXAction._fmt_str,
-                      buf,
-                      offset + ofproto.OFP_ACTION_EXPERIMENTER_HEADER_SIZE,
-                      self.subtype)
-
-    @classmethod
-    def register(cls, subtype_cls):
-        assert subtype_cls.subtype is not cls._subtypes
-        cls._subtypes[subtype_cls.subtype] = subtype_cls
-
-
-class NXActionUnknown(NXAction):
-    def __init__(self, subtype, data=None,
-                 type_=None, len_=None, experimenter=None):
-        self.subtype = subtype
-        super(NXActionUnknown, self).__init__()
-        self.data = data
-
-    @classmethod
-    def parse(cls, subtype, buf):
-        return cls(data=buf)
-
-    def serialize(self, buf, offset):
-        # fixup
-        data = self.data
-        if data is None:
-            data = bytearray()
-        payload_offset = (ofproto.OFP_ACTION_EXPERIMENTER_HEADER_SIZE +
-            struct.calcsize(NXAction._fmt_str))
-        self.len = utils.round_up(payload_offset + len(data), 8)
-        super(NXActionUnknown, self).serialize(buf, offset)
-        buf += data
-
-
-class NXActionRegMove(NXAction):
-    subtype = nicira_ext.NXAST_REG_MOVE
-    _fmt_str = '!HHH'  # n_bits, src_ofs, dst_ofs
-    # Followed by OXM fields (src, dst) and padding to 8 bytes boundary
-
-    def __init__(self, src_field, dst_field, n_bits, src_ofs=0, dst_ofs=0,
-                 type_=None, len_=None, experimenter=None, subtype=None):
-        super(NXActionRegMove, self).__init__()
-        self.experimenter = ofproto_common.NX_EXPERIMENTER_ID
-        self.subtype = self.subtype
-        self.n_bits = n_bits
-        self.src_ofs = src_ofs
-        self.dst_ofs = dst_ofs
-        self.src_field = src_field
-        self.dst_field = dst_field
-
-    @classmethod
-    def parse(cls, buf):
-        (n_bits, src_ofs, dst_ofs,) = struct.unpack_from(
-            NXActionRegMove._fmt_str, buf, 0)
-        rest = buf[struct.calcsize(NXActionRegMove._fmt_str):]
-        # src field
-        (n, len) = ofproto.oxm_parse_header(rest, 0)
-        src_field = ofproto.oxm_to_user_header(n)
-        rest = rest[len:]
-        # dst field
-        (n, len) = ofproto.oxm_parse_header(rest, 0)
-        dst_field = ofproto.oxm_to_user_header(n)
-        rest = rest[len:]
-        # ignore padding
-        return cls(src_field, dst_field=dst_field, n_bits=n_bits,
-                   src_ofs=src_ofs, dst_ofs=dst_ofs)
-
-    def serialize(self, buf, offset):
-        # fixup
-        data = bytearray()
-        msg_pack_into(NXActionRegMove._fmt_str, data, 0,
-                      self.n_bits, self.src_ofs, self.dst_ofs)
-        # src field
-        n = ofproto.oxm_from_user_header(self.src_field)
-        ofproto.oxm_serialize_header(n, data, len(data))
-        # dst field
-        n = ofproto.oxm_from_user_header(self.dst_field)
-        ofproto.oxm_serialize_header(n, data, len(data))
-        payload_offset = (ofproto.OFP_ACTION_EXPERIMENTER_HEADER_SIZE +
-            struct.calcsize(NXAction._fmt_str))
-        self.len = utils.round_up(payload_offset + len(data), 8)
-        super(NXActionRegMove, self).serialize(buf, offset)
-        msg_pack_into('!%ds' % len(data), buf, offset + payload_offset,
-                      bytes(data))
-
-
-NXAction.register(NXActionRegMove)
-
-
 class OFPBucket(StringifyMixin):
     def __init__(self, weight=0, watch_port=ofproto.OFPP_ANY,
                  watch_group=ofproto.OFPG_ANY, actions=None, len_=None):
@@ -6148,3 +6038,12 @@ class OFPSetAsync(MsgBase):
                       self.packet_in_mask[0], self.packet_in_mask[1],
                       self.port_status_mask[0], self.port_status_mask[1],
                       self.flow_removed_mask[0], self.flow_removed_mask[1])
+
+
+import nx_actions
+
+nx_actions.generate(
+    'ryu.ofproto.ofproto_v1_3',
+    'ryu.ofproto.ofproto_v1_3_parser'
+)
+
