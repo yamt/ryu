@@ -14,17 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# a bug workaround.  http://bugs.python.org/issue15881
-try:
-    import multiprocessing
-except ImportError:
-    pass
-
-import setuptools
-import ryu.hooks
+import dosetup
 
 
-ryu.hooks.save_orig()
-setuptools.setup(name='ryu',
-                 setup_requires=['pbr'],
-                 pbr=True)
+dosetup.dosetup('ryu')

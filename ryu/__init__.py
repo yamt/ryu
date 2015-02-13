@@ -16,3 +16,5 @@
 
 version_info = (3, 18)
 version = '.'.join(map(str, version_info))
+
+#__import__('pkg_resources').declare_namespace(__name__)
