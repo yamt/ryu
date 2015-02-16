@@ -140,24 +140,25 @@ packages['ryu'] = {
 }
 
 
+def setup_reqs(name):
+    pkg = packages[name]
+    reqs = pkg.get('install_requires', [])
+    reqs = [r for r in reqs if r.startswith('ryu-')]
+    for r in reqs:
+        n = r.split('==')[0]
+        setup_req(n)
+        dosetup(n)
+
+
 def dosetup(target):
     if target == '__ryu-sub-packages__':
-        def merge(d, s):
-            for k, v in s.iteritems():
-                if isinstance(v, list):
-                    d.setdefault(k, []).extend(v)
-                else:
-                    d.setdefault(k, {}).update(v)
-        prefix = 'ryu-'
-        kwargs = {}
-        for k, v in packages.iteritems():
-            if k.startswith(prefix):
-                merge(kwargs, v)
-        kwargs['install_requires'] = [r for r in kwargs['install_requires']
-                                      if not r.startswith(prefix)]
-        print kwargs
+        setup_reqs('ryu')
     else:
-        kwargs = packages[target]
+        dosetup2(target)
+
+
+def dosetup2(target):
+    kwargs = packages[target]
     ryu.hooks.save_orig()
     py_modules = kwargs.pop('py_modules', [])
     py_modules += [
