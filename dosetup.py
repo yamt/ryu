@@ -121,7 +121,6 @@ packages = {
     'ryu-ofproto': {
         'packages': [
             'ryu.ofproto',
-            'ryu.topology',
         ],
         'install_requires': [
             'ryu-base==%s' % ryu.version,
@@ -142,7 +141,23 @@ packages['ryu'] = {
 
 
 def dosetup(target):
-    kwargs = packages[target]
+    if target == '__ryu-sub-packages__':
+        def merge(d, s):
+            for k, v in s.iteritems():
+                if isinstance(v, list):
+                    d.setdefault(k, []).extend(v)
+                else:
+                    d.setdefault(k, {}).update(v)
+        prefix = 'ryu-'
+        kwargs = {}
+        for k, v in packages.iteritems():
+            if k.startswith(prefix):
+                merge(kwargs, v)
+        kwargs['install_requires'] = [r for r in kwargs['install_requires']
+                                      if not r.startswith(prefix)]
+        print kwargs
+    else:
+        kwargs = packages[target]
     ryu.hooks.save_orig()
     py_modules = kwargs.pop('py_modules', [])
     py_modules += [
