@@ -33,11 +33,13 @@ def save_orig():
     """Save original easy_install.get_script_args.
     This is necessary because pbr's setup_hook is sometimes called
     before ours."""
+    return
     _main_module()._orig_get_script_args = easy_install.get_script_args
 
 
 def setup_hook(config):
     """Filter config parsed from a setup.cfg to inject our defaults."""
+    return
     metadata = config['metadata']
     if sys.platform == 'win32':
         requires = metadata.get('requires_dist', '').split('\n')
