@@ -146,7 +146,7 @@ def setup_reqs(name):
     reqs = [r for r in reqs if r.startswith('ryu-')]
     for r in reqs:
         n = r.split('==')[0]
-        setup_req(n)
+        setup_reqs(n)
         dosetup(n)
 
 
