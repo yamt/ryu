@@ -144,7 +144,14 @@ packages['ryu'] = {
 def dosetup(target):
     kwargs = packages[target]
     ryu.hooks.save_orig()
+    py_modules = kwargs.pop('py_modules', [])
+    py_modules += [
+        'dosetup',
+        'ryu/__init__',
+        'ryu/hooks',
+    ]
     setuptools.setup(name=target,
+                     py_modules=py_modules,
                      version=ryu.version,
                      setup_requires=['d2to1'], d2to1=True,
                      **kwargs)
